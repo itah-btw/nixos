@@ -357,9 +357,8 @@
     [window]
     padding = { x = 6, y = 6 }
     dynamic_padding = true
-    # Fully opaque: any opacity<1 makes alacritty an ARGB window and picom
-    # renders the oxwm border around it semi-transparent (see-through focus
-    # border). 1.0 keeps the border solid.
+    # Fully opaque window: with a compositor absent, an ARGB window (opacity<1)
+    # has no one to blend it, and oxwm's solid border needs an opaque window.
     opacity = 1.0
 
     [font]
@@ -373,18 +372,10 @@
     style = { shape = "Block", blinking = "On" }
   '';
 
-  # Compositor with GLX VSync (started from oxwm autostart).
-  xdg.configFile."picom/picom.conf".text = ''
-    backend = "glx";
-    vsync = true;
-
-    # Let fullscreen apps own the screen instead of being re-composited.
-    unredir-if-possible = true;
-    detect-rounded-corners = true;
-
-    shadow = false;
-    fading = false;
-  '';
+  # Compositor removed: picom composites oxwm's server-drawn borders as
+  # semi-transparent (shows wallpaper through the focus border). See
+  # https://github.com/tonybanters/oxwm/issues/53. TearFree is set in
+  # modules/nixos/desktop.nix instead. No picom.conf needed.
 
   # Standard folders: Documents, Downloads, Music, Pictures, Videos, ...
   xdg.userDirs = {

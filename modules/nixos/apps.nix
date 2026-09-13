@@ -53,7 +53,6 @@ in {
     obs-studio
     ouch
     p7zip
-    picom
     poppler-utils
     pulsemixer
     qogir-icon-theme

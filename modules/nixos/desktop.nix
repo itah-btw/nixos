@@ -15,6 +15,14 @@
       enable = true;
       generateScript = true;
     };
+
+    # No compositor (picom was removed: oxwm paints its borders server-side and
+    # picom composites that band semi-transparently, showing the wallpaper
+    # through it — upstream issue tonybanters/oxwm#53). TearFree keeps output
+    # tear-free at the driver level instead of via GLX vsync.
+    deviceSection = ''
+      Option "TearFree" "true"
+    '';
   };
 
   # No display manager: login happens on tty1 via getty autologin,
