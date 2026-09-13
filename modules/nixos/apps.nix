@@ -9,15 +9,15 @@ let
   # `catppuccin` desktop theme has a matching GTK theme.
   catppuccinMocha = pkgs.runCommand "catppuccin-gtk-mocha"
     {
-      src = pkgs.fetchzip {
-        name = "catppuccin-mocha-blue-standard";
+      src = pkgs.fetchurl {
         url = "https://github.com/catppuccin/gtk/releases/download/v1.0.3/catppuccin-mocha-blue-standard%2Bdefault.zip";
         sha256 = "1p1vflydcp184sxn8x7ffc6kfil031816hfymwzn4cpbri8i10c3";
       };
     }
     ''
-      mkdir -p $out/share/themes
-      cp -r $src/catppuccin-mocha-blue-standard+default $out/share/themes/
+      unzip -q $src -d $out/share/themes
+      rm -rf $out/share/themes/catppuccin-mocha-blue-standard+default-hdpi \
+             $out/share/themes/catppuccin-mocha-blue-standard+default-xhdpi
     '';
 in {
   environment.systemPackages = with pkgs; [
