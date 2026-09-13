@@ -357,7 +357,10 @@
     [window]
     padding = { x = 6, y = 6 }
     dynamic_padding = true
-    opacity = 0.96
+    # Fully opaque: any opacity<1 makes alacritty an ARGB window and picom
+    # renders the oxwm border around it semi-transparent (see-through focus
+    # border). 1.0 keeps the border solid.
+    opacity = 1.0
 
     [font]
     size = 6.5

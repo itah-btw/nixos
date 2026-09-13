@@ -234,8 +234,9 @@ def write_configs(name):
     # btop (theme selection; takes effect on next launch - btop has no config
     # reload, so reopen a running btop after `theme apply`)
     os.makedirs(os.path.dirname(BTOP_CONF), exist_ok=True)
+    btop_name = th.get("btop", "default")
     with open(BTOP_CONF, "w") as f:
-        f.write(head + "theme = %s\n" % th.get("btop", "default"))
+        f.write(head + 'color_theme = "%s"\n' % btop_name)
 
 
 def shutil_copy(src, dst):
