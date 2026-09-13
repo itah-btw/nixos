@@ -36,13 +36,6 @@
           exit 1
         fi
 
-        # Auto-backup: commit + push any config changes (incl. the refreshed
-        # flake.lock). Tolerate a dirty tree / being offline.
-        if git -C /etc/nixos add -A && ! git -C /etc/nixos diff --cached --quiet; then
-          git -C /etc/nixos commit -m "auto-upgrade: $(date '+%F %T')" || true
-          git -C /etc/nixos push || true
-        fi
-
         if [ "$old_lock" != "$new_lock" ]; then
           notify -h string:synchronous:nixos-upgrade "NixOS upgrade applied" "nixpkgs updated and system rebuilt"
         fi
@@ -55,6 +48,34 @@
     wantedBy = ["timers.target"];
     timerConfig = {
       OnCalendar = "daily";
+      Persistent = true;
+      RandomizedDelaySec = "15m";
+    };
+  };
+
+  # Weekly config backup: commit + push /etc/nixos to GitHub (manual run:
+  # `sudo systemctl start nixos-git-push`). Keeps flake.lock and edits backed
+  # up on a stable cadence without pushing after every rebuild.
+  systemd.services.nixos-git-push = {
+    description = "Weekly config commit + push to GitHub";
+    serviceConfig = {
+      Type = "oneshot";
+      ExecStart = pkgs.writeShellScript "nixos-git-push" ''
+        set -eu
+        export PATH=/run/current-system/sw/bin:$PATH
+        if git -C /etc/nixos add -A && ! git -C /etc/nixos diff --cached --quiet; then
+          git -C /etc/nixos commit -m "weekly sync: $(date '+%F %T')"
+        fi
+        git -C /etc/nixos push || true
+      '';
+    };
+  };
+
+  systemd.timers.nixos-git-push = {
+    description = "Weekly trigger for nixos-git-push.service";
+    wantedBy = ["timers.target"];
+    timerConfig = {
+      OnCalendar = "Mon *-*-* 04:00:00";
       Persistent = true;
       RandomizedDelaySec = "15m";
     };
