@@ -43,19 +43,27 @@
       USER_HOME = "/homeless-shelter";
     }
     ''
-      mkdir -p $out/share/icons
+            mkdir -p $out/share/icons
 
-      mkdir -p work/fork
-      unzip -q $fork -d work/fork
+            mkdir -p work/fork
+            unzip -q $fork -d work/fork
 
-      for theme in Papirus Papirus-Dark Papirus-Light; do
-        cp -rL "$iconThemes/share/icons/$theme" "$out/share/icons/$theme"
-        chmod -R u+rwX "$out/share/icons/$theme"
-        for sz in 22x22 24x24 32x32 48x48 64x64; do
-          cp -f work/fork/*/src/$sz/places/*.svg "$out/share/icons/$theme/$sz/places/"
-        done
-        DISABLE_UPDATE_ICON_CACHE=1 bash $script -t "$out/share/icons/$theme" -C cat-mocha-mauve -o
-      done
+            mkdir -p work/bin
+            cat > work/bin/getent <<'EOF'
+      #!/usr/bin/env bash
+      [ "$1" = "passwd" ] && { echo "nixbld:x:1000:1000::/homeless-shelter:/bin/bash"; exit 0; }
+      exit 1
+      EOF
+            export PATH="$PWD/work/bin:$PATH"
+
+            for theme in Papirus Papirus-Dark Papirus-Light; do
+              cp -rL "$iconThemes/share/icons/$theme" "$out/share/icons/$theme"
+              chmod -R u+rwX "$out/share/icons/$theme"
+              for sz in 22x22 24x24 32x32 48x48 64x64; do
+                cp -f work/fork/*/src/$sz/places/*.svg "$out/share/icons/$theme/$sz/places/"
+              done
+              DISABLE_UPDATE_ICON_CACHE=1 bash $script -t "$out/share/icons/$theme" -C cat-mocha-mauve -o
+            done
     '';
 in {
   environment.systemPackages = with pkgs; [
