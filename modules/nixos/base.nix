@@ -9,47 +9,77 @@
   # Keep the boot menu short: only the latest 5 generations are bootable.
   boot.loader.systemd-boot.configurationLimit = 5;
 
-  # Daily automatic upgrade: refresh the flake lock first (so nixpkgs actually
-  # advances), then rebuild the system from /etc/nixos.
-  # Manual run: `sudo systemctl start nixos-auto-upgrade` (alias: upgrade).
-  systemd.services.nixos-auto-upgrade = {
-    description = "Daily NixOS upgrade (flake update + rebuild)";
+  # No auto-upgrade. Daily: just check whether nixpkgs has a newer revision and
+  # notify itah (no lock change, no rebuild). Manual upgrade: `sudo systemctl
+  # start nixos-upgrade` (alias: upgrade) or `update`+`rebuild`.
+  systemd.services.nixos-check-updates = {
+    description = "Daily nixpkgs update check (notify only)";
     serviceConfig = {
       Type = "oneshot";
-      ExecStart = pkgs.writeShellScript "nixos-auto-upgrade" ''
-        set -eu
+      ExecStart = pkgs.writeShellScript "nixos-check-updates" ''
+        set -u
         export PATH=/run/current-system/sw/bin:$PATH
-
         notify() {
           runuser -u itah -- env DISPLAY=:0 XDG_RUNTIME_DIR=/run/user/1000 \
             DBUS_SESSION_BUS_ADDRESS=unix:path=/run/user/1000/bus \
             notify-send -t 8000 "$@" || true
         }
 
-        # Refresh the lock; tolerate being offline (then it's just a normal rebuild).
-        old_lock=$(cut -d' ' -f1 < /etc/nixos/flake.lock | sha256sum)
-        nix flake update /etc/nixos || true
-        new_lock=$(cut -d' ' -f1 < /etc/nixos/flake.lock | sha256sum)
+        # Locked nixpkgs revision in /etc/nixos/flake.lock.
+        cur=$(nix flake metadata /etc/nixos --json 2>/dev/null | python3 -c '
+import json, sys
+try:
+    print(json.load(sys.stdin)["locks"]["nodes"]["nixpkgs"]["locked"].get("rev", ""))
+except Exception:
+    print("")' 2>/dev/null)
 
-        if ! nixos-rebuild switch --flake /etc/nixos#nixos --show-trace; then
-          notify -u critical "NixOS upgrade failed" "Check: journalctl -u nixos-auto-upgrade -n 50"
-          exit 1
-        fi
+        # Newest nixpkgs revision on the branch (network fetch, lock untouched).
+        meta=$(nix flake metadata github:NixOS/nixpkgs/nixos-unstable --json 2>/dev/null) || exit 0
+        new=$(printf '%s' "$meta" | python3 -c '
+import json, sys
+try:
+    print(json.load(sys.stdin)["locked"]["rev"])
+except Exception:
+    pass' 2>/dev/null)
 
-        if [ "$old_lock" != "$new_lock" ]; then
-          notify -h string:synchronous:nixos-upgrade "NixOS upgrade applied" "nixpkgs updated and system rebuilt"
-        fi
+        [ -n "$cur" ] && [ -n "$new" ] && [ "$cur" != "$new" ] || exit 0
+        notify -h string:synchronous:nixos-updates "New nixpkgs available" \
+          "unstable $(echo "$new" | cut -c1-8) vs yours $(echo "$cur" | cut -c1-8). Run 'update' then 'rebuild' to apply."
       '';
     };
   };
 
-  systemd.timers.nixos-auto-upgrade = {
-    description = "Daily trigger for nixos-auto-upgrade.service";
+  systemd.timers.nixos-check-updates = {
+    description = "Daily trigger for nixos-check-updates.service";
     wantedBy = ["timers.target"];
     timerConfig = {
       OnCalendar = "daily";
       Persistent = true;
       RandomizedDelaySec = "15m";
+    };
+  };
+
+  # Manual upgrade (update lock + rebuild + notify). No longer automatic.
+  systemd.services.nixos-upgrade = {
+    description = "Manual NixOS upgrade (flake update + rebuild)";
+    serviceConfig = {
+      Type = "oneshot";
+      ExecStart = pkgs.writeShellScript "nixos-upgrade" ''
+        set -eu
+        export PATH=/run/current-system/sw/bin:$PATH
+        notify() {
+          runuser -u itah -- env DISPLAY=:0 XDG_RUNTIME_DIR=/run/user/1000 \
+            DBUS_SESSION_BUS_ADDRESS=unix:path=/run/user/1000/bus \
+            notify-send -t 8000 "$@" || true
+        }
+
+        nix flake update /etc/nixos || true
+        if ! nixos-rebuild switch --flake /etc/nixos#nixos --show-trace; then
+          notify -u critical "NixOS upgrade failed" "Check: journalctl -u nixos-upgrade -n 50"
+          exit 1
+        fi
+        notify -h string:synchronous:nixos-upgrade "NixOS upgrade applied" "system rebuilt"
+      '';
     };
   };
 
