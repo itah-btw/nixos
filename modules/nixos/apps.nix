@@ -40,6 +40,7 @@
         sha256 = "sha256-swpoSKAGkDAqzP/AUFSSGLCxFNMXiyi9OhaJGBeCGwY=";
       };
       nativeBuildInputs = [pkgs.unzip pkgs.bash pkgs.coreutils];
+      USER_HOME = "/homeless-shelter";
     }
     ''
       mkdir -p $out/share/icons
