@@ -2,18 +2,18 @@
   config,
   pkgs,
   ...
-}:
-let
+}: let
   # nixpkgs' catppuccin-gtk only ships the frappe flavor; grab the prebuilt
   # mocha-blue GTK theme directly from the catppuccin/gtk release so the
   # `catppuccin` desktop theme has a matching GTK theme.
-  catppuccinMocha = pkgs.runCommand "catppuccin-gtk-mocha"
+  catppuccinMocha =
+    pkgs.runCommand "catppuccin-gtk-mocha"
     {
       src = pkgs.fetchurl {
         url = "https://github.com/catppuccin/gtk/releases/download/v1.0.3/catppuccin-mocha-blue-standard%2Bdefault.zip";
         sha256 = "1p1vflydcp184sxn8x7ffc6kfil031816hfymwzn4cpbri8i10c3";
       };
-      nativeBuildInputs = [ pkgs.unzip ];
+      nativeBuildInputs = [pkgs.unzip];
     }
     ''
       mkdir -p $out/share/themes
