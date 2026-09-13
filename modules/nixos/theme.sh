@@ -32,7 +32,7 @@ THEMES = {
                 "#1f2335", "#7aa2f7", "#1f2335", "#f7768e"),
         "border": ("#7aa2f7", "#3b4261"),
         "dmenu": ("#1f2335", "#c0caf5", "#7aa2f7", "#1f2335"),
-        "gtk": ("Qogir-dark", "Qogir"),
+        "gtk": ("Qogir-Dark", "Qogir"),
         "alacritty": {
             "bg": "#1f2335", "fg": "#c0caf5",
             "black": "#414868", "red": "#f7768e", "green": "#9ece6a",
