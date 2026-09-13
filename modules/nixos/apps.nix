@@ -23,6 +23,39 @@
       mv $out/share/themes/catppuccin-mocha-mauve-standard+default \
          $out/share/themes/catppuccin-mocha
     '';
+  # Papirus with Catppuccin Mocha (mauve) folders: the nixpkgs
+  # catppuccin-papirus-folders package only ships stock Papirus themes, so
+  # recolor them at build time with the upstream papirus-folders script plus
+  # the catppuccin/papirus-folders folder SVGs (color cat-mocha-mauve).
+  catppuccinPapirus =
+    pkgs.runCommand "papirus-catppuccin-mocha-mauve"
+    {
+      iconThemes = pkgs.papirus-icon-theme;
+      fork = pkgs.fetchurl {
+        url = "https://github.com/catppuccin/papirus-folders/archive/f83671d17ea67e335b34f8028a7e6d78bca735d7.zip";
+        sha256 = "sha256-LfQcAd62tDKsisd0wAcBmoArK4GyWs++ObA4aJbwPD8=";
+      };
+      script = pkgs.fetchurl {
+        url = "https://raw.githubusercontent.com/PapirusDevelopmentTeam/papirus-folders/master/papirus-folders";
+        sha256 = "sha256-swpoSKAGkDAqzP/AUFSSGLCxFNMXiyi9OhaJGBeCGwY=";
+      };
+      nativeBuildInputs = [pkgs.unzip pkgs.bash pkgs.coreutils];
+    }
+    ''
+      mkdir -p $out/share/icons
+
+      mkdir -p work/fork
+      unzip -q $fork -d work/fork
+      chmod +x $script
+
+      for theme in Papirus Papirus-Dark Papirus-Light; do
+        cp -rL "$iconThemes/share/icons/$theme" "$out/share/icons/$theme"
+        for sz in 22x22 24x24 32x32 48x48 64x64; do
+          cp -f work/fork/*/src/$sz/places/*.svg "$out/share/icons/$theme/$sz/places/"
+        done
+        DISABLE_UPDATE_ICON_CACHE=1 bash $script -t "$out/share/icons/$theme" -C cat-mocha-mauve -o
+      done
+    '';
 in {
   environment.systemPackages = with pkgs; [
     android-tools
@@ -54,7 +87,7 @@ in {
     obs-studio
     ouch
     p7zip
-    papirus-icon-theme
+    catppuccinPapirus
     poppler-utils
     pulsemixer
     catppuccinMochaMauve
