@@ -216,8 +216,9 @@ def apply(name, restart=True):
         # Wallpaper (feh roots the current.jpg)
         subprocess.call(["feh", "--bg-fill", WALL_CURRENT],
                         stderr=subprocess.DEVNULL)
-        # Restart dunst with the themed config
-        subprocess.call(["pkill", "-x", "dunst"],
+        # Restart dunst with the themed config (comm is ".dunst-wrapped", so
+        # pkill must match the wrapped name with a regex)
+        subprocess.call(["pkill", "dunst"],
                         stderr=subprocess.DEVNULL)
         subprocess.Popen(
             ["setsid", "dunst", "-config", DUNST_FILE],
