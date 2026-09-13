@@ -2,7 +2,24 @@
   config,
   pkgs,
   ...
-}: {
+}:
+let
+  # nixpkgs' catppuccin-gtk only ships the frappe flavor; grab the prebuilt
+  # mocha-blue GTK theme directly from the catppuccin/gtk release so the
+  # `catppuccin` desktop theme has a matching GTK theme.
+  catppuccinMocha = pkgs.runCommand "catppuccin-gtk-mocha"
+    {
+      src = pkgs.fetchzip {
+        name = "catppuccin-mocha-blue-standard";
+        url = "https://github.com/catppuccin/gtk/releases/download/v1.0.3/catppuccin-mocha-blue-standard%2Bdefault.zip";
+        sha256 = "1p1vflydcp184sxn8x7ffc6kfil031816hfymwzn4cpbri8i10c3";
+      };
+    }
+    ''
+      mkdir -p $out/share/themes
+      cp -r $src/catppuccin-mocha-blue-standard+default $out/share/themes/
+    '';
+in {
   environment.systemPackages = with pkgs; [
     android-tools
     bibata-cursors
@@ -18,6 +35,7 @@
     ffmpegthumbnailer
     fzf
     glow
+    gruvbox-dark-gtk
     imv
     jq
     libreoffice
@@ -38,6 +56,7 @@
     pulsemixer
     qogir-icon-theme
     qogir-theme
+    catppuccinMocha
     ripgrep
     stylua
     (tesseract.override {enableLanguages = ["eng" "ind"];})

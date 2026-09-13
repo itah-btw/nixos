@@ -294,20 +294,10 @@
     '';
   };
 
-  # GTK apps (Thunar, etc.): Qogir dark theme + Qogir icons + Bibata cursor.
+  # GTK apps (Thunar, etc.): theme is owned by the `theme` tool, which writes
+  # ~/.config/gtk-{3,4}.0/settings.ini at login (`theme ensure`) and on every
+  # `theme apply`. Icons stay on Qogir, cursor stays Bibata for all themes.
   # Plain settings.ini (not the gtk module) to avoid dconf/bus activation.
-  xdg.configFile."gtk-3.0/settings.ini".text = ''
-    [Settings]
-    gtk-theme-name=Qogir-dark
-    gtk-icon-theme-name=Qogir
-    gtk-cursor-theme-name=Bibata-Modern-Classic
-  '';
-  xdg.configFile."gtk-4.0/settings.ini".text = ''
-    [Settings]
-    gtk-theme-name=Qogir-dark
-    gtk-icon-theme-name=Qogir
-    gtk-cursor-theme-name=Bibata-Modern-Classic
-  '';
 
   # Cursor theme at the X level (Qt/Java/WebKit apps read this via xrdb).
   xdg.configFile."Xresources".text = ''
