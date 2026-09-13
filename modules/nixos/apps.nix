@@ -13,6 +13,7 @@ let
         url = "https://github.com/catppuccin/gtk/releases/download/v1.0.3/catppuccin-mocha-blue-standard%2Bdefault.zip";
         sha256 = "1p1vflydcp184sxn8x7ffc6kfil031816hfymwzn4cpbri8i10c3";
       };
+      nativeBuildInputs = [ pkgs.unzip ];
     }
     ''
       unzip -q $src -d $out/share/themes
