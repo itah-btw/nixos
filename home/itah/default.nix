@@ -132,7 +132,7 @@
     | `Mod+Shift+O`    | opencode (TUI)        |
     | `Mod+Shift+Y`    | yazi (TUI)            |
     | `Mod+Shift+B`    | btop (TUI)            |
-    | `Mod+T`          | Thunar                |
+    | `Mod+T`          | PCManFM              |
     | `Mod+W`          | Brave                 |
     | `Mod+Shift+L`    | LibreOffice           |
     | `Mod+Shift+M`    | LocalSend             |
@@ -163,7 +163,7 @@
   xdg.mimeApps = {
     enable = true;
     defaultApplications = {
-      "inode/directory" = "thunar.desktop";
+      "inode/directory" = "pcmanfm.desktop";
 
       "application/pdf" = "org.pwmt.zathura-pdf-mupdf.desktop";
 

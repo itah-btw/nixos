@@ -453,7 +453,7 @@ oxwm.key.bind({ modkey }, "O", oxwm.spawn({ "sh", "-c", "maim -s | tesseract std
 oxwm.key.bind({ modkey, "Shift" }, "O", oxwm.spawn({ "sh", "-c", "alacritty --class opencode -e opencode" }))             -- TUI chat/GitHub Copilot
 oxwm.key.bind({ modkey, "Shift" }, "Y", oxwm.spawn({ "sh", "-c", "alacritty --class yazi -e yazi" }))                     -- file manager (TUI)
 oxwm.key.bind({ modkey, "Shift" }, "B", oxwm.spawn({ "sh", "-c", "alacritty --class btop -e btop" }))                     -- system monitor (TUI)
-oxwm.key.bind({ modkey }, "T", oxwm.spawn({ "sh", "-c", "thunar" }))                                          -- file manager (GUI)
+oxwm.key.bind({ modkey }, "T", oxwm.spawn({ "sh", "-c", "pcmanfm" }))                                          -- file manager (GUI)
 oxwm.key.bind({ modkey }, "W", oxwm.spawn({ "sh", "-c", "brave-origin" }))                                    -- browser
 oxwm.key.bind({ modkey, "Shift" }, "L", oxwm.spawn({ "sh", "-c", "libreoffice" }))                            -- office suite
 oxwm.key.bind({ modkey, "Shift" }, "M", oxwm.spawn({ "sh", "-c", "localsend_app" }))                         -- file sharing (GUI)

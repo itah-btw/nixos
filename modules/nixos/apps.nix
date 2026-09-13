@@ -79,19 +79,10 @@ in {
     xarchiver
     xdotool
     xclip
-    xfe
     yazi
     zathura
     zoxide
   ];
-
-  programs.thunar = {
-    enable = true;
-    plugins = with pkgs; [
-      thunar-archive-plugin
-      thunar-volman
-    ];
-  };
 
   services.gvfs.enable = true;
 
