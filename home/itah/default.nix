@@ -383,35 +383,13 @@
     [colors]
     primary = { background = "#1e1e2e", foreground = "#cdd6f4" }
 
-    normal = {
-      black = "#45475a"
-      red = "#f38ba8"
-      green = "#a6e3a1"
-      yellow = "#f9e2af"
-      blue = "#89b4fa"
-      magenta = "#f5c2e7"
-      cyan = "#94e2d5"
-      white = "#bac2de"
-    }
-
-    bright = {
-      black = "#585b70"
-      red = "#f38ba8"
-      green = "#a6e3a1"
-      yellow = "#f9e2af"
-      blue = "#89b4fa"
-      magenta = "#f5c2e7"
-      cyan = "#94e2d5"
-      white = "#a6adc8"
-    }
+    normal = { black = "#45475a", red = "#f38ba8", green = "#a6e3a1", yellow = "#f9e2af", blue = "#89b4fa", magenta = "#f5c2e7", cyan = "#94e2d5", white = "#bac2de" }
+    bright = { black = "#585b70", red = "#f38ba8", green = "#a6e3a1", yellow = "#f9e2af", blue = "#89b4fa", magenta = "#f5c2e7", cyan = "#94e2d5", white = "#a6adc8" }
 
     selection = { text = "#cdd6f4", background = "#313244" }
   '';
 
-  # Compositor removed: picom composites oxwm's server-drawn borders as
-  # semi-transparent (shows wallpaper through the focus border). See
-  # https://github.com/tonybanters/oxwm/issues/53. TearFree is set in
-  # modules/nixos/desktop.nix instead. No picom.conf needed.
+  # Standard folders: Documents, Downloads, Music, Pictures, Videos, ...
 
   # Standard folders: Documents, Downloads, Music, Pictures, Videos, ...
   xdg.userDirs = {

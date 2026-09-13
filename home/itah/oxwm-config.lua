@@ -481,9 +481,6 @@ oxwm.autostart("xrdb -merge ~/.Xresources")
 -- desktop cursor on theme)
 oxwm.autostart("xsetroot -cursor_name left_ptr")
 
--- No compositor: picom composites oxwm's X11-drawn borders semi-transparent
--- (shows the wallpaper through the focused border) — tonybanters/oxwm#53.
--- Tear-free output comes from the intel driver's TearFree instead (desktop.nix).
 -- Notification daemon (static Catppuccin Mocha dunstrc from home-manager)
 oxwm.autostart("pgrep dunst >/dev/null || dunst")
 -- oxwm.autostart("nm-applet")

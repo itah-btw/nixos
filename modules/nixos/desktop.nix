@@ -21,10 +21,7 @@
       generateScript = true;
     };
 
-    # No compositor (picom was removed: oxwm paints its borders server-side and
-    # picom composites that band semi-transparently, showing the wallpaper
-    # through it — upstream issue tonybanters/oxwm#53). TearFree keeps output
-    # tear-free at the driver level instead of via GLX vsync.
+    # No compositor (oxwm#53); TearFree keeps the output tear-free instead.
     deviceSection = ''
       Option "TearFree" "true"
     '';
