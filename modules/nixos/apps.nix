@@ -39,7 +39,7 @@
         url = "https://raw.githubusercontent.com/PapirusDevelopmentTeam/papirus-folders/master/papirus-folders";
         sha256 = "sha256-swpoSKAGkDAqzP/AUFSSGLCxFNMXiyi9OhaJGBeCGwY=";
       };
-      nativeBuildInputs = [pkgs.unzip pkgs.bash pkgs.coreutils];
+      nativeBuildInputs = [pkgs.unzip pkgs.bash pkgs.coreutils pkgs.gawk pkgs.glibc.bin];
       USER_HOME = "/homeless-shelter";
     }
     ''
