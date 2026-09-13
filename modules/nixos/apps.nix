@@ -49,6 +49,7 @@
 
       for theme in Papirus Papirus-Dark Papirus-Light; do
         cp -rL "$iconThemes/share/icons/$theme" "$out/share/icons/$theme"
+        chmod -R u+rwX "$out/share/icons/$theme"
         for sz in 22x22 24x24 32x32 48x48 64x64; do
           cp -f work/fork/*/src/$sz/places/*.svg "$out/share/icons/$theme/$sz/places/"
         done
