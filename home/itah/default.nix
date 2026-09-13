@@ -266,31 +266,39 @@
   xdg.configFile."oxwm/clipmenu-sync.sh" = {
     executable = true;
     text = ''
-      #!/run/current-system/sw/bin/bash
+            #!/run/current-system/sw/bin/bash
       CM_DIR="''${CM_DIR:-$HOME/.cache/clipmenu}"
-      export CM_DIR
-      cache_dir="$CM_DIR/clipmenu.6.$USER"
-      cache_file="$cache_dir/line_cache"
+            export CM_DIR
 
-      data=$(xclip -selection clipboard -o 2>/dev/null || true)
-      if [[ -z $data ]]; then
-        exec clipmenu
-      fi
+            # Theme the dmenu picker to match the current desktop theme (flags are
+            # written by `theme apply`/`theme ensure`).
+            DMENU_ARGS=""
+            if [[ -f "$HOME/.config/oxwm/theme-current.env" ]]; then
+              source "$HOME/.config/oxwm/theme-current.env"
+              DMENU_ARGS="-nb \"$DMENU_NB\" -nf \"$DMENU_NF\" -sb \"$DMENU_SB\" -sf \"$DMENU_SF\""
+            fi
+            cache_dir="$CM_DIR/clipmenu.6.$USER"
+            cache_file="$cache_dir/line_cache"
 
-      first_line=$(printf '%s' "$data" | awk -v limit=300 '
-        BEGIN { printed = 0 }
-        printed == 0 && NF {
-          $0 = substr($0, 0, limit)
-          printf("%s", $0)
-          printed = 1
-        }
-        END { if (NR > 1) printf(" (%d lines)", NR); printf("\n") }')
+            data=$(xclip -selection clipboard -o 2>/dev/null || true)
+            if [[ -z $data ]]; then
+              exec clipmenu $DMENU_ARGS
+            fi
 
-      mkdir -p "$cache_dir"
-      printf '%s %s\n' "$(date +%s%N)" "$first_line" >> "$cache_file"
-      printf '%s' "$data" > "$cache_dir/$(cksum <<< "$first_line")"
+            first_line=$(printf '%s' "$data" | awk -v limit=300 '
+              BEGIN { printed = 0 }
+              printed == 0 && NF {
+                $0 = substr($0, 0, limit)
+                printf("%s", $0)
+                printed = 1
+              }
+              END { if (NR > 1) printf(" (%d lines)", NR); printf("\n") }')
 
-      exec clipmenu
+            mkdir -p "$cache_dir"
+            printf '%s %s\n' "$(date +%s%N)" "$first_line" >> "$cache_file"
+            printf '%s' "$data" > "$cache_dir/$(cksum <<< "$first_line")"
+
+            exec clipmenu $DMENU_ARGS
     '';
   };
 
