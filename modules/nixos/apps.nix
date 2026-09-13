@@ -23,6 +23,24 @@
       mv $out/share/themes/catppuccin-mocha-mauve-standard+default \
          $out/share/themes/catppuccin-mocha
     '';
+  # nixpkgs' catppuccin-papirus-folders ships the Catppuccin folder palette
+  # but leaves the default blue folders; run the nixpkgs papirus-folders tool
+  # at build time to symlink all folders to the Mocha mauve variant.
+  catppuccinPapirusMocha =
+    pkgs.runCommand "papirus-catppuccin-mocha-mauve"
+    {
+      iconThemes = pkgs.catppuccin-papirus-folders;
+      nativeBuildInputs = [pkgs.bash pkgs.coreutils pkgs.gawk pkgs.findutils pkgs.papirus-folders];
+      USER_HOME = "/homeless-shelter";
+    }
+    ''
+      mkdir -p $out/share/icons
+      for theme in Papirus Papirus-Dark Papirus-Light; do
+        cp -rL "$iconThemes/share/icons/$theme" "$out/share/icons/$theme"
+        chmod -R u+rwX "$out/share/icons/$theme"
+        bash ${pkgs.papirus-folders}/bin/papirus-folders -t "$out/share/icons/$theme" -C cat-mocha-mauve -o
+      done
+    '';
 in {
   environment.systemPackages = with pkgs; [
     android-tools
@@ -54,7 +72,7 @@ in {
     obs-studio
     ouch
     p7zip
-    catppuccin-papirus-folders
+    catppuccinPapirusMocha
     catppuccinifier-cli
     poppler-utils
     pulsemixer
