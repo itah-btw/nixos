@@ -49,6 +49,9 @@
     (pkgs.writeShellScriptBin "vscode-json-languageserver" ''
       exec ${pkgs.vscode-langservers-extracted}/bin/vscode-json-language-server "$@"
     '')
+    # Desktop theme switcher: `theme apply <tokyonight|catppuccin|gruvbox>`
+    # rethemes oxwm bar/borders/dmenu, alacritty, dunst, and the wallpaper.
+    (pkgs.writeShellScriptBin "theme" (builtins.readFile ./theme.sh))
     vscode-langservers-extracted
     xarchiver
     xdotool

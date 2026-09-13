@@ -52,6 +52,9 @@
       # this covers every toolkit (GTK/Qt/Java/WebKit), not just settings.ini.
       export XCURSOR_THEME=Bibata-Modern-Classic
       export XCURSOR_SIZE=24
+      # Generate runtime theme files (oxwm/alacritty/dunst/wallpaper) on login
+      # if they don't exist yet, so `theme apply` and dunst -config always work.
+      theme ensure >/dev/null 2>&1 || true
       if [ -z "$DISPLAY" ] && [ "$XDG_VTNR" = 1 ]; then
         exec startx
       fi
@@ -346,18 +349,19 @@
         timeout = 0
   '';
 
-  # Terminal (alacritty). Colors match the desktop palette; the X pointer cursor
-  # follows the XCURSOR_THEME automatically (no patching needed).
+  # Terminal (alacritty). Base options; colors live in theme-current.toml
+  # (written by `theme`), which is imported here so `theme apply` works live.
+  # Font note: this panel is 161 dpi, so alacritty renders `size * dpi/72` px
+  # (factor 2.22); 6.5pt ~= 14px. Bump ~0.5pt per pixel of growth.
   xdg.configFile."alacritty/alacritty.toml".text = ''
+    import = ["/home/itah/.config/alacritty/theme-current.toml"]
+
     [window]
     padding = { x = 6, y = 6 }
     dynamic_padding = true
     opacity = 0.96
 
     [font]
-    # This panel is 161 dpi, so alacritty renders `size * dpi/72` px (factor
-    # 2.22). 6.5pt ~= 14px, matching the old st pixelsize. Bump by ~0.5pt per
-    # pixel of growth (e.g. 7.5 ~= 16px, 9 ~= 20px).
     size = 6.5
     normal = { family = "JetBrainsMono Nerd Font", style = "Regular" }
     bold = { family = "JetBrainsMono Nerd Font", style = "Bold" }
@@ -366,21 +370,6 @@
 
     [cursor]
     style = { shape = "Block", blinking = "On" }
-
-    [colors]
-    primary = { background = "#1f2335", foreground = "#c0caf5" }
-    normal = {
-      black = "#414868", red = "#f7768e", green = "#9ece6a", yellow = "#e0af68",
-      blue = "#7aa2f7", magenta = "#bb9af7", cyan = "#7dcfff", white = "#a9b1d6",
-    }
-    bright = {
-      black = "#414868", red = "#ff7a93", green = "#b9f27c", yellow = "#ff9e64",
-      blue = "#7aa2f7", magenta = "#bb9af7", cyan = "#7dcfff", white = "#c0caf5",
-    }
-    indexed_colors = [
-      { index = 16, color = "#ff9e64" },
-      { index = 17, color = "#db4b4b" },
-    ]
   '';
 
   # Compositor with GLX VSync (started from oxwm autostart).

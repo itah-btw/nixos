@@ -24,24 +24,55 @@ local modkey = "Mod4"
 -- Terminal emulator command (Super+Enter opens this)
 local terminal = "alacritty"
 
--- Color palette - customize these to match your theme
--- Alternatively you can import other files in here, such as
--- local colors = require("colors.lua") and make colors.lua a file
--- in the ~/.config/oxwm directory
+-- Color palette - loaded from the active theme (written by the `theme` tool:
+-- `theme apply <tokyonight|catppuccin|gruvbox>`). Fallbacks are Tokyo Night so
+-- the bar still renders if the runtime file is missing.
+local theme_file = os.getenv("HOME") .. "/.config/oxwm/theme-current.lua"
+local theme = {}
+do
+    local loader = loadfile(theme_file)
+    if loader then
+        local ok, tab = pcall(loader)
+        if ok and type(tab) == "table" then theme = tab end
+    end
+end
+local function th(key, default)
+    if theme[key] ~= nil then return theme[key] end
+    return default
+end
+
+-- Status bar block colors (keys kept stable so blocks below just reference
+-- these; separators use `lavender`)
 local colors = {
-    fg = "#bbbbbb",
-    red = "#f7768e",
-    bg = "#1a1b26",
-    cyan = "#0db9d7",
-    green = "#9ece6a",
-    lavender = "#a9b1d6",
-    light_blue = "#7aa2f7",
-    grey = "#bbbbbb",
-    blue = "#6dade3",
-    purple = "#ad8ee6",
-    yellow = "#e0af68",
-    orange = "#ff9e64",
-    teal = "#73daca",
+    fg = th("fg", "#c0caf5"),
+    red = th("red", "#f7768e"),
+    bg = th("bg", "#1f2335"),
+    cyan = th("cyan", "#7dcfff"),
+    green = th("green", "#9ece6a"),
+    lavender = th("lavender", "#3b4261"),
+    light_blue = th("light_blue", "#7aa2f7"),
+    grey = th("grey", "#3b4261"),
+    blue = th("blue", "#6dade3"),
+    purple = th("purple", "#bb9af7"),
+    yellow = th("yellow", "#e0af68"),
+    orange = th("orange", "#ff9e64"),
+    teal = th("teal", "#73daca"),
+}
+
+-- UI chrome colors: tag schemes, borders, dmenu
+local UI = {
+    bar_norm = { th("bar_norm_fg", "#c0caf5"), th("bar_norm_bg", "#1f2335") },
+    bar_occ = { th("bar_occ_fg", "#a9b1d6"), th("bar_occ_bg", "#3b4261") },
+    bar_sel = { th("bar_sel_fg", "#1f2335"), th("bar_sel_bg", "#7aa2f7") },
+    bar_urg = { th("bar_urg_fg", "#1f2335"), th("bar_urg_bg", "#f7768e") },
+    border_focus = th("border_focus", "#7aa2f7"),
+    border_unfocus = th("border_unfocus", "#3b4261"),
+    dmenu = {
+        th("dmenu_nb", "#1f2335"),
+        th("dmenu_nf", "#c0caf5"),
+        th("dmenu_sb", "#7aa2f7"),
+        th("dmenu_sf", "#1f2335"),
+    },
 }
 
 -- Workspace tags - can be numbers, names, or icons (requires a Nerd Font)
@@ -217,9 +248,9 @@ oxwm.set_layout_symbol("tabbed", "[=]")
 -- Width in pixels
 oxwm.border.set_width(2)
 -- Color of focused window border
-oxwm.border.set_focused_color(colors.blue)
+oxwm.border.set_focused_color(UI.border_focus)
 -- Color of unfocused window borders
-oxwm.border.set_unfocused_color(colors.grey)
+oxwm.border.set_unfocused_color(UI.border_unfocus)
 
 -- Where floating windows spawn: "top-left", "top-center", "top-right",
 -- "center-left", "center", "center-right", "bottom-left", "bottom-center", "bottom-right"
@@ -270,13 +301,13 @@ oxwm.bar.set_blocks(blocks)
 -- Parameters: foreground, background, border
 
 -- Unoccupied tags
-oxwm.bar.set_scheme_normal(colors.fg, colors.bg, "#444444")
+oxwm.bar.set_scheme_normal(UI.bar_norm[1], UI.bar_norm[2], "#444444")
 -- Occupied tags
-oxwm.bar.set_scheme_occupied(colors.cyan, colors.bg, colors.cyan)
+oxwm.bar.set_scheme_occupied(UI.bar_occ[1], UI.bar_occ[2], UI.bar_occ[2])
 -- Currently selected tag
-oxwm.bar.set_scheme_selected(colors.cyan, colors.bg, colors.purple)
+oxwm.bar.set_scheme_selected(UI.bar_sel[1], UI.bar_sel[2], UI.bar_sel[2])
 -- Urgent tags (windows requesting attention)
-oxwm.bar.set_scheme_urgent(colors.red, colors.bg, colors.red)
+oxwm.bar.set_scheme_urgent(UI.bar_urg[1], UI.bar_urg[2], UI.bar_urg[2])
 
 -- Hide tags that have no windows and are not selected
 -- oxwm.bar.set_hide_vacant_tags(true)
@@ -304,7 +335,7 @@ oxwm.rule.add({ instance = "calcurse", floating = true })
 
 oxwm.key.bind({ modkey }, "Return", oxwm.spawn_terminal())
 -- Launch Dmenu
-oxwm.key.bind({ modkey }, "D", oxwm.spawn({ "sh", "-c", "dmenu_run -l 10" }))
+oxwm.key.bind({ modkey }, "D", oxwm.spawn({ "sh", "-c", "dmenu_run -l 10 -nb '" .. UI.dmenu[1] .. "' -nf '" .. UI.dmenu[2] .. "' -sb '" .. UI.dmenu[3] .. "' -sf '" .. UI.dmenu[4] .. "'" }))
 -- Screenshot to ~/Pictures/Screenshots/ (timestamped) + clipboard
 oxwm.key.bind({ modkey }, "S", oxwm.spawn({ "sh", "-c", "mkdir -p ~/Pictures/Screenshots && F=~/Pictures/Screenshots/$(date +%Y-%m-%d_%H-%M-%S).png && maim -s | tee \"$F\" | xclip -selection clipboard -t image/png && notify-send \"Screenshot\" \"saved to $F\"" }))
 -- Clipboard history picker (clipmenu over dmenu, pastes the selection)
@@ -463,8 +494,9 @@ oxwm.key.bind({ modkey, "Shift" }, "C", oxwm.spawn({ "sh", "-c", "alacritty --cl
 -- Clipboard history daemon (guarded so a config reload won't stack copies;
 -- CM_DIR comes from the session profile; history persists across reboots)
 oxwm.autostart("pidof clipmenud >/dev/null || clipmenud")
--- Wallpaper (fill: cover the screen, cropping as needed)
-oxwm.autostart("feh --bg-fill ~/Pictures/wallpaper.jpg")
+-- Wallpaper (fill: cover the screen, cropping as needed). File is written by
+-- the `theme` tool (theme apply copies the active theme's image to this path).
+oxwm.autostart("feh --bg-fill ~/.config/oxwm/themes/current.jpg")
 -- Cursor theme for Qt/Java/WebKit apps (GTK reads its own settings.ini)
 oxwm.autostart("xrdb -merge ~/.Xresources")
 -- Themed root cursor (oxwm itself draws plain core-X glyphs; this keeps the
@@ -473,6 +505,7 @@ oxwm.autostart("xsetroot -cursor_name left_ptr")
 
 -- Compositor (GLX VSync: syncs screen updates, fixes tearing)
 oxwm.autostart("pgrep picom >/dev/null || picom --config ~/.config/picom/picom.conf --daemon")
--- Notification daemon
-oxwm.autostart("pgrep dunst >/dev/null || dunst")
+-- Notification daemon (themed config generated by `theme`; falls back to the
+-- Home Manager dunstrc if the runtime file hasn't been written yet)
+oxwm.autostart("pgrep dunst >/dev/null || { [ -f ~/.config/dunst/dunstrc.theme ] && dunst -config ~/.config/dunst/dunstrc.theme || dunst; }")
 -- oxwm.autostart("nm-applet")
