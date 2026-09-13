@@ -275,7 +275,7 @@
             DMENU_ARGS=""
             if [[ -f "$HOME/.config/oxwm/theme-current.env" ]]; then
               source "$HOME/.config/oxwm/theme-current.env"
-              DMENU_ARGS="-nb \"$DMENU_NB\" -nf \"$DMENU_NF\" -sb \"$DMENU_SB\" -sf \"$DMENU_SF\""
+              DMENU_ARGS="-nb $DMENU_NB -nf $DMENU_NF -sb $DMENU_SB -sf $DMENU_SF"
             fi
             cache_dir="$CM_DIR/clipmenu.6.$USER"
             cache_file="$cache_dir/line_cache"
