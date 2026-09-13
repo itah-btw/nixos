@@ -46,7 +46,6 @@
 
       mkdir -p work/fork
       unzip -q $fork -d work/fork
-      chmod +x $script
 
       for theme in Papirus Papirus-Dark Papirus-Light; do
         cp -rL "$iconThemes/share/icons/$theme" "$out/share/icons/$theme"
