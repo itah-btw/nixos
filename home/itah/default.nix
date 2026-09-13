@@ -12,16 +12,34 @@
   programs.bash = {
     enable = true;
     shellAliases = {
-      update = "sudo nix flake update /etc/nixos";
+      update = "sudo nix flake update /etc/nixos && nixsync";
       upgrade = "sudo systemctl start nixos-auto-upgrade.service";
-      rebuild = "sudo nixos-rebuild switch --flake /etc/nixos#nixos";
-      rebt = "sudo nixos-rebuild test --flake /etc/nixos#nixos";
+      rebuild = "sudo nixos-rebuild switch --flake /etc/nixos#nixos && nixsync";
+      rebt = "sudo nixos-rebuild test --flake /etc/nixos#nixos && nixsync";
       drv = "sudo nixos-rebuild dry-run --flake /etc/nixos#nixos";
       gc = "sudo nix-collect-garbage --delete-older-than 7d";
       gcr = "sudo nix-collect-garbage -d";
       gens = "sudo nix-env --list-generations --profile /nix/var/nix/profiles/system";
       rollback = "sudo nixos-rebuild switch --rollback";
+      npush = "nixsync";
+      npull = "sudo git -C /etc/nixos pull";
     };
+    bashrcExtra = ''
+      # Commit + push the /etc/nixos config (auto-run after rebuild/update/rebt,
+      # or manually with `npush`). /etc/nixos is root-owned, so git runs via sudo
+      # (root's SSH key authenticates to GitHub).
+      nixsync() {
+        local g="/etc/nixos" msg
+        msg="sync: $(date '+%F %T')"
+        [ -n "$1" ] && msg="$1"
+        sudo git -C "$g" add -A || return 1
+        if sudo git -C "$g" diff --cached --quiet; then
+          echo "nothing to commit"
+          return 0
+        fi
+        sudo git -C "$g" commit -m "$msg" && sudo git -C "$g" push
+      }
+    '';
     profileExtra = ''
       # No display manager: auto-start oxwm via startx on tty1 after getty autologin.
       # Clipmenu history lives on /home so it survives reboots; export CM_DIR so

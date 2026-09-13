@@ -36,6 +36,13 @@
           exit 1
         fi
 
+        # Auto-backup: commit + push any config changes (incl. the refreshed
+        # flake.lock). Tolerate a dirty tree / being offline.
+        if git -C /etc/nixos add -A && ! git -C /etc/nixos diff --cached --quiet; then
+          git -C /etc/nixos commit -m "auto-upgrade: $(date '+%F %T')" || true
+          git -C /etc/nixos push || true
+        fi
+
         if [ "$old_lock" != "$new_lock" ]; then
           notify -h string:synchronous:nixos-upgrade "NixOS upgrade applied" "nixpkgs updated and system rebuilt"
         fi
