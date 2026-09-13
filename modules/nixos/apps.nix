@@ -26,26 +26,7 @@
   # nixpkgs' catppuccin-papirus-folders ships the Catppuccin folder palette
   # but leaves the default blue folders; run the nixpkgs papirus-folders tool
   # at build time to symlink all folders to the Mocha mauve variant.
-  catppuccinPapirusMocha =
-    pkgs.runCommand "papirus-catppuccin-mocha-mauve"
-    {
-      iconThemes = pkgs.catppuccin-papirus-folders;
-      nativeBuildInputs = [pkgs.bash pkgs.coreutils pkgs.gawk pkgs.findutils pkgs.papirus-folders];
-      USER_HOME = "/homeless-shelter";
-    }
-    ''
-      mkdir -p $out/share/icons
-      for theme in Papirus Papirus-Dark Papirus-Light; do
-        cp -rL "$iconThemes/share/icons/$theme" "$out/share/icons/$theme"
-        chmod -R u+rwX "$out/share/icons/$theme"
-        bash ${pkgs.papirus-folders}/bin/papirus-folders -t "$out/share/icons/$theme" -C cat-mocha-mauve -o
-        # papirus-folders leaves names without a mauve counterpart blue
-        # (e.g. folder-publicshare); recolor leftovers to cat-mocha-mauve.
-        for f in $(find "$out/share/icons/$theme" -path "*/places/*.svg" -type f ! -name "*-cat-*"); do
-          sed -i 's/#89B4FA/#CBA6F7/I; s/#75A0E6/#B792E3/I' "$f"
-        done
-      done
-    '';
+
 in {
   environment.systemPackages = with pkgs; [
     android-tools
@@ -67,6 +48,7 @@ in {
     libreoffice
     localsend
     lua-language-server
+    lutgen
     libnotify
     maim
     mariadb
@@ -76,8 +58,9 @@ in {
     nil
     obs-studio
     ouch
+    pcmanfm
     p7zip
-    catppuccinPapirusMocha
+    catppuccin-papirus-folders
     catppuccinifier-cli
     poppler-utils
     pulsemixer
@@ -97,6 +80,7 @@ in {
     xarchiver
     xdotool
     xclip
+    xfe
     yazi
     zathura
     zoxide
@@ -150,3 +134,4 @@ in {
     SUBSYSTEM=="usb", ATTR{idVendor}=="2314", MODE="0660", TAG+="uaccess"
   '';
 }
+
