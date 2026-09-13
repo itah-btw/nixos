@@ -50,7 +50,7 @@
       export _JAVA_AWT_WM_NONREPARENTING=1
       # Cursor theme: libXcursor reads XCURSOR_THEME before anything else, so
       # this covers every toolkit (GTK/Qt/Java/WebKit), not just settings.ini.
-      export XCURSOR_THEME=Bibata-Modern-Classic
+      export XCURSOR_THEME=catppuccin-mocha-mauve-cursors
       export XCURSOR_SIZE=24
       if [ -z "$DISPLAY" ] && [ "$XDG_VTNR" = 1 ]; then
         exec startx
@@ -296,14 +296,14 @@
 
   # Cursor theme at the X level (Qt/Java/WebKit apps read this via xrdb).
   xdg.configFile."Xresources".text = ''
-    Xcursor.theme: Bibata-Modern-Classic
+    Xcursor.theme: catppuccin-mocha-mauve-cursors
     Xcursor.size: 24
   '';
 
-  # Fallback for non-GTK apps: points libXcursor to the Bibata theme.
+  # Fallback for non-GTK apps: points libXcursor to the Catppuccin cursor.
   xdg.configFile."icons/default/index.theme".text = ''
     [Icon Theme]
-    Inherits=Bibata-Modern-Classic
+    Inherits=catppuccin-mocha-mauve-cursors
   '';
 
   # Notification popups (dunst), Catppuccin Mocha colors (mauve accent).
@@ -401,13 +401,13 @@
   '';
 
   # GTK apps (Thunar, etc.): single fixed Catppuccin Mocha (mauve) theme.
-  # Icons are Papirus-Dark, cursor stays Bibata for all toolkits. Plain
+  # Icons are Papirus-Dark, cursor Catppuccin Mocha Mauve. Plain
   # settings.ini (not the gtk module) to avoid dconf/bus activation.
   xdg.configFile."gtk-3.0/settings.ini".text = ''
     [Settings]
     gtk-theme-name=catppuccin-mocha
     gtk-icon-theme-name=Papirus-Dark
-    gtk-cursor-theme-name=Bibata-Modern-Classic
+    gtk-cursor-theme-name=catppuccin-mocha-mauve-cursors
     gtk-font-name=JetBrainsMono Nerd Font 10
   '';
 
@@ -415,7 +415,7 @@
     [Settings]
     gtk-theme-name=catppuccin-mocha
     gtk-icon-theme-name=Papirus-Dark
-    gtk-cursor-theme-name=Bibata-Modern-Classic
+    gtk-cursor-theme-name=catppuccin-mocha-mauve-cursors
     gtk-font-name=JetBrainsMono Nerd Font 10
   '';
 
