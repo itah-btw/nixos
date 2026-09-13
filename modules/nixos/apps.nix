@@ -39,6 +39,11 @@
         cp -rL "$iconThemes/share/icons/$theme" "$out/share/icons/$theme"
         chmod -R u+rwX "$out/share/icons/$theme"
         bash ${pkgs.papirus-folders}/bin/papirus-folders -t "$out/share/icons/$theme" -C cat-mocha-mauve -o
+        # papirus-folders leaves names without a mauve counterpart blue
+        # (e.g. folder-publicshare); recolor leftovers to cat-mocha-mauve.
+        for f in $(find "$out/share/icons/$theme" -path "*/places/*.svg" -type f ! -name "*-cat-*"); do
+          sed -i 's/#89B4FA/#CBA6F7/I; s/#75A0E6/#B792E3/I' "$f"
+        done
       done
     '';
 in {

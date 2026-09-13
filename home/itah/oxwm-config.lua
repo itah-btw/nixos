@@ -476,7 +476,7 @@ oxwm.autostart("pidof clipmenud >/dev/null || clipmenud")
 -- Wallpaper (fill: cover the screen, cropping as needed).
 oxwm.autostart("feh --bg-fill ~/.config/oxwm/wallpaper.jpg")
 -- Cursor theme for Qt/Java/WebKit apps (GTK reads its own settings.ini)
-oxwm.autostart("xrdb -merge ~/.Xresources")
+oxwm.autostart("xrdb -merge ~/.config/Xresources")
 -- Themed root cursor (oxwm itself draws plain core-X glyphs; this keeps the
 -- desktop cursor on theme)
 oxwm.autostart("xsetroot -cursor_name left_ptr")

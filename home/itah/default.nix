@@ -301,7 +301,8 @@
   '';
 
   # Fallback for non-GTK apps: points libXcursor to the Catppuccin cursor.
-  xdg.configFile."icons/default/index.theme".text = ''
+  # ~/.icons (not ~/.config/icons) is the per-user X cursor search dir.
+  home.file.".icons/default/index.theme".text = ''
     [Icon Theme]
     Inherits=catppuccin-mocha-mauve-cursors
   '';
