@@ -16,6 +16,7 @@ let
       nativeBuildInputs = [ pkgs.unzip ];
     }
     ''
+      mkdir -p $out/share/themes
       unzip -q $src -d $out/share/themes
       rm -rf $out/share/themes/catppuccin-mocha-blue-standard+default-hdpi \
              $out/share/themes/catppuccin-mocha-blue-standard+default-xhdpi
