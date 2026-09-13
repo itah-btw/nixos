@@ -354,7 +354,7 @@
   # Font note: this panel is 161 dpi, so alacritty renders `size * dpi/72` px
   # (factor 2.22); 6.5pt ~= 14px. Bump ~0.5pt per pixel of growth.
   xdg.configFile."alacritty/alacritty.toml".text = ''
-    import = ["/home/itah/.config/alacritty/theme-current.toml"]
+    general.import = ["/home/itah/.config/alacritty/theme-current.toml"]
 
     [window]
     padding = { x = 6, y = 6 }
