@@ -12,10 +12,10 @@
   programs.bash = {
     enable = true;
     shellAliases = {
-      update = "sudo nix flake update /etc/nixos && nixsync";
+      update = "sudo nix flake update /etc/nixos";
       upgrade = "sudo systemctl start nixos-auto-upgrade.service";
-      rebuild = "sudo nixos-rebuild switch --flake /etc/nixos#nixos && nixsync";
-      rebt = "sudo nixos-rebuild test --flake /etc/nixos#nixos && nixsync";
+      rebuild = "sudo nixos-rebuild switch --flake /etc/nixos#nixos";
+      rebt = "sudo nixos-rebuild test --flake /etc/nixos#nixos";
       drv = "sudo nixos-rebuild dry-run --flake /etc/nixos#nixos";
       gc = "sudo nix-collect-garbage --delete-older-than 7d";
       gcr = "sudo nix-collect-garbage -d";
