@@ -14,11 +14,13 @@ ALAC_FILE = HOME + "/.config/alacritty/theme-current.toml"
 DUNST_FILE = HOME + "/.config/dunst/dunstrc.theme"
 GTK3_FILE = HOME + "/.config/gtk-3.0/settings.ini"
 GTK4_FILE = HOME + "/.config/gtk-4.0/settings.ini"
+BTOP_CONF = HOME + "/.config/btop/btop.conf"
 ACTIVE_FILE = HOME + "/.config/oxwm/theme.current"
 WALL_CURRENT = THEME_DIR + "/current.jpg"
 
-# Palette per theme. `colors` matches the keys oxwm-config.lua expects for its
-# status bar blocks and separators; bar/border/dmenu feed oxwm's UI chrome.
+# Palette per theme. `colors` feeds oxwm's status bar blocks, separators, and
+# tag schemes (normal/occupied/selected/urgent); border/dmenu feed the UI
+# chrome; gtk feeds GTK theme lookup.
 THEMES = {
     "tokyonight": {
         "colors": {
@@ -28,11 +30,12 @@ THEMES = {
             "purple": "#bb9af7", "yellow": "#e0af68", "orange": "#ff9e64",
             "teal": "#73daca",
         },
-        "bar": ("#c0caf5", "#1f2335", "#a9b1d6", "#3b4261",
-                "#1f2335", "#7aa2f7", "#1f2335", "#f7768e"),
         "border": ("#7aa2f7", "#3b4261"),
         "dmenu": ("#1f2335", "#c0caf5", "#7aa2f7", "#1f2335"),
         "gtk": ("Qogir-Dark", "Qogir"),
+        "dmenu": ("#1f2335", "#c0caf5", "#7aa2f7", "#1f2335"),
+        "gtk": ("Qogir-Dark", "Qogir"),
+        "btop": "tokyo-night",
         "alacritty": {
             "bg": "#1f2335", "fg": "#c0caf5",
             "black": "#414868", "red": "#f7768e", "green": "#9ece6a",
@@ -57,11 +60,10 @@ THEMES = {
             "purple": "#cba6f7", "yellow": "#f9e2af", "orange": "#fab387",
             "teal": "#94e2d5",
         },
-        "bar": ("#cdd6f4", "#1e1e2e", "#a6adc8", "#313244",
-                "#1e1e2e", "#89b4fa", "#1e1e2e", "#f38ba8"),
         "border": ("#89b4fa", "#45475a"),
         "dmenu": ("#1e1e2e", "#cdd6f4", "#89b4fa", "#1e1e2e"),
-        "gtk": ("catppuccin-mocha-blue-standard+default", "Qogir"),
+        "gtk": ("catppuccin-mocha-blue-standard+default", "Papirus-Dark"),
+        "btop": "catppuccin_macchiato",
         "alacritty": {
             "bg": "#1e1e2e", "fg": "#cdd6f4",
             "black": "#45475a", "red": "#f38ba8", "green": "#a6e3a1",
@@ -86,11 +88,10 @@ THEMES = {
             "purple": "#d3869b", "yellow": "#fabd2f", "orange": "#fe8019",
             "teal": "#8ec07c",
         },
-        "bar": ("#ebdbb2", "#282828", "#a89984", "#3c3836",
-                "#1d2021", "#fe8019", "#1d2021", "#cc241d"),
         "border": ("#fe8019", "#504945"),
         "dmenu": ("#282828", "#ebdbb2", "#fe8019", "#1d2021"),
-        "gtk": ("gruvbox-dark", "Qogir"),
+        "gtk": ("gruvbox-dark", "oomox-gruvbox-dark"),
+        "btop": "gruvbox_dark",
         "alacritty": {
             "bg": "#282828", "fg": "#ebdbb2",
             "black": "#282828", "red": "#cc241d", "green": "#98971a",
@@ -124,7 +125,6 @@ def current():
 def write_configs(name):
     th = THEMES[name]
     c = th["colors"]
-    b = th["bar"]
     border = th["border"]
     dm = th["dmenu"]
     os.makedirs(os.path.dirname(WALL_CURRENT), exist_ok=True)
@@ -140,10 +140,6 @@ def write_configs(name):
     lua = ["return {"]
     for k, v in c.items():
         lua.append('  %s = "%s",' % (k, v))
-    lua.append('  bar_norm_fg = "%s", bar_norm_bg = "%s",' % (b[0], b[1]))
-    lua.append('  bar_occ_fg = "%s", bar_occ_bg = "%s",' % (b[2], b[3]))
-    lua.append('  bar_sel_fg = "%s", bar_sel_bg = "%s",' % (b[4], b[5]))
-    lua.append('  bar_urg_fg = "%s", bar_urg_bg = "%s",' % (b[6], b[7]))
     lua.append('  border_focus = "%s", border_unfocus = "%s",' % border)
     lua.append('  dmenu_nb = "%s", dmenu_nf = "%s",' % (dm[0], dm[1]))
     lua.append('  dmenu_sb = "%s", dmenu_sf = "%s",' % (dm[2], dm[3]))
@@ -226,6 +222,12 @@ def write_configs(name):
     with open(GTK4_FILE, "w") as f:
         f.write(head + gtk_ini)
 
+    # btop (theme selection; takes effect on next launch - btop has no config
+    # reload, so reopen a running btop after `theme apply`)
+    os.makedirs(os.path.dirname(BTOP_CONF), exist_ok=True)
+    with open(BTOP_CONF, "w") as f:
+        f.write(head + "theme = %s\n" % th.get("btop", "default"))
+
 
 def shutil_copy(src, dst):
     with open(src, "rb") as fi, open(dst, "wb") as fo:
@@ -262,7 +264,7 @@ def apply(name, restart=True):
 def ensure():
     name = current() or "tokyonight"
     missing = [p for p in (OXWM_FILE, ALAC_FILE, DUNST_FILE, WALL_CURRENT,
-                           GTK3_FILE, GTK4_FILE)
+                           GTK3_FILE, GTK4_FILE, BTOP_CONF)
                if not os.path.exists(p)]
     if missing:
         write_configs(name)

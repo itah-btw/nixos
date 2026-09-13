@@ -58,6 +58,8 @@ in {
     pulsemixer
     qogir-icon-theme
     qogir-theme
+    gruvbox-dark-icons-gtk
+    catppuccin-papirus-folders
     catppuccinMocha
     ripgrep
     stylua

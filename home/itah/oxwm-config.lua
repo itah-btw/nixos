@@ -59,12 +59,8 @@ local colors = {
     teal = th("teal", "#73daca"),
 }
 
--- UI chrome colors: tag schemes, borders, dmenu
+-- UI chrome colors: borders, dmenu
 local UI = {
-    bar_norm = { th("bar_norm_fg", "#c0caf5"), th("bar_norm_bg", "#1f2335") },
-    bar_occ = { th("bar_occ_fg", "#a9b1d6"), th("bar_occ_bg", "#3b4261") },
-    bar_sel = { th("bar_sel_fg", "#1f2335"), th("bar_sel_bg", "#7aa2f7") },
-    bar_urg = { th("bar_urg_fg", "#1f2335"), th("bar_urg_bg", "#f7768e") },
     border_focus = th("border_focus", "#7aa2f7"),
     border_unfocus = th("border_unfocus", "#3b4261"),
     dmenu = {
@@ -246,7 +242,7 @@ oxwm.set_layout_symbol("tabbed", "[=]")
 -- Border configuration
 
 -- Width in pixels
-oxwm.border.set_width(2)
+oxwm.border.set_width(3)
 -- Color of focused window border
 oxwm.border.set_focused_color(UI.border_focus)
 -- Color of unfocused window borders
@@ -301,13 +297,13 @@ oxwm.bar.set_blocks(blocks)
 -- Parameters: foreground, background, border
 
 -- Unoccupied tags
-oxwm.bar.set_scheme_normal(UI.bar_norm[1], UI.bar_norm[2], "#444444")
--- Occupied tags
-oxwm.bar.set_scheme_occupied(UI.bar_occ[1], UI.bar_occ[2], UI.bar_occ[2])
--- Currently selected tag
-oxwm.bar.set_scheme_selected(UI.bar_sel[1], UI.bar_sel[2], UI.bar_sel[2])
+oxwm.bar.set_scheme_normal(colors.fg, colors.bg, "#444444")
+-- Occupied tags (accent text on the bar background)
+oxwm.bar.set_scheme_occupied(colors.fg, colors.bg, colors.fg)
+-- Currently selected tag (bright accent text so it stays readable on dark)
+oxwm.bar.set_scheme_selected(colors.cyan, colors.bg, colors.purple)
 -- Urgent tags (windows requesting attention)
-oxwm.bar.set_scheme_urgent(UI.bar_urg[1], UI.bar_urg[2], UI.bar_urg[2])
+oxwm.bar.set_scheme_urgent(colors.red, colors.bg, colors.red)
 
 -- Hide tags that have no windows and are not selected
 -- oxwm.bar.set_hide_vacant_tags(true)
