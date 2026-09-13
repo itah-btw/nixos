@@ -4,22 +4,22 @@
   ...
 }: let
   # nixpkgs' catppuccin-gtk only ships the frappe flavor; grab the prebuilt
-  # mocha-blue GTK theme directly from the catppuccin/gtk release so the
-  # `catppuccin` desktop theme has a matching GTK theme.
-  catppuccinMocha =
-    pkgs.runCommand "catppuccin-gtk-mocha"
+  # mocha-mauve GTK theme directly from the catppuccin/gtk release (the single
+  # fixed desktop theme — no theme switcher).
+  catppuccinMochaMauve =
+    pkgs.runCommand "catppuccin-gtk-mocha-mauve"
     {
       src = pkgs.fetchurl {
-        url = "https://github.com/catppuccin/gtk/releases/download/v1.0.3/catppuccin-mocha-blue-standard%2Bdefault.zip";
-        sha256 = "1p1vflydcp184sxn8x7ffc6kfil031816hfymwzn4cpbri8i10c3";
+        url = "https://github.com/catppuccin/gtk/releases/download/v1.0.3/catppuccin-mocha-mauve-standard%2Bdefault.zip";
+        sha256 = "cbacdac6161f98c315fb86740e21426ef6dda64f0ad69157cf28f3a1dda446fe";
       };
       nativeBuildInputs = [pkgs.unzip];
     }
     ''
       mkdir -p $out/share/themes
       unzip -q $src -d $out/share/themes
-      rm -rf $out/share/themes/catppuccin-mocha-blue-standard+default-hdpi \
-             $out/share/themes/catppuccin-mocha-blue-standard+default-xhdpi
+      rm -rf $out/share/themes/catppuccin-mocha-mauve-standard+default-hdpi \
+             $out/share/themes/catppuccin-mocha-mauve-standard+default-xhdpi
     '';
 in {
   environment.systemPackages = with pkgs; [
@@ -37,7 +37,6 @@ in {
     ffmpegthumbnailer
     fzf
     glow
-    gruvbox-dark-gtk
     imv
     jq
     libreoffice
@@ -53,13 +52,10 @@ in {
     obs-studio
     ouch
     p7zip
+    papirus-icon-theme
     poppler-utils
     pulsemixer
-    qogir-icon-theme
-    qogir-theme
-    gruvbox-dark-icons-gtk
-    catppuccin-papirus-folders
-    catppuccinMocha
+    catppuccinMochaMauve
     ripgrep
     stylua
     (tesseract.override {enableLanguages = ["eng" "ind"];})
@@ -71,9 +67,6 @@ in {
     (pkgs.writeShellScriptBin "vscode-json-languageserver" ''
       exec ${pkgs.vscode-langservers-extracted}/bin/vscode-json-language-server "$@"
     '')
-    # Desktop theme switcher: `theme apply <tokyonight|catppuccin|gruvbox>`
-    # rethemes oxwm bar/borders/dmenu, alacritty, dunst, and the wallpaper.
-    (pkgs.writeShellScriptBin "theme" (builtins.readFile ./theme.sh))
     vscode-langservers-extracted
     xarchiver
     xdotool

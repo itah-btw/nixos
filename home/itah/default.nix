@@ -52,9 +52,6 @@
       # this covers every toolkit (GTK/Qt/Java/WebKit), not just settings.ini.
       export XCURSOR_THEME=Bibata-Modern-Classic
       export XCURSOR_SIZE=24
-      # Generate runtime theme files (oxwm/alacritty/dunst/wallpaper) on login
-      # if they don't exist yet, so `theme apply` and dunst -config always work.
-      theme ensure >/dev/null 2>&1 || true
       if [ -z "$DISPLAY" ] && [ "$XDG_VTNR" = 1 ]; then
         exec startx
       fi
@@ -270,13 +267,8 @@
       CM_DIR="''${CM_DIR:-$HOME/.cache/clipmenu}"
             export CM_DIR
 
-            # Theme the dmenu picker to match the current desktop theme (flags are
-            # written by `theme apply`/`theme ensure`).
-            DMENU_ARGS=""
-            if [[ -f "$HOME/.config/oxwm/theme-current.env" ]]; then
-              source "$HOME/.config/oxwm/theme-current.env"
-              DMENU_ARGS="-nb $DMENU_NB -nf $DMENU_NF -sb $DMENU_SB -sf $DMENU_SF"
-            fi
+            # Theme the dmenu picker to Catppuccin Mocha (mauve).
+            DMENU_ARGS="-nb #1e1e2e -nf #cdd6f4 -sb #cba6f7 -sf #1e1e2e"
             cache_dir="$CM_DIR/clipmenu.6.$USER"
             cache_file="$cache_dir/line_cache"
 
@@ -302,11 +294,6 @@
     '';
   };
 
-  # GTK apps (Thunar, etc.): theme is owned by the `theme` tool, which writes
-  # ~/.config/gtk-{3,4}.0/settings.ini at login (`theme ensure`) and on every
-  # `theme apply`. Icons stay on Qogir, cursor stays Bibata for all themes.
-  # Plain settings.ini (not the gtk module) to avoid dconf/bus activation.
-
   # Cursor theme at the X level (Qt/Java/WebKit apps read this via xrdb).
   xdg.configFile."Xresources".text = ''
     Xcursor.theme: Bibata-Modern-Classic
@@ -319,7 +306,7 @@
     Inherits=Bibata-Modern-Classic
   '';
 
-  # Notification popups (dunst), colors matched to the topbar palette.
+  # Notification popups (dunst), Catppuccin Mocha colors (mauve accent).
   xdg.configFile."dunst/dunstrc".text = ''
     [global]
         width = 320
@@ -328,32 +315,54 @@
         origin = top-right
         font = JetBrainsMono Nerd Font 10
         frame_width = 2
-        frame_color = "#6dade3"
-        transparency = 20
+        frame_color = "#cba6f7"
+        transparency = 0
 
     [urgency_low]
-        background = "#1f2335"
-        foreground = "#c0caf5"
+        background = "#1e1e2e"
+        foreground = "#cdd6f4"
         timeout = 6
 
     [urgency_normal]
-        background = "#1f2335"
-        foreground = "#c0caf5"
+        background = "#1e1e2e"
+        foreground = "#cdd6f4"
         timeout = 10
 
     [urgency_critical]
-        background = "#f7768e"
-        foreground = "#1f2335"
+        background = "#f38ba8"
+        foreground = "#1e1e2e"
         timeout = 0
   '';
 
-  # Terminal (alacritty). Base options; colors live in theme-current.toml
-  # (written by `theme`), which is imported here so `theme apply` works live.
+  # btop (single fixed theme; btop reads this config at launch).
+  xdg.configFile."btop/btop.conf".text = ''
+    color_theme = "catppuccin_macchiato"
+    theme_background = false
+  '';
+
+  # GTK apps (Thunar, etc.): single fixed Catppuccin Mocha (mauve) theme.
+  # Icons are Papirus-Dark, cursor stays Bibata for all toolkits. Plain
+  # settings.ini (not the gtk module) to avoid dconf/bus activation.
+  xdg.configFile."gtk-3.0/settings.ini".text = ''
+    [Settings]
+    gtk-theme-name=catppuccin-mocha-mauve-standard+default
+    gtk-icon-theme-name=Papirus-Dark
+    gtk-cursor-theme-name=Bibata-Modern-Classic
+    gtk-font-name=JetBrainsMono Nerd Font 10
+  '';
+
+  xdg.configFile."gtk-4.0/settings.ini".text = ''
+    [Settings]
+    gtk-theme-name=catppuccin-mocha-mauve-standard+default
+    gtk-icon-theme-name=Papirus-Dark
+    gtk-cursor-theme-name=Bibata-Modern-Classic
+    gtk-font-name=JetBrainsMono Nerd Font 10
+  '';
+
+  # Terminal (alacritty), Catppuccin Mocha colors baked in (mauve accent).
   # Font note: this panel is 161 dpi, so alacritty renders `size * dpi/72` px
   # (factor 2.22); 6.5pt ~= 14px. Bump ~0.5pt per pixel of growth.
   xdg.configFile."alacritty/alacritty.toml".text = ''
-    general.import = ["/home/itah/.config/alacritty/theme-current.toml"]
-
     [window]
     padding = { x = 6, y = 6 }
     dynamic_padding = true
@@ -370,6 +379,33 @@
 
     [cursor]
     style = { shape = "Block", blinking = "On" }
+
+    [colors]
+    primary = { background = "#1e1e2e", foreground = "#cdd6f4" }
+
+    normal = {
+      black = "#45475a"
+      red = "#f38ba8"
+      green = "#a6e3a1"
+      yellow = "#f9e2af"
+      blue = "#89b4fa"
+      magenta = "#f5c2e7"
+      cyan = "#94e2d5"
+      white = "#bac2de"
+    }
+
+    bright = {
+      black = "#585b70"
+      red = "#f38ba8"
+      green = "#a6e3a1"
+      yellow = "#f9e2af"
+      blue = "#89b4fa"
+      magenta = "#f5c2e7"
+      cyan = "#94e2d5"
+      white = "#a6adc8"
+    }
+
+    selection = { text = "#cdd6f4", background = "#313244" }
   '';
 
   # Compositor removed: picom composites oxwm's server-drawn borders as

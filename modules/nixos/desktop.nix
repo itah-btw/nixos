@@ -11,6 +11,11 @@
       enable = true;
     };
 
+    # Intel iGPU (i915): the modesetting driver does not implement TearFree
+    # ("Option TearFree is not used" in Xorg.0.log), which left screen tearing
+    # with no fixes. The native intel (SNA) driver does support it.
+    videoDrivers = ["intel"];
+
     displayManager.startx = {
       enable = true;
       generateScript = true;
