@@ -61,7 +61,6 @@ in {
     pcmanfm
     p7zip
     catppuccin-papirus-folders
-    catppuccinifier-cli
     poppler-utils
     pulsemixer
     catppuccinMochaMauve
