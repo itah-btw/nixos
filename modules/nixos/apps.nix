@@ -94,33 +94,7 @@ in {
   networking.firewall.allowedTCPPorts = [53317];
   networking.firewall.allowedUDPPorts = [53317];
 
-  # ADB/fastboot device access for the active seat user (no adb module or
-  # android-udev-rules package in nixpkgs, so cover common vendor IDs here;
-  # run `lsusb` and add yours if a device is still not visible).
-  services.udev.extraRules = ''
-    SUBSYSTEM=="usb", ATTR{idVendor}=="18d1", MODE="0660", TAG+="uaccess"
-    SUBSYSTEM=="usb", ATTR{idVendor}=="0bb4", MODE="0660", TAG+="uaccess"
-    SUBSYSTEM=="usb", ATTR{idVendor}=="04e8", MODE="0660", TAG+="uaccess"
-    SUBSYSTEM=="usb", ATTR{idVendor}=="22b8", MODE="0660", TAG+="uaccess"
-    SUBSYSTEM=="usb", ATTR{idVendor}=="0fce", MODE="0660", TAG+="uaccess"
-    SUBSYSTEM=="usb", ATTR{idVendor}=="12d1", MODE="0660", TAG+="uaccess"
-    SUBSYSTEM=="usb", ATTR{idVendor}=="1004", MODE="0660", TAG+="uaccess"
-    SUBSYSTEM=="usb", ATTR{idVendor}=="0b05", MODE="0660", TAG+="uaccess"
-    SUBSYSTEM=="usb", ATTR{idVendor}=="0502", MODE="0660", TAG+="uaccess"
-    SUBSYSTEM=="usb", ATTR{idVendor}=="413c", MODE="0660", TAG+="uaccess"
-    SUBSYSTEM=="usb", ATTR{idVendor}=="04dd", MODE="0660", TAG+="uaccess"
-    SUBSYSTEM=="usb", ATTR{idVendor}=="0482", MODE="0660", TAG+="uaccess"
-    SUBSYSTEM=="usb", ATTR{idVendor}=="04c5", MODE="0660", TAG+="uaccess"
-    SUBSYSTEM=="usb", ATTR{idVendor}=="17ef", MODE="0660", TAG+="uaccess"
-    SUBSYSTEM=="usb", ATTR{idVendor}=="19d2", MODE="0660", TAG+="uaccess"
-    SUBSYSTEM=="usb", ATTR{idVendor}=="2717", MODE="0660", TAG+="uaccess"
-    SUBSYSTEM=="usb", ATTR{idVendor}=="2a70", MODE="0660", TAG+="uaccess"
-    SUBSYSTEM=="usb", ATTR{idVendor}=="2ae5", MODE="0660", TAG+="uaccess"
-    SUBSYSTEM=="usb", ATTR{idVendor}=="22d9", MODE="0660", TAG+="uaccess"
-    SUBSYSTEM=="usb", ATTR{idVendor}=="2d95", MODE="0660", TAG+="uaccess"
-    SUBSYSTEM=="usb", ATTR{idVendor}=="1782", MODE="0660", TAG+="uaccess"
-    SUBSYSTEM=="usb", ATTR{idVendor}=="1d97", MODE="0660", TAG+="uaccess"
-    SUBSYSTEM=="usb", ATTR{idVendor}=="0489", MODE="0660", TAG+="uaccess"
-    SUBSYSTEM=="usb", ATTR{idVendor}=="2314", MODE="0660", TAG+="uaccess"
-  '';
+  # ADB/fastboot: systemd 258 handles uaccess rules automatically, so no
+  # extra udev rules are needed — `android-tools` above provides the adb
+  # command.
 }

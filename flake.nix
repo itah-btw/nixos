@@ -9,38 +9,38 @@
     };
   };
 
-  # Dendritic: this entry point only assembles the top-level configuration from
-  # the feature modules under config/. No specialArgs are passed to the
-  # lower-level NixOS / Home Manager module systems.
+  # Single host (nixos), single user (itah): call nixosSystem directly.
+  # No dendritic wrapper — the module list below is the whole system.
   outputs = {
     self,
     nixpkgs,
+    home-manager,
     ...
-  } @ inputs: let
-    lib = nixpkgs.lib;
-
-    # Auto-import all top-level feature modules under config/, excluding the
-    # `default.nix` entry point. Every feature is therefore a module of a
-    # single top-level configuration.
-    tree = dir:
-      lib.concatLists (lib.mapAttrsToList (name: type:
-        if type == "directory"
-        then tree (dir + "/${name}")
-        else if
-          type
-          == "regular"
-          && lib.hasSuffix ".nix" name
-          && name != "default.nix"
-        then [(import (dir + "/${name}"))]
-        else [])
-      (builtins.readDir dir));
-
-    top = lib.evalModules {
-      modules = [./config/default.nix] ++ tree ./config;
+  } @ inputs: {
+    nixosConfigurations.nixos = nixpkgs.lib.nixosSystem {
+      system = "x86_64-linux";
       specialArgs = {inherit inputs;};
+      modules = [
+        ./hosts/nixos/hardware-configuration.nix
+        ./modules/nixos/nix.nix
+        ./modules/nixos/base.nix
+        ./modules/nixos/desktop.nix
+        ./modules/nixos/apps.nix
+        {
+          networking.hostName = "nixos";
+          system.stateVersion = "26.11";
+        }
+        home-manager.nixosModules.home-manager
+        {
+          home-manager = {
+            useGlobalPkgs = true;
+            useUserPackages = true;
+            backupFileExtension = "hm-bak";
+            users.itah = {imports = [./home/itah];};
+          };
+        }
+      ];
     };
-  in {
-    nixosConfigurations.nixos = top.config.build.nixos;
 
     formatter.x86_64-linux = nixpkgs.legacyPackages.x86_64-linux.alejandra;
   };

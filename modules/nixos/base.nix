@@ -120,6 +120,10 @@
 
   networking.networkmanager.enable = true;
 
+  # Battery/brightness DBus API for WirePlumber + desktop widgets. Without
+  # this, wireplumber logs "Failed to get percentage from UPower" every login.
+  services.upower.enable = true;
+
   hardware.bluetooth = {
     enable = true;
     powerOnBoot = true;
@@ -133,6 +137,9 @@
     layout = "us";
     variant = "";
   };
+
+  # Match the Linux console to the X keymap above.
+  console.useXkbConfig = true;
 
   # Faster keyboard repeat: 200ms before repeating, then 50 chars/sec.
   services.xserver.autoRepeatDelay = 200;

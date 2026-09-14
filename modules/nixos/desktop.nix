@@ -9,6 +9,10 @@
 
     windowManager.oxwm = {
       enable = true;
+      # nixpkgs 0.12.0 has a known Lua-GC bug: keybind spawn strings are
+      # stored by reference (getLuaString, not dupeLuaString), so temporaries
+      # are collected before the keypress. The workaround lives in
+      # home/itah/oxwm-config.lua (global CMD table keeps strings rooted).
     };
 
     # Uses the modesetting driver (default; xf86-video-intel fails to load
@@ -61,6 +65,10 @@
     # Xcursor theme natively — no cursor patching needed like st had).
     alacritty
     xterm
+    # Keybind debugging (e.g. verifying Mod+D reaches X): xev shows key
+    # events, xprop shows window properties for oxwm.rule.add matching.
+    xorg.xev
+    xorg.xprop
   ];
 
   fonts.packages = with pkgs; [

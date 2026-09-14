@@ -294,6 +294,34 @@ oxwm.bar.set_scheme_urgent(colors.red, colors.bg, colors.red)
 -------------------------------------------------------------------------------
 -- Keybindings
 -------------------------------------------------------------------------------
+-- Spawn commands for keybinds. They all live in a GLOBAL table on purpose:
+-- oxwm 0.12.0 (and master) stores the Lua string behind a keybound spawn
+-- command *by reference* and frees its stack slot immediately, so Lua's GC
+-- reclaims the memory before the keypress ever runs (only `autostart` and
+-- bar-click commands are copied safely). Keeping each command string
+-- referenced from a global table prevents the collection, making the binds
+-- work. This can be removed once oxwm copies keybind strings (dupeLuaString).
+CMD = {}
+CMD.dmenu = "dmenu_run -l 10 -nb '" .. UI.dmenu[1] .. "' -nf '" .. UI.dmenu[2] .. "' -sb '" .. UI.dmenu[3] .. "' -sf '" .. UI.dmenu[4] .. "'"
+CMD.screenshot = "mkdir -p ~/Pictures/Screenshots && F=~/Pictures/Screenshots/$(date +%Y-%m-%d_%H-%M-%S).png && maim -s | tee \"$F\" | xclip -selection clipboard -t image/png && notify-send \"Screenshot\" \"saved to $F\""
+-- Bare path (no `sh -c` wrapper of its own): use $HOME so it never depends
+-- on tilde expansion, only on the shell spawnCommand already uses.
+CMD.clipmenu = "$HOME/.config/oxwm/clipmenu-sync.sh"
+CMD.kbhelp = "alacritty --class kbhelp -e sh -c 'glow -p ~/.config/oxwm/keybinds.md'"
+CMD.ocr = "maim -s | tesseract stdin stdout -l eng+ind 2>/dev/null | xclip -selection clipboard"
+CMD.opencode = "alacritty --class opencode -e opencode"
+CMD.yazi = "alacritty --class yazi -e yazi"
+CMD.btop = "alacritty --class btop -e btop"
+CMD.pcmanfm = "pcmanfm"
+CMD.browser = "brave-origin"
+CMD.libreoffice = "libreoffice"
+CMD.localsend = "localsend_app"
+CMD.obs = "obs"
+CMD.fetcher = "alacritty --class fetcher -o window.dimensions.columns=110 -o window.dimensions.lines=30 -e sh -c 'fastfetch; echo; read -p \"Press Enter to close\"'"
+CMD.nmtui = "alacritty --class nmtui -e nmtui"
+CMD.bluetui = "alacritty --class btui -e bluetui"
+CMD.calcurse = "alacritty --class calcurse -e calcurse"
+
 -- App launcher rules: float these single-purpose terminal windows (matched by
 -- the alacritty instance name, set with `alacritty --class NAME` in the binds below).
 oxwm.rule.add({ instance = "fetcher", floating = true })
@@ -314,17 +342,17 @@ oxwm.rule.add({ instance = "calcurse", floating = true })
 
 oxwm.key.bind({ modkey }, "Return", oxwm.spawn_terminal())
 -- Launch Dmenu
-oxwm.key.bind({ modkey }, "D", oxwm.spawn({ "sh", "-c", "dmenu_run -l 10 -nb '" .. UI.dmenu[1] .. "' -nf '" .. UI.dmenu[2] .. "' -sb '" .. UI.dmenu[3] .. "' -sf '" .. UI.dmenu[4] .. "'" }))
+oxwm.key.bind({ modkey }, "D", oxwm.spawn(CMD.dmenu))
 -- Screenshot to ~/Pictures/Screenshots/ (timestamped) + clipboard
-oxwm.key.bind({ modkey }, "S", oxwm.spawn({ "sh", "-c", "mkdir -p ~/Pictures/Screenshots && F=~/Pictures/Screenshots/$(date +%Y-%m-%d_%H-%M-%S).png && maim -s | tee \"$F\" | xclip -selection clipboard -t image/png && notify-send \"Screenshot\" \"saved to $F\"" }))
+oxwm.key.bind({ modkey }, "S", oxwm.spawn(CMD.screenshot))
 -- Clipboard history picker (clipmenu over dmenu, pastes the selection)
-oxwm.key.bind({ modkey }, "V", oxwm.spawn({ "sh", "-c", "~/.config/oxwm/clipmenu-sync.sh" }))
+oxwm.key.bind({ modkey }, "V", oxwm.spawn(CMD.clipmenu))
 oxwm.key.bind({ modkey }, "Q", oxwm.client.kill())
 
 -- Keybind overlay - Shows important keybindings on screen
 -- Show keybind cheatsheet (the built-in overlay is a minimal hardcoded list;
 -- this opens a floating glow render of the full Markdown list).
-oxwm.key.bind({ modkey, "Shift" }, "Slash", oxwm.spawn({ "sh", "-c", "alacritty --class kbhelp -e sh -c 'glow -p ~/.config/oxwm/keybinds.md'" }))
+oxwm.key.bind({ modkey, "Shift" }, "Slash", oxwm.spawn(CMD.kbhelp))
 
 -- Window state toggles
 oxwm.key.bind({ modkey, "Shift" }, "F", oxwm.client.toggle_fullscreen())
@@ -437,32 +465,38 @@ oxwm.key.chord({
 -- Brightness via brightnessctl (user must be in the `video` group).
 -- NOTE: oxwm only understands the {"sh", "-c", "<cmd>"} table form (or a
 -- plain string); a multi-arg table runs just its first element.
-oxwm.key.bind({}, "XF86MonBrightnessUp", oxwm.spawn({ "sh", "-c", "brightnessctl set 5%+ && b=$(brightnessctl i | sed -n 's/.*(\\([0-9]*\\)%).*/\\1/p') && notify-send -t 1500 -h int:value:$b -h string:synchronous:brightness \"Brightness\" \"$b%\"" }))
-oxwm.key.bind({}, "XF86MonBrightnessDown", oxwm.spawn({ "sh", "-c", "brightnessctl set 5%- && b=$(brightnessctl i | sed -n 's/.*(\\([0-9]*\\)%).*/\\1/p') && notify-send -t 1500 -h int:value:$b -h string:synchronous:brightness \"Brightness\" \"$b%\"" }))
+CMD.brightness_up = "brightnessctl set 5%+ && b=$(brightnessctl i | sed -n 's/.*(\\([0-9]*\\)%).*/\\1/p') && notify-send -t 1500 -h int:value:$b -h string:synchronous:brightness \"Brightness\" \"$b%\""
+CMD.brightness_down = "brightnessctl set 5%- && b=$(brightnessctl i | sed -n 's/.*(\\([0-9]*\\)%).*/\\1/p') && notify-send -t 1500 -h int:value:$b -h string:synchronous:brightness \"Brightness\" \"$b%\""
 
 -- Volume via PipeWire / WirePlumber.
-oxwm.key.bind({}, "XF86AudioRaiseVolume", oxwm.spawn({ "sh", "-c", "wpctl set-volume @DEFAULT_AUDIO_SINK@ 5%+ && v=$(wpctl get-volume @DEFAULT_AUDIO_SINK@ | awk '{print int($2*100)}') && notify-send -t 1500 -h int:value:$v -h string:synchronous:volume \"Volume\" \"$v%\"" }))
-oxwm.key.bind({}, "XF86AudioLowerVolume", oxwm.spawn({ "sh", "-c", "wpctl set-volume @DEFAULT_AUDIO_SINK@ 5%- && v=$(wpctl get-volume @DEFAULT_AUDIO_SINK@ | awk '{print int($2*100)}') && notify-send -t 1500 -h int:value:$v -h string:synchronous:volume \"Volume\" \"$v%\"" }))
-oxwm.key.bind({}, "XF86AudioMute", oxwm.spawn({ "sh", "-c", "wpctl set-mute @DEFAULT_AUDIO_SINK@ toggle && if wpctl get-volume @DEFAULT_AUDIO_SINK@ | grep -q '\\[MUTED\\]'; then notify-send -t 1500 -h string:synchronous:volume \"Volume\" \"muted\"; else v=$(wpctl get-volume @DEFAULT_AUDIO_SINK@ | awk '{print int($2*100)}'); notify-send -t 1500 -h int:value:$v -h string:synchronous:volume \"Volume\" \"$v%\"; fi" }))
+CMD.volume_up = "wpctl set-volume @DEFAULT_AUDIO_SINK@ 5%+ && v=$(wpctl get-volume @DEFAULT_AUDIO_SINK@ | awk '{print int($2*100)}') && notify-send -t 1500 -h int:value:$v -h string:synchronous:volume \"Volume\" \"$v%\""
+CMD.volume_down = "wpctl set-volume @DEFAULT_AUDIO_SINK@ 5%- && v=$(wpctl get-volume @DEFAULT_AUDIO_SINK@ | awk '{print int($2*100)}') && notify-send -t 1500 -h int:value:$v -h string:synchronous:volume \"Volume\" \"$v%\""
+CMD.volume_mute = "wpctl set-mute @DEFAULT_AUDIO_SINK@ toggle && if wpctl get-volume @DEFAULT_AUDIO_SINK@ | grep -q '\\[MUTED\\]'; then notify-send -t 1500 -h string:synchronous:volume \"Volume\" \"muted\"; else v=$(wpctl get-volume @DEFAULT_AUDIO_SINK@ | awk '{print int($2*100)}'); notify-send -t 1500 -h int:value:$v -h string:synchronous:volume \"Volume\" \"$v%\"; fi"
+
+oxwm.key.bind({}, "XF86MonBrightnessUp", oxwm.spawn(CMD.brightness_up))
+oxwm.key.bind({}, "XF86MonBrightnessDown", oxwm.spawn(CMD.brightness_down))
+oxwm.key.bind({}, "XF86AudioRaiseVolume", oxwm.spawn(CMD.volume_up))
+oxwm.key.bind({}, "XF86AudioLowerVolume", oxwm.spawn(CMD.volume_down))
+oxwm.key.bind({}, "XF86AudioMute", oxwm.spawn(CMD.volume_mute))
 
 -- OCR: select a screen region, recognize text (English + Indonesian),
 -- and copy it to the clipboard.
-oxwm.key.bind({ modkey }, "O", oxwm.spawn({ "sh", "-c", "maim -s | tesseract stdin stdout -l eng+ind 2>/dev/null | xclip -selection clipboard" }))
+oxwm.key.bind({ modkey }, "O", oxwm.spawn(CMD.ocr))
 
 -- App launchers (default binds untouched; new combos only)
-oxwm.key.bind({ modkey, "Shift" }, "O", oxwm.spawn({ "sh", "-c", "alacritty --class opencode -e opencode" }))             -- TUI chat/GitHub Copilot
-oxwm.key.bind({ modkey, "Shift" }, "Y", oxwm.spawn({ "sh", "-c", "alacritty --class yazi -e yazi" }))                     -- file manager (TUI)
-oxwm.key.bind({ modkey, "Shift" }, "B", oxwm.spawn({ "sh", "-c", "alacritty --class btop -e btop" }))                     -- system monitor (TUI)
-oxwm.key.bind({ modkey }, "T", oxwm.spawn({ "sh", "-c", "pcmanfm" }))                                          -- file manager (GUI)
-oxwm.key.bind({ modkey }, "W", oxwm.spawn({ "sh", "-c", "brave-origin" }))                                    -- browser
-oxwm.key.bind({ modkey, "Shift" }, "L", oxwm.spawn({ "sh", "-c", "libreoffice" }))                            -- office suite
-oxwm.key.bind({ modkey, "Shift" }, "M", oxwm.spawn({ "sh", "-c", "localsend_app" }))                         -- file sharing (GUI)
-oxwm.key.bind({ modkey, "Shift" }, "P", oxwm.spawn({ "sh", "-c", "obs" }))                                   -- screen recording (GUI)
+oxwm.key.bind({ modkey, "Shift" }, "O", oxwm.spawn(CMD.opencode))            -- TUI chat/GitHub Copilot
+oxwm.key.bind({ modkey, "Shift" }, "Y", oxwm.spawn(CMD.yazi))                -- file manager (TUI)
+oxwm.key.bind({ modkey, "Shift" }, "B", oxwm.spawn(CMD.btop))                -- system monitor (TUI)
+oxwm.key.bind({ modkey }, "T", oxwm.spawn(CMD.pcmanfm))                      -- file manager (GUI)
+oxwm.key.bind({ modkey }, "W", oxwm.spawn(CMD.browser))                      -- browser
+oxwm.key.bind({ modkey, "Shift" }, "L", oxwm.spawn(CMD.libreoffice))         -- office suite
+oxwm.key.bind({ modkey, "Shift" }, "M", oxwm.spawn(CMD.localsend))           -- file sharing (GUI)
+oxwm.key.bind({ modkey, "Shift" }, "P", oxwm.spawn(CMD.obs))                 -- screen recording (GUI)
 -- Floating TUIs (matched by instance rule above)
-oxwm.key.bind({ modkey }, "E", oxwm.spawn({ "sh", "-c", "alacritty --class fetcher -o window.dimensions.columns=110 -o window.dimensions.lines=30 -e sh -c 'fastfetch; echo; read -p \"Press Enter to close\"'" })) -- system info (float)
-oxwm.key.bind({ modkey, "Shift" }, "N", oxwm.spawn({ "sh", "-c", "alacritty --class nmtui -e nmtui" }))                  -- network (float)
-oxwm.key.bind({ modkey, "Shift" }, "T", oxwm.spawn({ "sh", "-c", "alacritty --class btui -e bluetui" }))                 -- bluetooth (float)
-oxwm.key.bind({ modkey, "Shift" }, "C", oxwm.spawn({ "sh", "-c", "alacritty --class calcurse -e calcurse" }))            -- calendar (float)
+oxwm.key.bind({ modkey }, "E", oxwm.spawn(CMD.fetcher))                      -- system info (float)
+oxwm.key.bind({ modkey, "Shift" }, "N", oxwm.spawn(CMD.nmtui))               -- network (float)
+oxwm.key.bind({ modkey, "Shift" }, "T", oxwm.spawn(CMD.bluetui))             -- bluetooth (float)
+oxwm.key.bind({ modkey, "Shift" }, "C", oxwm.spawn(CMD.calcurse))            -- calendar (float)
 
 -------------------------------------------------------------------------------
 -- Autostart
