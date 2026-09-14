@@ -110,42 +110,43 @@
     | ------------------------- | ------------------------- |
     | `Mod+F`                   | Layout: normie            |
     | `Mod+C`                   | Layout: tiling            |
-    | `Mod+N`                   | Cycle layouts             |
+    | `Mod+Space`               | Cycle layouts             |
     | `Mod+J` / `Mod+K`         | Focus next / prev         |
     | `Mod+Shift+J` / `K`       | Move window in stack      |
     | `Mod+H` / `Mod+L`         | Master area - / + 5%      |
-    | `Mod+I` / `Mod+P`         | - / + number of masters   |
+    | `Mod+Shift+H` / `L`       | - / + number of masters   |
     | `Mod+Comma` / `Mod+.`     | Focus prev / next monitor |
     | `Mod+Shift+Comma` / `.`   | Move window to monitor    |
+    | `Mod+X` then `T`          | Terminal (keychord)       |
     | `Mod+1..9`                | View tag                  |
     | `Mod+Shift+1..9`          | Move window to tag        |
     | `Mod+Ctrl+1..9`           | Toggle view of tags       |
     | `Mod+Ctrl+Shift+1..9`     | Toggle window tags        |
 
-    ## App Launchers
+    ## App Launchers (`Mod` = GUI, `Mod+Shift` = terminal/TUI)
 
     | Keys             | Action                |
     | ---------------- | --------------------- |
+    | `Mod+W`          | Brave                 |
+    | `Mod+E`          | PCManFM              |
+    | `Mod+O`          | LibreOffice           |
+    | `Mod+M`          | LocalSend             |
+    | `Mod+P`          | OBS Studio            |
     | `Mod+Shift+O`    | opencode (TUI)        |
     | `Mod+Shift+Y`    | yazi (TUI)            |
     | `Mod+Shift+B`    | btop (TUI)            |
-    | `Mod+T`          | PCManFM              |
-    | `Mod+W`          | Brave                 |
-    | `Mod+Shift+L`    | LibreOffice           |
-    | `Mod+Shift+M`    | LocalSend             |
-    | `Mod+Shift+P`    | OBS Studio            |
-    | `Mod+E`          | fastfetch (floating)  |
+    | `Mod+Shift+E`    | fastfetch (floating)  |
     | `Mod+Shift+N`    | nmtui (floating)      |
     | `Mod+Shift+T`    | bluetui (floating)    |
-    | `Mod+Shift+C`    | calcurse (floating)   |
+    | `Mod+Shift+A`    | calcurse (floating)   |
 
     ## Screen & Clipboard
 
-    | Keys    | Action                           |
-    | ------- | -------------------------------- |
-    | `Mod+S` | Screenshot selection to clipboard |
-    | `Mod+O` | OCR selection to clipboard        |
-    | `Mod+V` | Clipboard history (clipmenu)      |
+    | Keys          | Action                           |
+    | ------------- | -------------------------------- |
+    | `Mod+S`       | Screenshot selection to clipboard |
+    | `Mod+Shift+S` | OCR selection to clipboard        |
+    | `Mod+V`       | Clipboard history (clipmenu)      |
 
     ## Media / OSD
 
