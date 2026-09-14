@@ -83,7 +83,7 @@ local blocks = {
         format = "CPU: {}%",
         command = "/home/itah/.config/oxwm/cpu.sh",
         interval = 2,
-        color = colors.yellow,
+        color = colors.purple,
         underline = true,
         click = { command = "alacritty -e btop", floating = true },
     }),
@@ -100,62 +100,6 @@ local blocks = {
         color = colors.red,
         underline = true,
         click = { command = "alacritty -e btop", floating = true },
-    }),
-    oxwm.bar.block.static({
-        text = "│",
-        interval = 999999999,
-        color = colors.lavender,
-        underline = false,
-    }),
-    oxwm.bar.block.shell({
-        format = "Bri: {}%",
-        command = "echo $(( $(cat /sys/class/backlight/intel_backlight/brightness) * 100 / $(cat /sys/class/backlight/intel_backlight/max_brightness) ))",
-        interval = 2,
-        color = colors.purple,
-        underline = true,
-        click = "brightnessctl set 5%+",
-    }),
-    oxwm.bar.block.static({
-        text = "│",
-        interval = 999999999,
-        color = colors.lavender,
-        underline = false,
-    }),
-    oxwm.bar.block.shell({
-        format = "Vol: {}",
-        command = "wpctl get-volume @DEFAULT_AUDIO_SINK@ | awk '{if ($3==\"[MUTED]\") print \"MUTED\"; else printf \"%d%%\", $2*100}'",
-        interval = 2,
-        color = colors.blue,
-        underline = true,
-        click = { command = "alacritty -e pulsemixer", floating = true },
-    }),
-    oxwm.bar.block.static({
-        text = "│",
-        interval = 999999999,
-        color = colors.lavender,
-        underline = false,
-    }),
-    oxwm.bar.block.shell({
-        format = "WiFi: {}",
-        command = "nmcli -t -f active,ssid,signal dev wifi 2>/dev/null | awk -F: '$1==\"yes\" {print $2\" \"$3\"%\"}'",
-        interval = 10,
-        color = colors.orange,
-        underline = true,
-        click = { command = "alacritty -e nmtui", floating = true },
-    }),
-    oxwm.bar.block.static({
-        text = "│",
-        interval = 999999999,
-        color = colors.lavender,
-        underline = false,
-    }),
-    oxwm.bar.block.shell({
-        format = "BT: {}",
-        command = "name=$(bluetoothctl devices Connected 2>/dev/null | head -1 | cut -d\" \" -f3-); if [ -n \"$name\" ]; then echo \"$name\"; elif bluetoothctl show 2>/dev/null | grep -q \"Powered: yes\"; then echo on; else echo off; fi",
-        interval = 10,
-        color = colors.teal,
-        underline = true,
-        click = { command = "alacritty -e bluetui", floating = true },
     }),
     oxwm.bar.block.static({
         text = "│",
@@ -281,8 +225,8 @@ oxwm.bar.set_blocks(blocks)
 
 -- Unoccupied tags
 oxwm.bar.set_scheme_normal(colors.fg, colors.bg, "#45475a")
--- Occupied tags (accent text on the bar background)
-oxwm.bar.set_scheme_occupied(colors.fg, colors.bg, colors.fg)
+-- Occupied tags (blue text on the bar background, distinct from empty/selected)
+oxwm.bar.set_scheme_occupied(colors.blue, colors.bg, colors.blue)
 -- Currently selected tag (bright mauve accent text so it stays readable on dark)
 oxwm.bar.set_scheme_selected(colors.purple, colors.bg, colors.purple)
 -- Urgent tags (windows requesting attention)
@@ -307,7 +251,6 @@ CMD.screenshot = "mkdir -p ~/Pictures/Screenshots && F=~/Pictures/Screenshots/$(
 -- Bare path (no `sh -c` wrapper of its own): use $HOME so it never depends
 -- on tilde expansion, only on the shell spawnCommand already uses.
 CMD.clipmenu = "$HOME/.config/oxwm/clipmenu-sync.sh"
-CMD.kbhelp = "alacritty --class kbhelp -e sh -c 'glow -p ~/.config/oxwm/keybinds.md'"
 CMD.ocr = "maim -s | tesseract stdin stdout -l eng+ind 2>/dev/null | xclip -selection clipboard"
 CMD.opencode = "alacritty --class opencode -e opencode"
 CMD.yazi = "alacritty --class yazi -e yazi"
@@ -317,6 +260,14 @@ CMD.browser = "brave-origin"
 CMD.libreoffice = "libreoffice"
 CMD.localsend = "localsend_app"
 CMD.obs = "obs"
+CMD.netbeans = "netbeans"
+CMD.vpn = "protonvpn-app"
+-- File-based apps spawn with an empty window; the imv/zathura variants
+-- pick a file through themed dmenu instead (empty pick = no-op).
+CMD.mpv = "mpv --force-window=yes"
+CMD.imview = "fd -t f -e png -e jpg -e jpeg -e webp -e gif \"$HOME\" 2>/dev/null | dmenu -l 15 -nb '" .. UI.dmenu[1] .. "' -nf '" .. UI.dmenu[2] .. "' -sb '" .. UI.dmenu[3] .. "' -sf '" .. UI.dmenu[4] .. "' | IFS= read -r f && imv \"$f\""
+CMD.zathura = "fd -t f -e pdf -e epub -e djvu \"$HOME\" 2>/dev/null | dmenu -l 15 -nb '" .. UI.dmenu[1] .. "' -nf '" .. UI.dmenu[2] .. "' -sb '" .. UI.dmenu[3] .. "' -sf '" .. UI.dmenu[4] .. "' | IFS= read -r f && zathura \"$f\""
+CMD.mycli = "alacritty --class mycli -e mycli -u itah -h localhost"
 CMD.fetcher = "alacritty --class fetcher -o window.dimensions.columns=110 -o window.dimensions.lines=30 -e sh -c 'fastfetch; echo; read -p \"Press Enter to close\"'"
 CMD.nmtui = "alacritty --class nmtui -e nmtui"
 CMD.bluetui = "alacritty --class btui -e bluetui"
@@ -325,10 +276,10 @@ CMD.calcurse = "alacritty --class calcurse -e calcurse"
 -- App launcher rules: float these single-purpose terminal windows (matched by
 -- the alacritty instance name, set with `alacritty --class NAME` in the binds below).
 oxwm.rule.add({ instance = "fetcher", floating = true })
-oxwm.rule.add({ instance = "kbhelp", floating = true })
 oxwm.rule.add({ instance = "nmtui", floating = true })
 oxwm.rule.add({ instance = "btui", floating = true })
 oxwm.rule.add({ instance = "calcurse", floating = true })
+oxwm.rule.add({ instance = "mycli", floating = true })
 
 -- Keybindings are defined using oxwm.key.bind(modifiers, key, action)
 -- Modifiers: {"Mod4"}, {"Mod1"}, {"Shift"}, {"Control"}, or combinations like {"Mod4", "Shift"}
@@ -345,26 +296,21 @@ oxwm.key.bind({ modkey }, "Return", oxwm.spawn_terminal())
 oxwm.key.bind({ modkey }, "D", oxwm.spawn(CMD.dmenu))
 -- Screenshot to ~/Pictures/Screenshots/ (timestamped) + clipboard
 oxwm.key.bind({ modkey }, "S", oxwm.spawn(CMD.screenshot))
--- Clipboard history picker (clipmenu over dmenu, pastes the selection)
-oxwm.key.bind({ modkey }, "V", oxwm.spawn(CMD.clipmenu))
 oxwm.key.bind({ modkey }, "Q", oxwm.client.kill())
 
--- Keybind overlay - Shows important keybindings on screen
--- Show keybind cheatsheet (the built-in overlay is a minimal hardcoded list;
--- this opens a floating glow render of the full Markdown list).
-oxwm.key.bind({ modkey, "Shift" }, "Slash", oxwm.spawn(CMD.kbhelp))
+-- Keybind overlay - Shows the default oxwm keybindings on screen
+oxwm.key.bind({ modkey, "Shift" }, "Slash", oxwm.show_keybinds())
 
 -- Window state toggles
 oxwm.key.bind({ modkey, "Shift" }, "F", oxwm.client.toggle_fullscreen())
 oxwm.key.bind({ modkey, "Shift" }, "Space", oxwm.client.toggle_floating())
 
--- Layout management
--- Mod+F = floating (normie), Mod+C = tiling, Mod+Space = cycle.
--- (Cycle lives on Space so N stays free for the Network launcher below.)
+-- Layout management (default oxwm): F = floating (normie), C = tiling,
+-- N = cycle layouts.
 oxwm.key.bind({ modkey }, "F", oxwm.layout.set("normie"))
 oxwm.key.bind({ modkey }, "C", oxwm.layout.set("tiling"))
 -- Cycle through layouts
-oxwm.key.bind({ modkey }, "Space", oxwm.layout.cycle())
+oxwm.key.bind({ modkey }, "N", oxwm.layout.cycle())
 
 -- Master area controls (tiling layout)
 
@@ -373,10 +319,9 @@ oxwm.key.bind({ modkey }, "H", oxwm.set_master_factor(-5))
 oxwm.key.bind({ modkey }, "L", oxwm.set_master_factor(5))
 -- Enable tiled resize mode: Mod+RMB drag adjusts mfact instead of floating
 -- oxwm.tiled_resize_mode(true)
--- Increment/Decrement number of master windows (H/L family: Mod adjusts
--- width, Shift adjusts count; keeps I/P/N free for launchers).
-oxwm.key.bind({ modkey, "Shift" }, "H", oxwm.inc_num_master(1))
-oxwm.key.bind({ modkey, "Shift" }, "L", oxwm.inc_num_master(-1))
+-- Increment/Decrement number of master windows (default oxwm: I/P)
+oxwm.key.bind({ modkey }, "I", oxwm.inc_num_master(1))
+oxwm.key.bind({ modkey }, "P", oxwm.inc_num_master(-1))
 
 -- Gaps toggle
 oxwm.key.bind({ modkey }, "A", oxwm.toggle_gaps())
@@ -456,10 +401,10 @@ oxwm.key.bind({ modkey, "Control", "Shift" }, "9", oxwm.tag.toggletag(8))
 -------------------------------------------------------------------------------
 -- Keychords allow you to bind multiple-key sequences (like Emacs or Vim)
 -- Format: {{modifiers}, key1}, {{modifiers}, key2}, ...
--- Example: Press Mod+X, then release and press T to spawn a terminal
--- (leader is X because Mod+Space is layout cycle)
+-- Example: Press Mod+Space, then release and press T to spawn a terminal
+-- (default oxwm keychord)
 oxwm.key.chord({
-    { { modkey }, "X" },
+    { { modkey }, "Space" },
     { {},         "T" }
 }, oxwm.spawn_terminal())
 
@@ -490,20 +435,28 @@ oxwm.key.bind({ modkey, "Shift" }, "S", oxwm.spawn(CMD.ocr))
 -- App launchers: two layers, no cross-layer same-letter pairs.
 --   Mod (no Shift)         = GUI apps
 --   Mod+Shift              = terminal / TUI apps (floating ones noted)
--- Families sharing a letter are intentional (S = screen, B = bar/monitor,
--- E = explorer/info); everything else has a unique letter per layer.
+-- Families sharing a letter are intentional (S = screen, O = office/code,
+-- M = share/DB); everything else has a unique letter per layer.
 --
 -- GUI (Mod):
 --   W = web (Brave), E = explorer (PCManFM), O = office (LibreOffice),
---   M = LocalSend share, P = OBS Studio (P freed by moving nmaster to Shift+H/L)
+--   M = share (LocalSend), R = record (OBS), Z = video (mpv),
+--   G = gallery (imv via picker), U = IDE (NetBeans),
+--   V = clipboard history (clipmenu popup)
 oxwm.key.bind({ modkey }, "W", oxwm.spawn(CMD.browser))                      -- browser
 oxwm.key.bind({ modkey }, "E", oxwm.spawn(CMD.pcmanfm))                      -- file manager (GUI)
 oxwm.key.bind({ modkey }, "O", oxwm.spawn(CMD.libreoffice))                  -- office suite
 oxwm.key.bind({ modkey }, "M", oxwm.spawn(CMD.localsend))                    -- file sharing (GUI)
-oxwm.key.bind({ modkey }, "P", oxwm.spawn(CMD.obs))                          -- screen recording (GUI)
+oxwm.key.bind({ modkey }, "R", oxwm.spawn(CMD.obs))                          -- screen recording (GUI)
+oxwm.key.bind({ modkey }, "Z", oxwm.spawn(CMD.mpv))                          -- video player (GUI)
+oxwm.key.bind({ modkey }, "G", oxwm.spawn(CMD.imview))                       -- image viewer (picker)
+oxwm.key.bind({ modkey }, "U", oxwm.spawn(CMD.netbeans))                     -- Java IDE
+oxwm.key.bind({ modkey }, "V", oxwm.spawn(CMD.clipmenu))                     -- clipboard history (popup)
 -- TUI (Mod+Shift):
 --   O = opencode, Y = yazi, B = btop, E = system info (fetch),
---   N = network (nmtui), T = bluetooth (bluetui), A = agenda (calcurse)
+--   N = network (nmtui), T = bluetooth (bluetui), A = agenda (calcurse),
+--   M = MariaDB (mycli, floating), P = PDF reader (zathura, GUI via shift),
+--   V = VPN (ProtonVPN, GUI)
 oxwm.key.bind({ modkey, "Shift" }, "O", oxwm.spawn(CMD.opencode))            -- TUI chat/GitHub Copilot
 oxwm.key.bind({ modkey, "Shift" }, "Y", oxwm.spawn(CMD.yazi))                -- file manager (TUI)
 oxwm.key.bind({ modkey, "Shift" }, "B", oxwm.spawn(CMD.btop))                -- system monitor (TUI)
@@ -512,6 +465,9 @@ oxwm.key.bind({ modkey, "Shift" }, "E", oxwm.spawn(CMD.fetcher))             -- 
 oxwm.key.bind({ modkey, "Shift" }, "N", oxwm.spawn(CMD.nmtui))               -- network (float)
 oxwm.key.bind({ modkey, "Shift" }, "T", oxwm.spawn(CMD.bluetui))             -- bluetooth (float)
 oxwm.key.bind({ modkey, "Shift" }, "A", oxwm.spawn(CMD.calcurse))            -- calendar (float)
+oxwm.key.bind({ modkey, "Shift" }, "M", oxwm.spawn(CMD.mycli))               -- MariaDB client (float)
+oxwm.key.bind({ modkey, "Shift" }, "P", oxwm.spawn(CMD.zathura))             -- PDF viewer (picker)
+oxwm.key.bind({ modkey, "Shift" }, "V", oxwm.spawn(CMD.vpn))                 -- VPN (GUI)
 
 -------------------------------------------------------------------------------
 -- Autostart
@@ -530,6 +486,8 @@ oxwm.autostart("xrdb -merge ~/.config/Xresources")
 -- desktop cursor on theme)
 oxwm.autostart("xsetroot -cursor_name left_ptr")
 
+-- Thumbnail generator for PCManFM (freedesktop D-Bus service)
+oxwm.autostart("pgrep tumblerd >/dev/null || tumblerd")
 -- Notification daemon (static Catppuccin Mocha dunstrc from home-manager)
 oxwm.autostart("pgrep dunst >/dev/null || dunst")
 -- oxwm.autostart("nm-applet")

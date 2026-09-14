@@ -1,11 +1,10 @@
 {
-  config,
+  lib,
   pkgs,
   ...
 }: let
-  # nixpkgs' catppuccin-gtk only ships the frappe flavor; grab the prebuilt
-  # mocha-mauve GTK theme directly from the catppuccin/gtk release (the single
-  # fixed desktop theme — no theme switcher).
+  # Mocha-mauve GTK theme: nixpkgs' catppuccin-gtk only ships frappe, so pull the
+  # prebuilt mocha release directly (single fixed desktop theme, no switcher).
   catppuccinMochaMauve =
     pkgs.runCommand "catppuccin-gtk-mocha-mauve"
     {
@@ -23,16 +22,17 @@
       mv $out/share/themes/catppuccin-mocha-mauve-standard+default \
          $out/share/themes/catppuccin-mocha
     '';
-  # nixpkgs' catppuccin-papirus-folders defaults to the blue accent, but the
-  # whole desktop is Mocha mauve — override so the icon folders match.
+
+  # Papirus icon folders: default blue accent overridden to match the mauve desktop.
+  catppuccinPapirusFolders = pkgs.catppuccin-papirus-folders.override {
+    flavor = "mocha";
+    accent = "mauve";
+  };
 in {
   environment.systemPackages = with pkgs; [
     android-tools
     catppuccin-cursors.mochaMauve
-    (catppuccin-papirus-folders.override {
-      flavor = "mocha";
-      accent = "mauve";
-    })
+    catppuccinPapirusFolders
     btop
     bluetui
     brave-origin
@@ -43,7 +43,6 @@ in {
     fd
     feh
     ffmpegthumbnailer
-    fzf
     glow
     imv
     jq
@@ -82,19 +81,28 @@ in {
     xclip
     yazi
     zathura
-    zoxide
   ];
 
   services.gvfs.enable = true;
 
-  # MariaDB is installed but NOT started automatically; use mycli when a
-  # server is up, or start it on demand with `systemctl start mysql`.
+  # MariaDB (local dev): user itah, password hash (plaintext '1909' not in repo).
+  # Connect: mycli -u itah -p -h localhost  |  mariadb -u itah -p -h localhost
+  # To rotate: mariadb -u root -e "SELECT PASSWORD('new-password')" then replace the hash below.
+  services.mysql = {
+    enable = true;
+    package = pkgs.mariadb;
+    initialScript = pkgs.writeText "mysql-init.sql" ''
+      CREATE USER IF NOT EXISTS 'itah'@'localhost' IDENTIFIED BY PASSWORD '*B7D45478225E8AA0DD9B0498AD9AE98F958F5324';
+      CREATE USER IF NOT EXISTS 'itah'@'127.0.0.1' IDENTIFIED BY PASSWORD '*B7D45478225E8AA0DD9B0498AD9AE98F958F5324';
+      GRANT ALL PRIVILEGES ON *.* TO 'itah'@'localhost' WITH GRANT OPTION;
+      GRANT ALL PRIVILEGES ON *.* TO 'itah'@'127.0.0.1' WITH GRANT OPTION;
+      FLUSH PRIVILEGES;
+    '';
+  };
+
+  systemd.services.mysql.wantedBy = lib.mkForce []; # on-demand only: `sudo systemctl start mysql`
 
   # LocalSend discovery + transfer port.
   networking.firewall.allowedTCPPorts = [53317];
   networking.firewall.allowedUDPPorts = [53317];
-
-  # ADB/fastboot: systemd 258 handles uaccess rules automatically, so no
-  # extra udev rules are needed — `android-tools` above provides the adb
-  # command.
 }

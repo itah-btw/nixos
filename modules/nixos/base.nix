@@ -1,50 +1,44 @@
-{
-  config,
-  pkgs,
-  ...
-}: {
-  boot.loader.systemd-boot.enable = true;
+{pkgs, ...}: {
+  boot.loader.systemd-boot = {
+    enable = true;
+    configurationLimit = 10;
+  };
   boot.loader.efi.canTouchEfiVariables = true;
 
-  # Keep the boot menu short: only the latest 5 generations are bootable.
-  boot.loader.systemd-boot.configurationLimit = 5;
-
-  # No auto-upgrade. Daily: just check whether nixpkgs has a newer revision and
-  # notify itah (no lock change, no rebuild). Manual upgrade: `sudo systemctl
-  # start nixos-upgrade` (alias: upgrade) or `update`+`rebuild`.
+  # Daily nixpkgs update check (notify only — no lock change, no rebuild).
   systemd.services.nixos-check-updates = {
     description = "Daily nixpkgs update check (notify only)";
     serviceConfig = {
       Type = "oneshot";
       ExecStart = pkgs.writeShellScript "nixos-check-updates" ''
-                set -u
-                export PATH=/run/current-system/sw/bin:$PATH
-                notify() {
-                  runuser -u itah -- env DISPLAY=:0 XDG_RUNTIME_DIR=/run/user/1000 \
-                    DBUS_SESSION_BUS_ADDRESS=unix:path=/run/user/1000/bus \
-                    notify-send -t 8000 "$@" || true
-                }
+        set -u
+        export PATH=/run/current-system/sw/bin:$PATH
+        notify() {
+          runuser -u itah -- env DISPLAY=:0 XDG_RUNTIME_DIR=/run/user/1000 \
+            DBUS_SESSION_BUS_ADDRESS=unix:path=/run/user/1000/bus \
+            notify-send -t 8000 "$@" || true
+        }
 
-                # Locked nixpkgs revision in /etc/nixos/flake.lock.
-                cur=$(nix flake metadata /etc/nixos --json 2>/dev/null | python3 -c '
+        # Locked nixpkgs revision from flake.lock.
+        cur=$(nix flake metadata /etc/nixos --json 2>/dev/null | python3 -c '
         import json, sys
         try:
             print(json.load(sys.stdin)["locks"]["nodes"]["nixpkgs"]["locked"].get("rev", ""))
         except Exception:
             print("")' 2>/dev/null)
 
-                # Newest nixpkgs revision on the branch (network fetch, lock untouched).
-                meta=$(nix flake metadata github:NixOS/nixpkgs/nixos-unstable --json 2>/dev/null) || exit 0
-                new=$(printf '%s' "$meta" | python3 -c '
+        # Newest nixpkgs revision on the branch (network fetch, lock untouched).
+        meta=$(nix flake metadata github:NixOS/nixpkgs/nixos-unstable --json 2>/dev/null) || exit 0
+        new=$(printf '%s' "$meta" | python3 -c '
         import json, sys
         try:
             print(json.load(sys.stdin)["locked"]["rev"])
         except Exception:
             pass' 2>/dev/null)
 
-                [ -n "$cur" ] && [ -n "$new" ] && [ "$cur" != "$new" ] || exit 0
-                notify -h string:synchronous:nixos-updates "New nixpkgs available" \
-                  "unstable $(echo "$new" | cut -c1-8) vs yours $(echo "$cur" | cut -c1-8). Run 'update' then 'rebuild' to apply."
+        [ -n "$cur" ] && [ -n "$new" ] && [ "$cur" != "$new" ] || exit 0
+        notify -h string:synchronous:nixos-updates "New nixpkgs available" \
+          "unstable $(echo "$new" | cut -c1-8) vs yours $(echo "$cur" | cut -c1-8). Run 'update' then 'rebuild' to apply."
       '';
     };
   };
@@ -59,7 +53,7 @@
     };
   };
 
-  # Manual upgrade (update lock + rebuild + notify). No longer automatic.
+  # Manual upgrade: update lock + rebuild + notify (run: `sudo systemctl start nixos-upgrade`).
   systemd.services.nixos-upgrade = {
     description = "Manual NixOS upgrade (flake update + rebuild)";
     serviceConfig = {
@@ -74,6 +68,7 @@
         }
 
         nix flake update /etc/nixos || true
+        git -C /etc/nixos add -A || true
         if ! nixos-rebuild switch --flake /etc/nixos#nixos --show-trace; then
           notify -u critical "NixOS upgrade failed" "Check: journalctl -u nixos-upgrade -n 50"
           exit 1
@@ -83,9 +78,7 @@
     };
   };
 
-  # Weekly config backup: commit + push /etc/nixos to GitHub (manual run:
-  # `sudo systemctl start nixos-git-push`). Keeps flake.lock and edits backed
-  # up on a stable cadence without pushing after every rebuild.
+  # Weekly backup: commit + push /etc/nixos to GitHub.
   systemd.services.nixos-git-push = {
     description = "Weekly config commit + push to GitHub";
     serviceConfig = {
@@ -113,15 +106,67 @@
 
   boot.kernelPackages = pkgs.linuxPackages_latest;
 
-  # Laptop: ACPI power management (lid/power-button handling) and Intel
-  # thermal daemon so the CPU throttles before overheating.
+  # zstd-compressed RAM swap (reduces SSD wear under memory pressure).
+  zramSwap.enable = true;
+
+  services.smartd.enable = true; # NVMe/SATA health monitoring
+
+  # PipeWire with ALSA/Pulse compat, WirePlumber session manager, rtkit for realtime prio.
+  services.pipewire = {
+    enable = true;
+    alsa.enable = true;
+    alsa.support32Bit = true;
+    pulse.enable = true;
+  };
+  security.rtkit.enable = true;
+
+  # Laptop: ACPI power management, Intel thermald, HP firmware updates, TLP battery tuning.
   powerManagement.enable = true;
   services.thermald.enable = true;
+  services.fwupd.enable = true;
+  services.tlp.enable = true;
 
   networking.networkmanager.enable = true;
 
-  # Battery/brightness DBus API for WirePlumber + desktop widgets. Without
-  # this, wireplumber logs "Failed to get percentage from UPower" every login.
+  # Quad9 over strict DoT, globally (fails closed; `*.lan` names won't resolve — expected).
+  services.resolved = {
+    enable = true;
+    settings.Resolve = {
+      DNS = [
+        "9.9.9.9#dns.quad9.net"
+        "149.112.112.112#dns.quad9.net"
+        "2620:fe::fe#dns.quad9.net"
+        "2620:fe::9#dns.quad9.net"
+      ];
+      DNSOverTLS = "strict";
+    };
+  };
+
+  # Quad9 per-link too: NM installs DHCP (router) DNS per interface, which resolved
+  # prefers over global. VPN links are exempt so ProtonVPN DNS wins while the tunnel is up.
+  networking.networkmanager.dispatcherScripts = [
+    {
+      type = "basic";
+      source = pkgs.writeText "force-quad9-dns" ''
+        case "$2" in
+          up|dhcp4-change|dhcp6-change) ;;
+          *) exit 0 ;;
+        esac
+        case "$DEVICE_IFACE" in
+          wl*|en*|eth*|usb*) ;;
+          *) exit 0 ;;
+        esac
+        /run/current-system/sw/bin/resolvectl dns "$DEVICE_IFACE" \
+          9.9.9.9#dns.quad9.net 149.112.112.112#dns.quad9.net \
+          2620:fe::fe#dns.quad9.net 2620:fe::9#dns.quad9.net
+        /run/current-system/sw/bin/resolvectl dnsovertls "$DEVICE_IFACE" strict
+      '';
+    }
+  ];
+
+  security.sudo.execWheelOnly = true;
+
+  # UPower DBus API for WirePlumber + desktop widgets (avoids repeated UPower errors).
   services.upower.enable = true;
 
   hardware.bluetooth = {
@@ -130,30 +175,26 @@
   };
 
   time.timeZone = "Asia/Jakarta";
-
   i18n.defaultLocale = "en_US.UTF-8";
 
   services.xserver.xkb = {
     layout = "us";
     variant = "";
   };
+  console.useXkbConfig = true; # match the Linux console keymap to X
 
-  # Match the Linux console to the X keymap above.
-  console.useXkbConfig = true;
-
-  # Faster keyboard repeat: 200ms before repeating, then 50 chars/sec.
+  # Faster keyboard repeat: 200ms delay, 50 chars/sec.
   services.xserver.autoRepeatDelay = 200;
   services.xserver.autoRepeatInterval = 50;
 
-  users.users."itah" = {
+  users.users.itah = {
     isNormalUser = true;
     description = "itah";
     extraGroups = ["networkmanager" "video" "wheel"];
   };
 
-  # Fingerprint reader (ELAN 04f3:0c9f) via fprintd + libfprint.
-  services.fprintd.enable = true;
-  # Unlock with a swipe/touch on tty login, sudo, and su.
+  services.fprintd.enable = true; # ELAN fingerprint reader
+  # Swipe to unlock on tty login, sudo, and su.
   security.pam.services.login.fprintAuth = true;
   security.pam.services.sudo.fprintAuth = true;
   security.pam.services.su.fprintAuth = true;
@@ -164,7 +205,6 @@
     git
     neovim
     opencode
-    proton-vpn-cli
     proton-vpn
     python3
     wget

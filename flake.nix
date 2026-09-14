@@ -16,7 +16,9 @@
     nixpkgs,
     home-manager,
     ...
-  } @ inputs: {
+  } @ inputs: let
+    pkgs = nixpkgs.legacyPackages.x86_64-linux;
+  in {
     nixosConfigurations.nixos = nixpkgs.lib.nixosSystem {
       system = "x86_64-linux";
       specialArgs = {inherit inputs;};
@@ -42,6 +44,13 @@
       ];
     };
 
-    formatter.x86_64-linux = nixpkgs.legacyPackages.x86_64-linux.alejandra;
+    formatter.x86_64-linux = pkgs.alejandra;
+
+    # Pre-rebuild safety net: `nix flake check` validates oxwm-config.lua
+    # so Lua syntax errors fail fast instead of breaking the WM at runtime.
+    checks.x86_64-linux.oxwm-config = pkgs.runCommand "oxwm-config-validate" {} ''
+      ${pkgs.oxwm}/bin/oxwm --config ${./home/itah/oxwm-config.lua} --validate
+      touch $out
+    '';
   };
 }

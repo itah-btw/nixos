@@ -1,26 +1,19 @@
-{...}: {
+{pkgs, ...}: {
   nix.settings = {
     experimental-features = ["nix-command" "flakes"];
-    # Hands-free optimization without the per-build latency of
-    # auto-optimise-store (which re-scans the store on every build).
     trusted-users = ["root" "@wheel"];
-    # /etc/nixos is a live git checkout edited between rebuilds; don't warn
-    # about the dirty tree on every nixos-option / nix eval.
+    # /etc/nixos is a live git checkout between rebuilds; silence the dirty-tree warning.
     warn-dirty = false;
   };
 
-  # Periodic store dedup: run weekly, replacing auto-optimise-store.
-  nix.optimise = {
-    automatic = true;
-    dates = ["weekly"];
-  };
-
-  # Automatic garbage collection: run weekly, free anything older than 7 days.
+  # Weekly maintenance in one timer: GC drops generations older than 7 days,
+  # then nix-store --optimise dedups the store in the same run (ExecStartPost).
   nix.gc = {
     automatic = true;
     dates = "weekly";
     options = "--delete-older-than 7d";
   };
+  systemd.services.nix-gc.serviceConfig.ExecStartPost = "${pkgs.nix}/bin/nix-store --optimise";
 
   nixpkgs.config.allowUnfree = true;
 }
