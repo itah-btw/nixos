@@ -13,7 +13,18 @@
     dates = "weekly";
     options = "--delete-older-than 7d";
   };
-  systemd.services.nix-gc.serviceConfig.ExecStartPost = "${pkgs.nix}/bin/nix-store --optimise";
+  systemd.services.nix-gc.serviceConfig.ExecStartPost = [
+    "${pkgs.nix}/bin/nix-store --optimise"
+    (pkgs.writeShellScript "nix-gc-notify" ''
+      set -u
+      export PATH=/run/current-system/sw/bin:$PATH
+      [ -e /run/user/1000/bus ] || exit 0
+      runuser -u itah -- env DISPLAY=:0 XDG_RUNTIME_DIR=/run/user/1000 \
+        DBUS_SESSION_BUS_ADDRESS=unix:path=/run/user/1000/bus \
+        notify-send -t 8000 -h string:synchronous:nix-gc "Nix GC complete" \
+        "Generations older than 7 days deleted, store optimized" || true
+    '')
+  ];
 
   nixpkgs.config.allowUnfree = true;
 }

@@ -24,28 +24,66 @@ in {
 
   xdg.configFile."dunst/dunstrc".text = ''
     [global]
-        width = 320
+        monitor = 0
+        follow = mouse
+        width = (300, 400)
         height = (0, 120)
         offset = (12, 48)
         origin = top-right
-        font = JetBrainsMono Nerd Font 10
+        notification_limit = 5
+        transparency = 0
         frame_width = 2
         frame_color = "#cba6f7"
-        transparency = 0
+        gap_size = 6
+        padding = 12
+        horizontal_padding = 12
+        text_icon_padding = 6
+        separator_color = frame
+        font = JetBrainsMono Nerd Font 10
+        line_height = 0
+        format = "<b>%s</b>\n%b"
+        markup = full
+        vertical_alignment = center
+        show_age_threshold = 60
+        ellipsize = middle
+        stack_duplicates = true
+        hide_duplicate_count = true
+        show_indicators = true
+        progress_bar = true
+        progress_bar_height = 12
+        progress_bar_min_width = 150
+        progress_bar_max_width = 300
+        progress_bar_frame_width = 1
+        icon_position = left
+        min_icon_size = 32
+        max_icon_size = 48
+        enable_recursive_icon_lookup = true
+        icon_theme = Papirus-Dark,Adwaita
+        sticky_history = true
+        history_length = 30
+        dmenu = dmenu_run -p dunst
+        browser = xdg-open
+        mouse_left_click = close_current
+        mouse_middle_click = do_action, remove_current
+        mouse_right_click = close_all
 
     [urgency_low]
         background = "#1e1e2e"
         foreground = "#cdd6f4"
+        frame_color = "#6c7086"
         timeout = 6
 
     [urgency_normal]
         background = "#1e1e2e"
         foreground = "#cdd6f4"
+        highlight = "#cba6f7"
         timeout = 10
 
     [urgency_critical]
-        background = "#f38ba8"
-        foreground = "#1e1e2e"
+        background = "#1e1e2e"
+        foreground = "#f38ba8"
+        frame_color = "#f38ba8"
+        highlight = "#f38ba8"
         timeout = 0
   '';
 

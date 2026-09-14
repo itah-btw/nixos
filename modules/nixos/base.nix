@@ -1,4 +1,33 @@
-{pkgs, ...}: {
+{pkgs, ...}: let
+  # USB storage notifications. Not run directly by udev (long-running DBus work); udev
+  # launches it via `systemd-run` so it can't block the device event handling.
+  usbNotify = pkgs.writeShellScript "usb-notify" ''
+    set -u
+    action="$1"
+    k="$2" # kernel device name, e.g. sdb
+    STATEDIR=/run/nixos-usb
+    mkdir -p "$STATEDIR"
+    notify() {
+      runuser -u itah -- env DISPLAY=:0 XDG_RUNTIME_DIR=/run/user/1000 \
+        DBUS_SESSION_BUS_ADDRESS=unix:path=/run/user/1000/bus \
+        notify-send "$@" || true
+    }
+    case "$action" in
+      add)
+        name="$ID_VENDOR $ID_MODEL"
+        [ -n "$ID_VENDOR" ] && [ -n "$ID_MODEL" ] || name="USB storage"
+        printf '%s\n' "$name" > "$STATEDIR/$k"
+        notify -t 4000 -h string:synchronous:usb -i drive-removable-media "USB" "$name connected"
+        ;;
+      remove)
+        name=$(cat "$STATEDIR/$k" 2>/dev/null || true)
+        [ -n "$name" ] || name="USB storage"
+        rm -f "$STATEDIR/$k"
+        notify -t 4000 -h string:synchronous:usb -i drive-removable-media "USB" "$name disconnected"
+        ;;
+    esac
+  '';
+in {
   boot.loader.systemd-boot = {
     enable = true;
     configurationLimit = 10;
@@ -104,6 +133,258 @@
     };
   };
 
+  # ── Event notifications ──────────────────────────────────────────────────────
+  # All scripts use the same notify() helper pattern as the services above:
+  # root-by-default systemd timers/udev/NM talk to the user session DBus directly.
+
+  # Battery + AC power: warns at 20/10/5% and on plug/unplug (60s poll, upower).
+  systemd.services.nixos-battery-monitor = {
+    description = "Battery and AC power notifications";
+    serviceConfig = {
+      Type = "oneshot";
+      ExecStart = pkgs.writeShellScript "nixos-battery-monitor" ''
+        set -u
+        export PATH=/run/current-system/sw/bin:$PATH
+        STATE=/run/nixos-battery
+        notify() {
+          runuser -u itah -- env DISPLAY=:0 XDG_RUNTIME_DIR=/run/user/1000 \
+            DBUS_SESSION_BUS_ADDRESS=unix:path=/run/user/1000/bus \
+            notify-send "$@" || true
+        }
+
+        [ -e /run/user/1000/bus ] || exit 0
+        dpath=$(upower -e 2>/dev/null | grep '/devices/battery_' | head -n1)
+        [ -n "$dpath" ] || exit 0
+        state=$(upower -i "$dpath" | sed -n 's/^[[:space:]]*state:[[:space:]]*//p')
+        pct=$(upower -i "$dpath" | sed -n 's/^[[:space:]]*percentage:[[:space:]]*//p' | tr -dc '0-9')
+        [ -n "$pct" ] || exit 0
+
+        case "$state" in
+          charging|fully-charged|pending-charge) cur=ac ;;
+          *) cur=bat ;;
+        esac
+
+        prev_mode=unknown
+        prev_last=999
+        [ -f "$STATE" ] && read -r prev_mode prev_last < "$STATE"
+        LAST=$prev_last
+
+        if [ "$cur" != "$prev_mode" ]; then
+          LAST=999
+          if [ "$prev_mode" != unknown ]; then
+            if [ "$cur" = ac ]; then
+              notify -t 5000 -i battery-full-charging -h int:value:$pct \
+                -h string:synchronous:power "AC power" "Plugged in - charging ($pct%)"
+            else
+              notify -t 5000 -i battery-caution -h int:value:$pct \
+                -h string:synchronous:power "On battery" "Unplugged - at $pct%"
+            fi
+          fi
+        fi
+
+        if [ "$cur" = bat ]; then
+          if [ "$pct" -le 5 ]; then
+            lvl=5
+          elif [ "$pct" -le 10 ]; then
+            lvl=10
+          elif [ "$pct" -le 20 ]; then
+            lvl=20
+          else
+            lvl=999
+          fi
+          if [ "$lvl" -lt "$LAST" ] && [ "$lvl" -le 20 ]; then
+            if [ "$lvl" -le 5 ]; then
+              notify -u critical -i battery-empty -h int:value:$pct \
+                -h string:synchronous:power "Battery critical" "Only $pct% left - plug in now"
+            elif [ "$lvl" -le 10 ]; then
+              notify -u critical -i battery-caution -h int:value:$pct \
+                -h string:synchronous:power "Battery low" "$pct% remaining - plug in soon"
+            else
+              notify -t 8000 -i battery-caution -h int:value:$pct \
+                -h string:synchronous:power "Battery warning" "$pct% remaining"
+            fi
+            LAST=$lvl
+          fi
+        fi
+
+        printf '%s %s\n' "$cur" "$LAST" > "$STATE"
+      '';
+    };
+  };
+
+  systemd.timers.nixos-battery-monitor = {
+    description = "60s trigger for the battery monitor";
+    wantedBy = ["timers.target"];
+    timerConfig = {
+      OnBootSec = "90s";
+      OnUnitActiveSec = "60s";
+    };
+  };
+
+  # Bluetooth device connect/disconnect (10s poll, bluez). Silently resets on
+  # adapter power-off so toggling BT off doesn't spam "device disconnected".
+  systemd.services.nixos-bluetooth-monitor = {
+    description = "Bluetooth device notifications";
+    serviceConfig = {
+      Type = "oneshot";
+      ExecStart = pkgs.writeShellScript "nixos-bluetooth-monitor" ''
+        set -u
+        export PATH=/run/current-system/sw/bin:$PATH
+        STATEDIR=/run/nixos-bluetooth
+        LIST=$STATEDIR/devices
+        mkdir -p "$STATEDIR"
+        notify() {
+          runuser -u itah -- env DISPLAY=:0 XDG_RUNTIME_DIR=/run/user/1000 \
+            DBUS_SESSION_BUS_ADDRESS=unix:path=/run/user/1000/bus \
+            notify-send "$@" || true
+        }
+
+        [ -e /run/user/1000/bus ] || exit 0
+        if ! bluetoothctl show 2>/dev/null | grep -q 'Powered: yes'; then
+          rm -f "$LIST"
+          exit 0
+        fi
+
+        bluetoothctl devices Connected 2>/dev/null | awk '{print $2}' | sort -u > "$STATEDIR/current"
+        : > "$STATEDIR/previous"
+        [ -f "$LIST" ] && cp "$LIST" "$STATEDIR/previous"
+
+        added=$(comm -13 "$STATEDIR/previous" "$STATEDIR/current")
+        removed=$(comm -23 "$STATEDIR/previous" "$STATEDIR/current")
+        for mac in $added; do
+          name=$(bluetoothctl info "$mac" 2>/dev/null | sed -n 's/.*Name:[[:space:]]*//p' | head -n1)
+          [ -n "$name" ] || name=$mac
+          notify -t 5000 -i bluetooth -h string:synchronous:bluetooth "Bluetooth" "$name connected"
+        done
+        for mac in $removed; do
+          name=$(bluetoothctl info "$mac" 2>/dev/null | sed -n 's/.*Name:[[:space:]]*//p' | head -n1)
+          [ -n "$name" ] || name=$mac
+          notify -t 5000 -i bluetooth -h string:synchronous:bluetooth "Bluetooth" "$name disconnected"
+        done
+
+        cp "$STATEDIR/current" "$LIST"
+      '';
+    };
+  };
+
+  systemd.timers.nixos-bluetooth-monitor = {
+    description = "10s trigger for the bluetooth device monitor";
+    wantedBy = ["timers.target"];
+    timerConfig = {
+      OnBootSec = "45s";
+      OnUnitActiveSec = "10s";
+    };
+  };
+
+  # Disk space: daily, warns at ≥90% and is critical ≥97% (real filesystems only).
+  systemd.services.nixos-disk-monitor = {
+    description = "Disk space notifications";
+    serviceConfig = {
+      Type = "oneshot";
+      ExecStart = pkgs.writeShellScript "nixos-disk-monitor" ''
+        set -u
+        set -f
+        export PATH=/run/current-system/sw/bin:$PATH
+        STATEDIR=/run/nixos-disk
+        mkdir -p "$STATEDIR"
+        notify() {
+          runuser -u itah -- env DISPLAY=:0 XDG_RUNTIME_DIR=/run/user/1000 \
+            DBUS_SESSION_BUS_ADDRESS=unix:path=/run/user/1000/bus \
+            notify-send "$@" || true
+        }
+
+        [ -e /run/user/1000/bus ] || exit 0
+        df -P -T 2>/dev/null | awk 'NR>1 && $2 ~ /^(ext4|xfs|btrfs|zfs|ntfs|vfat|exfat|f2fs)$/ {
+          u=$6; sub(/%/,"",u); if (u+0>=90) print $7, $2, u
+        }' | while read -r mount fstype used; do
+          key=$(printf '%s' "$mount" | tr '/' '_')
+          prev=0
+          [ -f "$STATEDIR/$key" ] && prev=$(cat "$STATEDIR/$key")
+          if [ "$used" -ge 97 ]; then
+            notify -u critical -h string:synchronous:disk "Disk almost full" "$mount ($fstype): $used% used"
+          elif [ "$used" -ge 90 ] && [ "$used" -gt "$prev" ]; then
+            notify -t 8000 -h string:synchronous:disk "Disk getting full" "$mount ($fstype): $used% used"
+          fi
+          if [ "$used" -ge 90 ]; then
+            printf '%s\n' "$used" > "$STATEDIR/$key"
+          else
+            rm -f "$STATEDIR/$key"
+          fi
+        done
+      '';
+    };
+  };
+
+  systemd.timers.nixos-disk-monitor = {
+    description = "Daily trigger for the disk monitor";
+    wantedBy = ["timers.target"];
+    timerConfig = {
+      OnCalendar = "daily";
+      Persistent = true;
+      RandomizedDelaySec = "30m";
+    };
+  };
+
+  # Firmware: weekly metadata refresh + update check; only notifies when the
+  # available-update set actually changed (dedupe via content hash).
+  systemd.services.nixos-fwupd-check = {
+    description = "Weekly firmware update check + notify";
+    serviceConfig = {
+      Type = "oneshot";
+      TimeoutStartSec = 300;
+      ExecStart = pkgs.writeShellScript "nixos-fwupd-check" ''
+        set -u
+        export PATH=/run/current-system/sw/bin:$PATH
+        STATEDIR=/run/nixos-fwupd
+        mkdir -p "$STATEDIR"
+        notify() {
+          runuser -u itah -- env DISPLAY=:0 XDG_RUNTIME_DIR=/run/user/1000 \
+            DBUS_SESSION_BUS_ADDRESS=unix:path=/run/user/1000/bus \
+            notify-send "$@" || true
+        }
+
+        [ -e /run/user/1000/bus ] || exit 0
+        timeout 240 fwupdmgr refresh >/dev/null 2>&1 || true
+        out=$(timeout 60 fwupdmgr get-updates 2>&1) || true
+        case "$out" in
+          *No\ updates*|*No\ upgradable*|*No\ results*|*Metadata\ is\ up\ to\ date*|"") exit 0 ;;
+        esac
+
+        stamp=$(printf '%s' "$out" | sed 's/[0-9]//g' | cksum | awk '{print $1}')
+        prev=
+        [ -f "$STATEDIR/prev" ] && prev=$(cat "$STATEDIR/prev")
+        [ -n "$prev" ] && [ "$prev" = "$stamp" ] && exit 0
+
+        n=$(printf '%s' "$out" | grep -c 'Update Version' || true)
+        body=$(printf '%s' "$out" | grep -E 'Update Version|^[[:space:]]*•' | head -n 6)
+        [ -n "$body" ] || body="Run fwupdmgr update to review."
+        summary="Firmware updates available"
+        [ "$n" -gt 0 ] 2>/dev/null && summary="Firmware updates available ($n)"
+
+        notify -h string:synchronous:fwupd "Firmware updates" "$body"
+        printf '%s' "$stamp" > "$STATEDIR/prev"
+      '';
+    };
+  };
+
+  systemd.timers.nixos-fwupd-check = {
+    description = "Weekly trigger for the firmware update check";
+    wantedBy = ["timers.target"];
+    timerConfig = {
+      OnCalendar = "Wed *-*-* 03:30:00";
+      Persistent = true;
+      RandomizedDelaySec = "30m";
+    };
+  };
+
+  # USB storage plug/unplug (udev → systemd-run, non-blocking).
+  # `DEVTYPE=="disk"` is rejected by new systemd udev; KERNEL=="sd[a-z]" matches
+  # whole USB disks only (not their partitions — which also avoids per-partition spam).
+  services.udev.extraRules = ''
+    ACTION=="add", SUBSYSTEM=="block", KERNEL=="sd[a-z]", ENV{ID_BUS}=="usb", RUN+="${pkgs.systemd}/bin/systemd-run --no-block --collect ${usbNotify} add %k"
+    ACTION=="remove", SUBSYSTEM=="block", KERNEL=="sd[a-z]", ENV{ID_BUS}=="usb", RUN+="${pkgs.systemd}/bin/systemd-run --no-block --collect ${usbNotify} remove %k"
+  '';
+
   boot.kernelPackages = pkgs.linuxPackages_latest;
 
   # zstd-compressed RAM swap (reduces SSD wear under memory pressure).
@@ -160,6 +441,40 @@
           9.9.9.9#dns.quad9.net 149.112.112.112#dns.quad9.net \
           2620:fe::fe#dns.quad9.net 2620:fe::9#dns.quad9.net
         /run/current-system/sw/bin/resolvectl dnsovertls "$DEVICE_IFACE" strict
+      '';
+    }
+    # Connect/disconnect notifications (all actions, user-notified).
+    {
+      type = "basic";
+      source = pkgs.writeText "nm-notify" ''
+        #!/bin/sh
+        action="$2"
+        [ -e /run/user/1000/bus ] || exit 0
+        notify() {
+          runuser -u itah -- env DISPLAY=:0 XDG_RUNTIME_DIR=/run/user/1000 \
+            DBUS_SESSION_BUS_ADDRESS=unix:path=/run/user/1000/bus \
+            notify-send "$@" || true
+        }
+        case "$action" in
+          up)
+            [ -z "$CONNECTION_ID" ] && exit 0
+            notify -t 4000 -i network-wireless -h string:synchronous:network "Network" "Connected to $CONNECTION_ID"
+            ;;
+          down)
+            [ -z "$CONNECTION_ID" ] && exit 0
+            notify -t 6000 -i network-offline -h string:synchronous:network "Network" "$CONNECTION_ID disconnected"
+            ;;
+          vpn-up)
+            if [ -n "$CONNECTION_ID" ]; then
+              notify -t 5000 -i network-vpn -h string:synchronous:network "VPN" "Connected: $CONNECTION_ID"
+            else
+              notify -t 5000 -i network-vpn -h string:synchronous:network "VPN" "Connected"
+            fi
+            ;;
+          vpn-down)
+            notify -t 5000 -u critical -i network-offline -h string:synchronous:network "VPN" "Disconnected"
+            ;;
+        esac
       '';
     }
   ];
