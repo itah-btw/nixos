@@ -28,13 +28,15 @@
 
   # Bridge oxwm (sessionPackages-only module) to startx's generated xinitrc,
   # which sources `services.xserver.windowManager.session`.
-  services.xserver.windowManager.session = lib.singleton {
-    name = "oxwm";
-    start = ''
-      ${config.services.xserver.windowManager.oxwm.package}/bin/oxwm &
-      waitPID=$!
-    '';
-  };
+  services.xserver.windowManager.session = [
+    {
+      name = "oxwm";
+      start = ''
+        ${config.services.xserver.windowManager.oxwm.package}/bin/oxwm &
+        waitPID=$!
+      '';
+    }
+  ];
 
   # No TTS / accessibility stack: enabling xserver flips
   # `services.speechd.enable` on via graphical defaults (which pulls

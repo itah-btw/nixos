@@ -235,8 +235,8 @@ oxwm.border.set_unfocused_color(UI.border_unfocus)
 -- "center-left", "center", "center-right", "bottom-left", "bottom-center", "bottom-right"
 oxwm.set_floating_position("center")
 
--- Smart Enabled = No border if 1 window
-oxwm.gaps.set_smart(enabled)
+-- Smart Enable = No outer gaps when only 1 window on a tag.
+oxwm.gaps.set_smart(true)
 -- Inner gaps (horizontal, vertical) in pixels
 oxwm.gaps.set_inner(5, 5)
 -- Outer gaps (horizontal, vertical) in pixels

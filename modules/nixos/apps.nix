@@ -23,14 +23,16 @@
       mv $out/share/themes/catppuccin-mocha-mauve-standard+default \
          $out/share/themes/catppuccin-mocha
     '';
-  # nixpkgs' catppuccin-papirus-folders ships the Catppuccin folder palette
-  # but leaves the default blue folders; run the nixpkgs papirus-folders tool
-  # at build time to symlink all folders to the Mocha mauve variant.
-
+  # nixpkgs' catppuccin-papirus-folders defaults to the blue accent, but the
+  # whole desktop is Mocha mauve — override so the icon folders match.
 in {
   environment.systemPackages = with pkgs; [
     android-tools
     catppuccin-cursors.mochaMauve
+    (catppuccin-papirus-folders.override {
+      flavor = "mocha";
+      accent = "mauve";
+    })
     btop
     bluetui
     brave-origin
@@ -60,7 +62,6 @@ in {
     ouch
     pcmanfm
     p7zip
-    catppuccin-papirus-folders
     poppler-utils
     pulsemixer
     catppuccinMochaMauve
@@ -88,7 +89,6 @@ in {
 
   # MariaDB is installed but NOT started automatically; use mycli when a
   # server is up, or start it on demand with `systemctl start mysql`.
-  services.mysql.enable = false;
 
   # LocalSend discovery + transfer port.
   networking.firewall.allowedTCPPorts = [53317];
@@ -124,4 +124,3 @@ in {
     SUBSYSTEM=="usb", ATTR{idVendor}=="2314", MODE="0660", TAG+="uaccess"
   '';
 }
-

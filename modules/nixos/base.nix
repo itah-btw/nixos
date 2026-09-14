@@ -17,34 +17,34 @@
     serviceConfig = {
       Type = "oneshot";
       ExecStart = pkgs.writeShellScript "nixos-check-updates" ''
-        set -u
-        export PATH=/run/current-system/sw/bin:$PATH
-        notify() {
-          runuser -u itah -- env DISPLAY=:0 XDG_RUNTIME_DIR=/run/user/1000 \
-            DBUS_SESSION_BUS_ADDRESS=unix:path=/run/user/1000/bus \
-            notify-send -t 8000 "$@" || true
-        }
+                set -u
+                export PATH=/run/current-system/sw/bin:$PATH
+                notify() {
+                  runuser -u itah -- env DISPLAY=:0 XDG_RUNTIME_DIR=/run/user/1000 \
+                    DBUS_SESSION_BUS_ADDRESS=unix:path=/run/user/1000/bus \
+                    notify-send -t 8000 "$@" || true
+                }
 
-        # Locked nixpkgs revision in /etc/nixos/flake.lock.
-        cur=$(nix flake metadata /etc/nixos --json 2>/dev/null | python3 -c '
-import json, sys
-try:
-    print(json.load(sys.stdin)["locks"]["nodes"]["nixpkgs"]["locked"].get("rev", ""))
-except Exception:
-    print("")' 2>/dev/null)
+                # Locked nixpkgs revision in /etc/nixos/flake.lock.
+                cur=$(nix flake metadata /etc/nixos --json 2>/dev/null | python3 -c '
+        import json, sys
+        try:
+            print(json.load(sys.stdin)["locks"]["nodes"]["nixpkgs"]["locked"].get("rev", ""))
+        except Exception:
+            print("")' 2>/dev/null)
 
-        # Newest nixpkgs revision on the branch (network fetch, lock untouched).
-        meta=$(nix flake metadata github:NixOS/nixpkgs/nixos-unstable --json 2>/dev/null) || exit 0
-        new=$(printf '%s' "$meta" | python3 -c '
-import json, sys
-try:
-    print(json.load(sys.stdin)["locked"]["rev"])
-except Exception:
-    pass' 2>/dev/null)
+                # Newest nixpkgs revision on the branch (network fetch, lock untouched).
+                meta=$(nix flake metadata github:NixOS/nixpkgs/nixos-unstable --json 2>/dev/null) || exit 0
+                new=$(printf '%s' "$meta" | python3 -c '
+        import json, sys
+        try:
+            print(json.load(sys.stdin)["locked"]["rev"])
+        except Exception:
+            pass' 2>/dev/null)
 
-        [ -n "$cur" ] && [ -n "$new" ] && [ "$cur" != "$new" ] || exit 0
-        notify -h string:synchronous:nixos-updates "New nixpkgs available" \
-          "unstable $(echo "$new" | cut -c1-8) vs yours $(echo "$cur" | cut -c1-8). Run 'update' then 'rebuild' to apply."
+                [ -n "$cur" ] && [ -n "$new" ] && [ "$cur" != "$new" ] || exit 0
+                notify -h string:synchronous:nixos-updates "New nixpkgs available" \
+                  "unstable $(echo "$new" | cut -c1-8) vs yours $(echo "$cur" | cut -c1-8). Run 'update' then 'rebuild' to apply."
       '';
     };
   };
@@ -113,6 +113,11 @@ except Exception:
 
   boot.kernelPackages = pkgs.linuxPackages_latest;
 
+  # Laptop: ACPI power management (lid/power-button handling) and Intel
+  # thermal daemon so the CPU throttles before overheating.
+  powerManagement.enable = true;
+  services.thermald.enable = true;
+
   networking.networkmanager.enable = true;
 
   hardware.bluetooth = {
@@ -137,7 +142,6 @@ except Exception:
     isNormalUser = true;
     description = "itah";
     extraGroups = ["networkmanager" "video" "wheel"];
-    packages = with pkgs; [];
   };
 
   # Fingerprint reader (ELAN 04f3:0c9f) via fprintd + libfprint.

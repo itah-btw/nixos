@@ -1,6 +1,16 @@
 {...}: {
-  nix.settings.experimental-features = ["nix-command" "flakes"];
-  nix.settings.auto-optimise-store = true;
+  nix.settings = {
+    experimental-features = ["nix-command" "flakes"];
+    # Hands-free optimization without the per-build latency of
+    # auto-optimise-store (which re-scans the store on every build).
+    trusted-users = ["root" "@wheel"];
+  };
+
+  # Periodic store dedup: run weekly, replacing auto-optimise-store.
+  nix.optimise = {
+    automatic = true;
+    dates = ["weekly"];
+  };
 
   # Automatic garbage collection: run weekly, free anything older than 7 days.
   nix.gc = {

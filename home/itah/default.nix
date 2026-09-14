@@ -58,9 +58,6 @@
     '';
   };
 
-  home.packages = with pkgs; [
-  ];
-
   programs.yazi = {
     enable = true;
     enableBashIntegration = true;
@@ -227,6 +224,10 @@
   # oxwm reads ~/.config/oxwm/config.lua (reload with Mod+Shift+R).
   xdg.configFile."oxwm/config.lua".source = ./oxwm-config.lua;
 
+  # Wallpaper for the oxwm autostart `feh --bg-fill` (kept in the repo so the
+  # desktop is reproducible).
+  xdg.configFile."oxwm/wallpaper.jpg".source = ./wallpaper.jpg;
+
   # CPU% for the topbar: diffs /proc/stat jiffies between ticks. Always
   # prints one line (0/percent/ERR) so the bar never goes blank.
   xdg.configFile."oxwm/cpu.sh" = {
@@ -263,34 +264,34 @@
   xdg.configFile."oxwm/clipmenu-sync.sh" = {
     executable = true;
     text = ''
-            #!/run/current-system/sw/bin/bash
+      #!/run/current-system/sw/bin/bash
       CM_DIR="''${CM_DIR:-$HOME/.cache/clipmenu}"
-            export CM_DIR
+      export CM_DIR
 
-            # Theme the dmenu picker to Catppuccin Mocha (mauve).
-            DMENU_ARGS="-nb #1e1e2e -nf #cdd6f4 -sb #cba6f7 -sf #1e1e2e"
-            cache_dir="$CM_DIR/clipmenu.6.$USER"
-            cache_file="$cache_dir/line_cache"
+      # Theme the dmenu picker to Catppuccin Mocha (mauve).
+      DMENU_ARGS="-nb #1e1e2e -nf #cdd6f4 -sb #cba6f7 -sf #1e1e2e"
+      cache_dir="$CM_DIR/clipmenu.6.$USER"
+      cache_file="$cache_dir/line_cache"
 
-            data=$(xclip -selection clipboard -o 2>/dev/null || true)
-            if [[ -z $data ]]; then
-              exec clipmenu $DMENU_ARGS
-            fi
+      data=$(xclip -selection clipboard -o 2>/dev/null || true)
+      if [[ -z $data ]]; then
+        exec clipmenu $DMENU_ARGS
+      fi
 
-            first_line=$(printf '%s' "$data" | awk -v limit=300 '
-              BEGIN { printed = 0 }
-              printed == 0 && NF {
-                $0 = substr($0, 0, limit)
-                printf("%s", $0)
-                printed = 1
-              }
-              END { if (NR > 1) printf(" (%d lines)", NR); printf("\n") }')
+      first_line=$(printf '%s' "$data" | awk -v limit=300 '
+        BEGIN { printed = 0 }
+        printed == 0 && NF {
+          $0 = substr($0, 0, limit)
+          printf("%s", $0)
+          printed = 1
+        }
+        END { if (NR > 1) printf(" (%d lines)", NR); printf("\n") }')
 
-            mkdir -p "$cache_dir"
-            printf '%s %s\n' "$(date +%s%N)" "$first_line" >> "$cache_file"
-            printf '%s' "$data" > "$cache_dir/$(cksum <<< "$first_line")"
+      mkdir -p "$cache_dir"
+      printf '%s %s\n' "$(date +%s%N)" "$first_line" >> "$cache_file"
+      printf '%s' "$data" > "$cache_dir/$(cksum <<< "$first_line")"
 
-            exec clipmenu $DMENU_ARGS
+      exec clipmenu $DMENU_ARGS
     '';
   };
 
@@ -449,8 +450,6 @@
 
     selection = { text = "#cdd6f4", background = "#313244" }
   '';
-
-  # Standard folders: Documents, Downloads, Music, Pictures, Videos, ...
 
   # Standard folders: Documents, Downloads, Music, Pictures, Videos, ...
   xdg.userDirs = {

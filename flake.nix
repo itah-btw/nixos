@@ -9,29 +9,38 @@
     };
   };
 
+  # Dendritic: this entry point only assembles the top-level configuration from
+  # the feature modules under config/. No specialArgs are passed to the
+  # lower-level NixOS / Home Manager module systems.
   outputs = {
     self,
     nixpkgs,
-    home-manager,
     ...
-  } @ inputs: {
-    nixosConfigurations.nixos = nixpkgs.lib.nixosSystem {
-      system = "x86_64-linux";
+  } @ inputs: let
+    lib = nixpkgs.lib;
+
+    # Auto-import all top-level feature modules under config/, excluding the
+    # `default.nix` entry point. Every feature is therefore a module of a
+    # single top-level configuration.
+    tree = dir:
+      lib.concatLists (lib.mapAttrsToList (name: type:
+        if type == "directory"
+        then tree (dir + "/${name}")
+        else if
+          type
+          == "regular"
+          && lib.hasSuffix ".nix" name
+          && name != "default.nix"
+        then [(import (dir + "/${name}"))]
+        else [])
+      (builtins.readDir dir));
+
+    top = lib.evalModules {
+      modules = [./config/default.nix] ++ tree ./config;
       specialArgs = {inherit inputs;};
-      modules = [
-        ./hosts/nixos
-        home-manager.nixosModules.home-manager
-        {
-          home-manager = {
-            useGlobalPkgs = true;
-            useUserPackages = true;
-            backupFileExtension = "hm-bak";
-            extraSpecialArgs = {inherit inputs;};
-            users.itah = import ./home/itah;
-          };
-        }
-      ];
     };
+  in {
+    nixosConfigurations.nixos = top.config.build.nixos;
 
     formatter.x86_64-linux = nixpkgs.legacyPackages.x86_64-linux.alejandra;
   };
