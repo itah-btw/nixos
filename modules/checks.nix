@@ -10,10 +10,9 @@
 #   - Noctalia composition (Umbriel autostart => no systemd units)
 #   - Noctalia binary cache wired, MariaDB loopback-only
 #
-# Second host? Append its nixosConfigurations name to `checkedHosts`.
-# Hosts without the Noctalia home module automatically skip the Noctalia
-# guards (`or` defaults in factsFor); the DM guard is host-generic (it
-# counts enabled DMs instead of naming one).
+# One entry per host in `checkedHosts`. Hosts without the Noctalia home
+# module automatically skip the Noctalia guards (`or` defaults in
+# factsFor); the DM guard counts enabled DMs instead of naming one.
 { config, lib, ... }:
 let
   hosts = config.flake.nixosConfigurations;

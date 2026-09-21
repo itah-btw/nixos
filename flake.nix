@@ -34,6 +34,14 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
+    # treefmt wrapper: makes `nix fmt` discover files itself (plain
+    # nixfmt can't — `nix fmt` passes no paths). Follows nixpkgs so the
+    # formatter builds against the same package set.
+    treefmt-nix = {
+      url = "github:numtide/treefmt-nix";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+
     # Dendritic plumbing: every file under ./modules is a flake-parts
     # module, auto-imported. Host composition lives in
     # modules/hosts/nixos.nix and references modules BY NAME
