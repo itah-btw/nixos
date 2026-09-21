@@ -202,7 +202,8 @@
           # OCR region: grim+slurp screenshot -> tesseract -> clipboard.
           # On cancel (Esc in slurp) grim fails so tesseract never runs and
           # the clipboard is left untouched. wl-copy is in the home profile.
-          "Mod+Shift+O" = "spawn:tmp=$(mktemp --suffix .png); grim -g \"$(slurp)\" \"$tmp\" && tesseract \"$tmp\" - -l eng+ind 2>/dev/null | wl-copy; rm -f \"$tmp\"";
+          "Mod+Shift+O" =
+            "spawn:tmp=$(mktemp --suffix .png); grim -g \"$(slurp)\" \"$tmp\" && tesseract \"$tmp\" - -l eng+ind 2>/dev/null | wl-copy; rm -f \"$tmp\"";
 
           # --- Media / volume / brightness (via Noctalia so OSD shows) ---
           "XF86AudioRaiseVolume" = "spawn:noctalia msg volume-up";

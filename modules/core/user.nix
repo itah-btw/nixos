@@ -6,7 +6,10 @@
     users.users."itah" = {
       isNormalUser = true;
       description = "itah";
-      extraGroups = [ "networkmanager" "wheel" ];
+      extraGroups = [
+        "networkmanager"
+        "wheel"
+      ];
       packages = with pkgs; [ ];
     };
   };

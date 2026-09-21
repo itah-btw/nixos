@@ -84,17 +84,28 @@
       keymap = {
         mgr.prepend_keymap = [
           {
-            on = [ "c" "a" "a" ];
+            on = [
+              "c"
+              "a"
+              "a"
+            ];
             run = "plugin compress";
             desc = "Archive selected files";
           }
           {
-            on = [ "c" "a" "p" ];
+            on = [
+              "c"
+              "a"
+              "p"
+            ];
             run = "plugin compress -p";
             desc = "Archive selected files (password)";
           }
           {
-            on = [ "c" "x" ];
+            on = [
+              "c"
+              "x"
+            ];
             run = "shell -- ya pub extract --list %s";
             desc = "Extract selected archives here";
           }
@@ -157,40 +168,64 @@
           # Text / code
           {
             mime = "text/*";
-            use = [ "nvim" "edit" ];
+            use = [
+              "nvim"
+              "edit"
+            ];
           }
           {
             mime = "application/{json,ndjson,javascript,wine-extension-ini}";
-            use = [ "nvim" "edit" ];
+            use = [
+              "nvim"
+              "edit"
+            ];
           }
           # Documents
           {
             mime = "application/{pdf,djvu}";
-            use = [ "zathura" "open" ];
+            use = [
+              "zathura"
+              "open"
+            ];
           }
           {
-          mime = "{application/epub+zip,application/vnd.comicbook+zip}";
-          use = [ "zathura" "open" ];
+            mime = "{application/epub+zip,application/vnd.comicbook+zip}";
+            use = [
+              "zathura"
+              "open"
+            ];
           }
           # Office
           {
             mime = "application/{msword,vnd.ms-excel,vnd.ms-powerpoint,vnd.openxmlformats-officedocument.wordprocessingml.document,vnd.openxmlformats-officedocument.spreadsheetml.sheet,vnd.openxmlformats-officedocument.presentationml.presentation,vnd.oasis.opendocument.*}";
-            use = [ "libreoffice" "open" ];
+            use = [
+              "libreoffice"
+              "open"
+            ];
           }
           # Images
           {
             mime = "image/*";
-            use = [ "imv" "open" ];
+            use = [
+              "imv"
+              "open"
+            ];
           }
           # Media
           {
             mime = "{audio,video}/*";
-            use = [ "mpv" "open" ];
+            use = [
+              "mpv"
+              "open"
+            ];
           }
           # Web
           {
             mime = "{text/html,application/xhtml+xml}";
-            use = [ "firefox" "open" ];
+            use = [
+              "firefox"
+              "open"
+            ];
           }
         ];
       };
@@ -268,7 +303,12 @@
       fwupd
 
       # OCR (English + Indonesian language data; only these are bundled).
-      (tesseract.override { enableLanguages = [ "eng" "ind" ]; })
+      (tesseract.override {
+        enableLanguages = [
+          "eng"
+          "ind"
+        ];
+      })
       grim
       slurp
 

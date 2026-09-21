@@ -53,7 +53,5 @@
   };
 
   # Thin entry point: all logic lives in ./modules (dendritic pattern).
-  outputs = inputs:
-    inputs.flake-parts.lib.mkFlake { inherit inputs; }
-    (inputs.import-tree ./modules);
+  outputs = inputs: inputs.flake-parts.lib.mkFlake { inherit inputs; } (inputs.import-tree ./modules);
 }

@@ -28,7 +28,12 @@
 { ... }:
 {
   flake.homeManagerModules.nvf =
-    { pkgs, config, lib, ... }:
+    {
+      pkgs,
+      config,
+      lib,
+      ...
+    }:
     {
       # Noctalia "neovim" template writes ~/.config/nvim/lua/matugen.lua, but
       # the nvf binary runs with NVIM_APPNAME=nvf (rtp: ~/.config/nvf), so the
@@ -198,70 +203,299 @@
           # --- Tony keybinds (keybinds.lua + after/plugin/*) ----------------------
           keymaps = [
             # netrw explorer
-            { key = "<leader>cd"; mode = "n"; action = ":Ex<CR>"; desc = "Open Ex"; }
+            {
+              key = "<leader>cd";
+              mode = "n";
+              action = ":Ex<CR>";
+              desc = "Open Ex";
+            }
             # move selected block (Tony: Alt Up/Down in vscode)
-            { key = "J"; mode = "v"; action = ":m '>+1<CR>gv=gv"; }
-            { key = "K"; mode = "v"; action = ":m '<-2<CR>gv=gv"; }
+            {
+              key = "J";
+              mode = "v";
+              action = ":m '>+1<CR>gv=gv";
+            }
+            {
+              key = "K";
+              mode = "v";
+              action = ":m '<-2<CR>gv=gv";
+            }
             # join lines, keep cursor
-            { key = "J"; mode = "n"; action = "mzJ`z"; }
+            {
+              key = "J";
+              mode = "n";
+              action = "mzJ`z";
+            }
             # half-page scroll, keep cursor centered
-            { key = "<C-d>"; mode = "n"; action = "<C-d>zz"; }
-            { key = "<C-u>"; mode = "n"; action = "<C-u>zz"; }
-            { key = "n"; mode = "n"; action = "nzzzv"; }
-            { key = "N"; mode = "n"; action = "Nzzzv"; }
+            {
+              key = "<C-d>";
+              mode = "n";
+              action = "<C-d>zz";
+            }
+            {
+              key = "<C-u>";
+              mode = "n";
+              action = "<C-u>zz";
+            }
+            {
+              key = "n";
+              mode = "n";
+              action = "nzzzv";
+            }
+            {
+              key = "N";
+              mode = "n";
+              action = "Nzzzv";
+            }
             # blackhole paste/delete (don't clobber clipboard)
-            { key = "<leader>p"; mode = "x"; action = "\"_dP"; }
-            { key = "<leader>d"; mode = ["n" "v"]; action = "\"_d"; }
-            { key = "<C-c>"; mode = "i"; action = "<Esc>"; }
+            {
+              key = "<leader>p";
+              mode = "x";
+              action = "\"_dP";
+            }
+            {
+              key = "<leader>d";
+              mode = [
+                "n"
+                "v"
+              ];
+              action = "\"_d";
+            }
+            {
+              key = "<C-c>";
+              mode = "i";
+              action = "<Esc>";
+            }
             # quickfix / location navigation, centered
-            { key = "<C-j>"; mode = "n"; action = "<cmd>cnext<CR>zz"; }
-            { key = "<C-k>"; mode = "n"; action = "<cmd>cprev<CR>zz"; }
-            { key = "Q"; mode = "n"; action = "<nop>"; }
-            { key = "<leader>k"; mode = "n"; action = "<cmd>lnext<CR>zz"; }
-            { key = "<leader>j"; mode = "n"; action = "<cmd>lprev<CR>zz"; }
-            { key = "<leader>cl"; mode = "n"; action = ":cclose<CR>"; silent = true; }
-            { key = "<leader>co"; mode = "n"; action = ":copen<CR>"; silent = true; }
-            { key = "<leader>cn"; mode = "n"; action = ":cnext<CR>zz"; }
-            { key = "<leader>cp"; mode = "n"; action = ":cprev<CR>zz"; }
-            { key = "<leader>li"; mode = "n"; action = ":checkhealth vim.lsp<CR>"; desc = "LSP Info"; }
+            {
+              key = "<C-j>";
+              mode = "n";
+              action = "<cmd>cnext<CR>zz";
+            }
+            {
+              key = "<C-k>";
+              mode = "n";
+              action = "<cmd>cprev<CR>zz";
+            }
+            {
+              key = "Q";
+              mode = "n";
+              action = "<nop>";
+            }
+            {
+              key = "<leader>k";
+              mode = "n";
+              action = "<cmd>lnext<CR>zz";
+            }
+            {
+              key = "<leader>j";
+              mode = "n";
+              action = "<cmd>lprev<CR>zz";
+            }
+            {
+              key = "<leader>cl";
+              mode = "n";
+              action = ":cclose<CR>";
+              silent = true;
+            }
+            {
+              key = "<leader>co";
+              mode = "n";
+              action = ":copen<CR>";
+              silent = true;
+            }
+            {
+              key = "<leader>cn";
+              mode = "n";
+              action = ":cnext<CR>zz";
+            }
+            {
+              key = "<leader>cp";
+              mode = "n";
+              action = ":cprev<CR>zz";
+            }
+            {
+              key = "<leader>li";
+              mode = "n";
+              action = ":checkhealth vim.lsp<CR>";
+              desc = "LSP Info";
+            }
             # PHP lint (Tony: php-cs-fixer)
-            { key = "<leader>cc"; mode = "n"; action = "<cmd>!php-cs-fixer fix % --using-cache=no<cr>"; }
+            {
+              key = "<leader>cc";
+              mode = "n";
+              action = "<cmd>!php-cs-fixer fix % --using-cache=no<cr>";
+            }
             # substitute word under cursor (current line)
-            { key = "<leader>s"; mode = "n"; action = ":s/\\<<C-r><C-w>\\>//gI<Left><Left><Left>"; }
-            { key = "<leader>x"; mode = "n"; action = "<cmd>!chmod +x %<CR>"; silent = true; }
+            {
+              key = "<leader>s";
+              mode = "n";
+              action = ":s/\\<<C-r><C-w>\\>//gI<Left><Left><Left>";
+            }
+            {
+              key = "<leader>x";
+              mode = "n";
+              action = "<cmd>!chmod +x %<CR>";
+              silent = true;
+            }
             # yank to system clipboard (SSH-safe via OSC52, see luaConfigRC)
-            { key = "<leader>y"; mode = ["n" "v"]; action = "\"+y"; desc = "Yank to clipboard"; }
-            { key = "<leader>u"; mode = "n"; action = ":UndotreeToggle<CR>"; desc = "Toggle Undotree"; }
-            { key = "<leader>mm"; mode = "n"; action = "<cmd>make<CR>"; desc = "Run make"; }
-            { key = "<leader><leader>"; mode = "n"; action = ":so<CR>"; desc = "Source file"; }
-            { key = "<esc><esc>"; mode = "t"; action = "<c-\\><c-n>"; desc = "Exit terminal mode"; }
+            {
+              key = "<leader>y";
+              mode = [
+                "n"
+                "v"
+              ];
+              action = "\"+y";
+              desc = "Yank to clipboard";
+            }
+            {
+              key = "<leader>u";
+              mode = "n";
+              action = ":UndotreeToggle<CR>";
+              desc = "Toggle Undotree";
+            }
+            {
+              key = "<leader>mm";
+              mode = "n";
+              action = "<cmd>make<CR>";
+              desc = "Run make";
+            }
+            {
+              key = "<leader><leader>";
+              mode = "n";
+              action = ":so<CR>";
+              desc = "Source file";
+            }
+            {
+              key = "<esc><esc>";
+              mode = "t";
+              action = "<c-\\><c-n>";
+              desc = "Exit terminal mode";
+            }
 
             # --- Telescope (Tony <leader>f*) -------------------------------------
-            { key = "<leader>ff"; mode = "n"; action = ":Telescope find_files<CR>"; desc = "Find files"; }
-            { key = "<leader>fg"; mode = "n"; action = ":Telescope git_files<CR>"; desc = "Find git files"; }
-            { key = "<leader>fo"; mode = "n"; action = ":Telescope oldfiles<CR>"; desc = "Recent files"; }
-            { key = "<leader>fq"; mode = "n"; action = ":Telescope quickfix<CR>"; desc = "Quickfix"; }
-            { key = "<leader>fh"; mode = "n"; action = ":Telescope help_tags<CR>"; desc = "Help tags"; }
-            { key = "<leader>fb"; mode = "n"; action = ":Telescope buffers<CR>"; desc = "Buffers"; }
-            { key = "<leader>fs"; mode = "n"; action = ":Telescope grep_string<CR>"; desc = "Grep string"; }
-            { key = "<leader>fm"; mode = "n"; action = ":Telescope man_pages<CR>"; desc = "Man pages"; }
+            {
+              key = "<leader>ff";
+              mode = "n";
+              action = ":Telescope find_files<CR>";
+              desc = "Find files";
+            }
+            {
+              key = "<leader>fg";
+              mode = "n";
+              action = ":Telescope git_files<CR>";
+              desc = "Find git files";
+            }
+            {
+              key = "<leader>fo";
+              mode = "n";
+              action = ":Telescope oldfiles<CR>";
+              desc = "Recent files";
+            }
+            {
+              key = "<leader>fq";
+              mode = "n";
+              action = ":Telescope quickfix<CR>";
+              desc = "Quickfix";
+            }
+            {
+              key = "<leader>fh";
+              mode = "n";
+              action = ":Telescope help_tags<CR>";
+              desc = "Help tags";
+            }
+            {
+              key = "<leader>fb";
+              mode = "n";
+              action = ":Telescope buffers<CR>";
+              desc = "Buffers";
+            }
+            {
+              key = "<leader>fs";
+              mode = "n";
+              action = ":Telescope grep_string<CR>";
+              desc = "Grep string";
+            }
+            {
+              key = "<leader>fm";
+              mode = "n";
+              action = ":Telescope man_pages<CR>";
+              desc = "Man pages";
+            }
 
             # --- Harpoon extras (Tony: <C-p>/<C-n> nav, <leader>fl picker) ------
-            { key = "<C-p>"; mode = "n"; action = ":lua require('harpoon'):list():prev()<CR>"; desc = "Harpoon prev"; }
-            { key = "<C-n>"; mode = "n"; action = ":lua require('harpoon'):list():next()<CR>"; desc = "Harpoon next"; }
+            {
+              key = "<C-p>";
+              mode = "n";
+              action = ":lua require('harpoon'):list():prev()<CR>";
+              desc = "Harpoon prev";
+            }
+            {
+              key = "<C-n>";
+              mode = "n";
+              action = ":lua require('harpoon'):list():next()<CR>";
+              desc = "Harpoon next";
+            }
 
             # --- LSP (Tony lsp.lua LspAttach maps) --------------------------------
-            { key = "K"; mode = "n"; action = ":lua vim.lsp.buf.hover()<CR>"; }
-            { key = "gd"; mode = "n"; action = ":lua vim.lsp.buf.definition()<CR>"; }
-            { key = "gD"; mode = "n"; action = ":lua vim.lsp.buf.declaration()<CR>"; }
-            { key = "gi"; mode = "n"; action = ":lua vim.lsp.buf.implementation()<CR>"; }
-            { key = "go"; mode = "n"; action = ":lua vim.lsp.buf.type_definition()<CR>"; }
-            { key = "gr"; mode = "n"; action = ":lua vim.lsp.buf.references()<CR>"; }
-            { key = "gs"; mode = "n"; action = ":lua vim.lsp.buf.signature_help()<CR>"; }
-            { key = "gl"; mode = "n"; action = ":lua vim.diagnostic.open_float()<CR>"; }
-            { key = "<F2>"; mode = "n"; action = ":lua vim.lsp.buf.rename()<CR>"; }
-            { key = "<F3>"; mode = ["n" "x"]; action = ":lua vim.lsp.buf.format({async=true})<CR>"; }
-            { key = "<F4>"; mode = "n"; action = ":lua vim.lsp.buf.code_action()<CR>"; }
+            {
+              key = "K";
+              mode = "n";
+              action = ":lua vim.lsp.buf.hover()<CR>";
+            }
+            {
+              key = "gd";
+              mode = "n";
+              action = ":lua vim.lsp.buf.definition()<CR>";
+            }
+            {
+              key = "gD";
+              mode = "n";
+              action = ":lua vim.lsp.buf.declaration()<CR>";
+            }
+            {
+              key = "gi";
+              mode = "n";
+              action = ":lua vim.lsp.buf.implementation()<CR>";
+            }
+            {
+              key = "go";
+              mode = "n";
+              action = ":lua vim.lsp.buf.type_definition()<CR>";
+            }
+            {
+              key = "gr";
+              mode = "n";
+              action = ":lua vim.lsp.buf.references()<CR>";
+            }
+            {
+              key = "gs";
+              mode = "n";
+              action = ":lua vim.lsp.buf.signature_help()<CR>";
+            }
+            {
+              key = "gl";
+              mode = "n";
+              action = ":lua vim.diagnostic.open_float()<CR>";
+            }
+            {
+              key = "<F2>";
+              mode = "n";
+              action = ":lua vim.lsp.buf.rename()<CR>";
+            }
+            {
+              key = "<F3>";
+              mode = [
+                "n"
+                "x"
+              ];
+              action = ":lua vim.lsp.buf.format({async=true})<CR>";
+            }
+            {
+              key = "<F4>";
+              mode = "n";
+              action = ":lua vim.lsp.buf.code_action()<CR>";
+            }
           ];
 
           # --- Custom lua Tony nvf cannot express declaratively -------------------

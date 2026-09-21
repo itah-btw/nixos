@@ -1,5 +1,7 @@
 # nixpkgs behavior: unfree allowance.
-# (Overlays are wired by their own feature module in ../overlays/.)
+# (If an overlay is ever needed: modules/overlays/<name>.nix exposes it as
+# flake.overlays.<name> AND wires nixpkgs.overlays via its own
+# flake.nixosModules.<name>. None currently — do not add stale examples.)
 { ... }:
 {
   flake.nixosModules.nixpkgs = {

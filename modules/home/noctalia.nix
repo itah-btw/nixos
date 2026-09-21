@@ -66,7 +66,11 @@
           position = "top";
           # Glass bar: lower opacity so the blur layer rule shows the wallpaper.
           background_opacity = 0.85;
-          start = [ "launcher" "wallpaper" "workspaces" ];
+          start = [
+            "launcher"
+            "wallpaper"
+            "workspaces"
+          ];
           center = [ "clock" ];
           end = [
             "media"
