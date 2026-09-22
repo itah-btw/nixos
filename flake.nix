@@ -44,7 +44,7 @@
 
     # Dendritic plumbing: every file under ./modules is a flake-parts
     # module, auto-imported. Host composition lives in
-    # modules/hosts/nixos.nix and references modules BY NAME
+    # modules/hosts/hp.nix and references modules BY NAME
     # (config.flake.nixosModules.<name>), so files can be moved/renamed
     # freely without fixing import paths.
     flake-parts.url = "github:hercules-ci/flake-parts";

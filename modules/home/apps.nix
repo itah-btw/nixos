@@ -1,4 +1,4 @@
-# Everyday apps + their dotfiles.
+# Everyday apps + their dotfiles. Shell aliases live in ./aliases.nix.
 { ... }:
 {
   flake.homeManagerModules.apps = { pkgs, ... }: {
@@ -18,67 +18,21 @@
       enable = true;
       settings = {
         font_family = "JetBrainsMono Nerd Font";
-        # Experimental cursor trail; odd number, higher = longer trail.
         cursor_trail = 3;
-        # Glass terminal: translucent background + compositor blur behind it.
-        # Umbriel window rule blurs all windows (see umbriel.nix), so the
-        # transparent backdrop shows a frosted wallpaper. Made lighter (more
-        # transparent) than the Noctalia shell surfaces.
+        # Glass terminal over the Umbriel window blur.
         background_opacity = 0.85;
         background_blur = 30;
       };
-      # Wiring so the Noctalia->Kitty template output is actually loaded.
       # Noctalia writes themes/noctalia.conf at runtime; this include is the
-      # declarative half. apply.sh cannot add it itself because kitty.conf
-      # is a read-only store symlink. Palette values stay in the theme file,
-      # not here.
+      # declarative half (kitty.conf is a read-only store symlink, so
+      # apply.sh cannot add it itself).
       extraConfig = ''
         include themes/noctalia.conf
       '';
     };
 
-    # Shell aliases for the TUI apps installed above.
-    programs.bash = {
-      enable = true;
-      shellAliases = {
-        # eza (ls replacement)
-        ls = "eza --icons";
-        ll = "eza -l --icons --git";
-        la = "eza -la --icons --git";
-        l = "eza --icons";
-        # bat (cat replacement)
-        cat = "bat";
-        # lazygit
-        lg = "lazygit";
-        # fastfetch
-        ff = "fastfetch";
-        # --- NixOS maintenance --------------------------------------------
-        rb = "sudo nixos-rebuild switch --flake /etc/nixos#hp --accept-flake-config";
-        dry = "nixos-rebuild dry-build --flake /etc/nixos#hp --accept-flake-config";
-        update = "nix flake update --flake /etc/nixos";
-        gc = "sudo nix-collect-garbage --delete-old";
-        gc14 = "sudo nix-collect-garbage --delete-older-than 14d";
-        optimize = "sudo nix-store --optimise";
-        gen = "sudo nix-env --list-generations --profile /nix/var/nix/profiles/system";
-        rollback = "sudo nix-env --rollback --profile /nix/var/nix/profiles/system";
-        doctor = "nix doctor";
-      };
-      # `push <msg>` — stage + commit + push the NixOS config in one shot.
-      initExtra = ''
-        push() {
-          git -C /etc/nixos add -A && \
-          git -C /etc/nixos commit -m "$1" && \
-          git -C /etc/nixos push
-        }
-      '';
-    };
-
-    # Yazi file manager (dotfile: ~/.config/yazi/)
-    #   - compress: yaziPlugins.compress (c a a / c a p), needs zip/7z in PATH
-    #   - extract:  builtin "Extract here" on Enter + c x (uses 7zz/7z)
     programs.yazi = {
       enable = true;
-      # `y` function = open yazi, cd into last dir on exit.
       enableBashIntegration = true;
       shellWrapperName = "y";
       extraPackages = with pkgs; [
@@ -121,8 +75,6 @@
         ];
       };
       settings = {
-        # Openers for the apps installed on this machine. Types without a
-        # dedicated opener fall through to the default "open" (xdg-open).
         opener = {
           zathura = [
             {
@@ -150,7 +102,7 @@
           ];
           firefox = [
             {
-              run = "firefox %s1";
+              run = "firefox %s";
               desc = "Open in Firefox";
               for = "linux";
               orphan = true;
@@ -240,16 +192,10 @@
       };
     };
 
-    # Papirus-Dark icon theme (folders/icons used by GTK apps + file managers).
-    # NOTE: gtk.enable must be true — without it HM ignores iconTheme entirely
-    # (no settings.ini written, package not installed). HM does not manage
-    # gtk.css unless extraCss is set, so Noctalia's gtk3/gtk4 templates
-    # (noctalia.css @import) keep working untouched.
+    # GTK appearance: adw-gtk3 theme + Papirus-Dark icons. gtk.enable also
+    # writes settings.ini; Noctalia's gtk.css templates layer on top and keep
+    # working because the template does not touch settings.ini.
     gtk.enable = true;
-    # adw-gtk3: libadwaita-style GTK3 theme that follows the
-    # org.gnome.desktop.interface color-scheme (prefer-dark set below),
-    # unlike stock Adwaita. Noctalia's gtk.css/noctalia.css accents
-    # layer on top; the template doesn't touch settings.ini, so no conflict.
     gtk.theme = {
       package = pkgs.adw-gtk3;
       name = "adw-gtk3";
@@ -259,9 +205,9 @@
       name = "Papirus-Dark";
     };
 
-    # Yazi as the default file manager for directories.
-    # yazi.desktop ships Terminal=true, so gio/xdg-open launches it through
-    # xdg-terminal-exec, pinned to kitty below.
+    # yazi as the default directory-opener via xdg-terminal-exec, pinned to
+    # kitty. dconf prefer-dark feeds xdg-desktop-portal-gtk (kept in dconf,
+    # not settings.ini, so Noctalia's GTK templates keep owning that file).
     xdg.mimeApps = {
       enable = true;
       defaultApplications = {
@@ -272,11 +218,6 @@
       kitty.desktop
     '';
 
-    # Prefer-dark for xdg-desktop-portal-gtk (Firefox save/open dialogs),
-    # which reads org.gnome.desktop.interface color-scheme. Kept in dconf
-    # (not settings.ini) so Noctalia's GTK templates keep owning that file.
-    # Inter is the default UI font here too; monospace stays JetBrainsMono
-    # to match kitty.
     dconf = {
       enable = true;
       settings."org/gnome/desktop/interface" = {
@@ -287,24 +228,20 @@
       };
     };
 
-    # zoxide: fast `z` directory jumping (bash init provides the `z` function).
     programs.zoxide = {
       enable = true;
       enableBashIntegration = true;
     };
 
+    # kitty + zoxide are installed by their programs.*.enable above.
     home.packages = with pkgs; [
-      kitty
-      # Needed so gio/xdg-open can launch Terminal=true .desktop apps (yazi).
       xdg-terminal-exec
       wl-clipboard
       brightnessctl
       playerctl
       pavucontrol
-      fprintd
       curl
 
-      # --- Daily essentials -------------------------------------------------
       firefox
       stremio-linux-shell
       proton-vpn
@@ -316,10 +253,7 @@
       netbeans
       localsend
 
-      # Firmware update CLI (daemon enabled in desktop/session.nix).
-      fwupd
-
-      # OCR (English + Indonesian language data; only these are bundled).
+      # OCR (English + Indonesian language data only).
       (tesseract.override {
         enableLanguages = [
           "eng"
@@ -329,21 +263,16 @@
       grim
       slurp
 
-      # Applies color palettes (e.g. Catppuccin) to images/wallpapers.
       lutgen
 
-      # --- TUI / terminal helpers -----------------------------------------
       fastfetch
       btop
       eza
       bat
       lazygit
-      zoxide
 
-      # Required by the Noctalia LibreOffice template's apply.sh: it assembles
-      # the Noctalia ColorScheme .oxt with `zip -qr` on every theme change.
-      # (yazi's extraPackages also contain zip, but those are wrapped for yazi
-      # only, not on user PATH.)
+      # Required by the Noctalia LibreOffice template's apply.sh (assembles
+      # the .oxt with `zip -qr` on theme change; yazi's zip is wrapped).
       zip
     ];
   };

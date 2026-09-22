@@ -1,14 +1,10 @@
-# Timezone, locale, keyboard.
+# Timezone, locale, keyboard. xkb here is the single source of truth:
+# Umbriel and the greeter read it back (home/umbriel.nix, desktop/session.nix).
 { ... }:
 {
   flake.nixosModules.locale = {
-    # Set your time zone.
     time.timeZone = "Asia/Jakarta";
-
-    # Select internationalisation properties.
     i18n.defaultLocale = "en_US.UTF-8";
-
-    # Configure keymap in X11
     services.xserver.xkb = {
       layout = "us";
       variant = "";

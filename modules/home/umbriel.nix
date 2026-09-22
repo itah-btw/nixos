@@ -1,18 +1,13 @@
-# Umbriel compositor user config (dotfile: ~/.config/umbriel/config.toml).
-# System side (package, sessions) lives in ../desktop/session.nix.
-{ ... }: {
+# Umbriel compositor user config. System side lives in desktop/session.nix.
+{ ... }:
+{
   flake.homeManagerModules.umbriel = {
     programs.umbriel = {
       enable = true;
       settings = {
-        # Lets the Noctalia->Umbriel template supply [colors] at runtime.
-        # noctalia.toml is written by Noctalia (Settings -> Templates) and
-        # lives next to this file; HM leaves it alone. Without this include
-        # the template output exists but is never loaded (apply.sh cannot
-        # edit this read-only store symlink itself).
+        # Noctalia->Umbriel template supplies [colors] via this include;
+        # apply.sh cannot edit the read-only store symlink itself.
         include.optional.files = [ "noctalia.toml" ];
-        # Glass/visual effects. Master switch explicit (default on), surfaces
-        # still opt in via the window_rule/layer_rule lists below.
         appearance.blur = {
           enabled = true;
           optimized = true;
@@ -38,6 +33,7 @@
           };
         };
         input.keyboard = {
+          # Mirrors services.xserver.xkb.layout (core/locale.nix).
           layout = "us";
           repeat_rate = 40;
           repeat_delay = 200;
@@ -54,8 +50,6 @@
           "Mod+Return" = "spawn:kitty";
           "Mod" = "spawn:noctalia msg panel-toggle launcher";
           "Mod+Q" = "window-close";
-          # Quit moved off Mod+Escape so Escape can open the session menu
-          # (Noctalia docs pattern); confirm dialog stays on.
           "Mod+Shift+Q" = "session-quit";
           "Mod+Escape" = "spawn:noctalia msg panel-toggle session";
           "Mod+Shift+Escape" = {
@@ -70,7 +64,6 @@
           "Mod+B" = "spawn:firefox";
           "Mod+Shift+F23" = "spawn:kitty opencode";
           "Mod+I" = "spawn:protonvpn-app";
-          # Emoji picker via the Noctalia launcher (upstream docs pattern).
           "Mod+Shift+E" = "spawn:noctalia msg panel-toggle launcher /emo";
 
           # --- Focus navigation (arrows + HJKL + F1 + wheel) ---
@@ -145,8 +138,6 @@
           "Mod+Page_Down" = "workspace-next";
 
           # --- Outputs (multi-monitor) ---
-          # Directional focus/move plus wrapping -next forms, so one bind
-          # each reaches the other screen of a two-monitor setup.
           "Mod+Ctrl+Left" = "output-focus-left";
           "Mod+Ctrl+Down" = "output-focus-down";
           "Mod+Ctrl+Up" = "output-focus-up";
@@ -169,18 +160,17 @@
           "Mod+Alt+Down" = "workspace-swap-active-output-down";
           "Mod+Alt+Up" = "workspace-swap-active-output-up";
           "Mod+Alt+Right" = "workspace-swap-active-output-right";
-          # No Mod+Alt+L here: that chord is session lock (see above).
           "Mod+Alt+H" = "workspace-swap-active-output-left";
           "Mod+Alt+J" = "workspace-swap-active-output-down";
           "Mod+Alt+K" = "workspace-swap-active-output-up";
 
-          # --- Scratchpad (implicit default) ---
+          # --- Scratchpad ---
           "Mod+Space" = "scratchpad-toggle";
           "Mod+Shift+Space" = "window-move-to-scratchpad";
           "Mod+Ctrl+Space" = "window-restore-from-scratchpad";
           "Mod+Tab" = "scratchpad-focus-next";
 
-          # --- Noctalia shell (IPC; Mod+P stays pin, screenshots on Print) ---
+          # --- Noctalia shell (IPC; screenshots on Print) ---
           "Mod+S" = "spawn:noctalia msg panel-toggle control-center";
           "Mod+Comma" = "spawn:noctalia msg settings-toggle";
           "Mod+V" = "spawn:noctalia msg panel-toggle clipboard";
@@ -200,9 +190,6 @@
           "Shift+Print" = "spawn:noctalia msg screenshot-fullscreen";
           "Mod+Shift+A" = "spawn:noctalia msg screenshot-annotate";
           "Mod+Ctrl+A" = "spawn:noctalia msg annotate";
-          # OCR region: grim+slurp screenshot -> tesseract -> clipboard.
-          # On cancel (Esc in slurp) grim fails so tesseract never runs and
-          # the clipboard is left untouched. wl-copy is in the home profile.
           "Mod+Shift+O" =
             "spawn:tmp=$(mktemp --suffix .png); grim -g \"$(slurp)\" \"$tmp\" && tesseract \"$tmp\" - -l eng+ind 2>/dev/null | wl-copy; rm -f \"$tmp\"";
 
@@ -223,11 +210,8 @@
             allow_when_locked = true;
           };
         };
-        # Glass effects, compositor side:
-        # - Blur every window (frosted terminals/dialogs). Keep this
-        #   selectorless rule first so later matching rules can override.
-        # - Blur Noctalia's own layer surfaces (bar, launcher, dock,
-        #   notifications, OSD, panels) behind their translucent backgrounds.
+        # Blur every window (keep this selectorless rule first so later
+        # matching rules can override) + Noctalia's own layer surfaces.
         window_rule = [
           {
             blur = true;
@@ -243,9 +227,8 @@
             blur_optimized = false;
           }
         ];
-        # NOTE: [colors] intentionally left to defaults so the official
-        # Noctalia->Umbriel template can supply them at runtime.
-        # Enable it in Noctalia Settings -> Templates (Umbriel template).
+        # [colors] intentionally left to defaults: the Noctalia->Umbriel
+        # template supplies them at runtime.
       };
     };
   };

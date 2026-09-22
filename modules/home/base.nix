@@ -7,20 +7,16 @@
     home.stateVersion = "26.11";
     programs.home-manager.enable = true;
 
-    # Wayland session env for Umbriel-started apps.
     home.sessionVariables = {
       NIXOS_OZONE_WL = "1";
       MOZ_ENABLE_WAYLAND = "1";
-      # Fix blank Swing/Java UI (e.g. NetBeans) on the Umbriel compositor,
-      # which does not support X11 reparenting.
+      # Swing/Java UI (e.g. NetBeans) on Umbriel, which cannot reparent X11.
       _JAVA_AWT_WM_NONREPARENTING = "1";
       # Default editor for yazi's $EDITOR opener, git, and other tools.
       EDITOR = "nvim";
     };
 
-    # Pictures dir is the default wallpaper browse folder when
-    # `wallpaper.directory = ""`. Keep wallpapers here (or set an explicit
-    # directory in Settings); automation picks from the resolved folder.
+    # Default wallpaper browse folder when `wallpaper.directory = ""`.
     xdg.userDirs = {
       enable = true;
       pictures = "${config.home.homeDirectory}/Pictures";

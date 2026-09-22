@@ -1,50 +1,24 @@
 # Neovim via nvf (NotAShelf/nvf), replicating tonybanters/nvim.
-#
-# Coverage map (tony -> nvf):
-#   options.lua/keybinds.lua -> vim.options + vim.keymaps (+ globals.mapleader)
-#   tokyonight               -> base16, driven LIVE by the Noctalia palette
-#                               (luaConfigRC.noctalia-colors loads the neovim
-#                               community template output; baked colors below
-#                               are fallback only)
-#   lualine                  -> statusline.lualine
-#   telescope                -> vim.telescope (+ Tony <leader>f* keymaps)
-#   harpoon (harpoon2)       -> navigation.harpoon (+ <leader>fl picker)
-#   nvim-cmp/cmp-*           -> completion.nvim-cmp
-#   fugitive                 -> git.vim-fugitive (+ gitsigns)
-#   undotree                 -> utility.undotree (<leader>u)
-#   vim-oscyank (SSH yank)   -> built-in OSC52 clipboard over SSH (<leader>y)
-#   nvim-highlight-colors    -> utility.ccc
-#   treesitter + tonysitter  -> vim.treesitter (+ context sticky header,
-#                               replaces tonycontext.lua)
-#   flterm.lua (<leader>ft)  -> terminal.toggleterm
-#   lsp.lua (clangd, lua, css, intelephense, ts, zls, nil, rust, go, ...)
-#                            -> vim.lsp + vim.languages.*
-#   docgen.lua (<leader>dg)  -> luaConfigRC.tony-docgen (kept verbatim intent:
-#                               C kernel-doc generator; most valuable for C++)
-#   quickformat (<leader>qq) -> luaConfigRC.tony-quickformat
-#   C++ everything           -> languages.clang (clangd LSP, clang-format,
-#                               clangtidy, lldb DAP) + languages.cmake +
-#                               bear/gcc/cmake/ninja/lldb tooling on PATH.
+# Baked base16 colors are a fallback only: Noctalia's "neovim" template
+# rewrites ~/.config/nvim/lua/matugen.lua on every palette change and
+# SIGUSR1s nvim (see luaConfigRC.noctalia-colors).
 { ... }:
 {
   flake.homeManagerModules.nvf =
     {
       pkgs,
       config,
-      lib,
       ...
     }:
     {
-      # Noctalia "neovim" template writes ~/.config/nvim/lua/matugen.lua, but
-      # the nvf binary runs with NVIM_APPNAME=nvf (rtp: ~/.config/nvf), so the
-      # template output is invisible to it. Out-of-store symlink keeps it live:
-      # Noctalia rewrites the target in place on every palette change.
+      # Noctalia template writes ~/.config/nvim/lua/matugen.lua but the nvf
+      # binary runs with NVIM_APPNAME=nvf (rtp: ~/.config/nvf), so mirror it
+      # via an out-of-store symlink that Noctalia rewrites in place safely.
       home.file.".config/nvf/lua/matugen.lua".source =
         config.lib.file.mkOutOfStoreSymlink "${config.home.homeDirectory}/.config/nvim/lua/matugen.lua";
 
       programs.nvf = {
         enable = true;
-        # EDITOR=nvim (matches home/base.nix session var).
         defaultEditor = true;
         settings.vim = {
           vimAlias = true;
@@ -52,11 +26,10 @@
 
           globals.mapleader = " ";
 
-          # --- Tony options.lua ------------------------------------------------
           lineNumberMode = "relNumber";
           searchCase = "smart";
-          preventJunkFiles = true; # swapfile + backup off
-          undoFile.enable = true; # persistent undo (Tony: ~/.vim/undodir)
+          preventJunkFiles = true;
+          undoFile.enable = true;
           options = {
             tabstop = 4;
             shiftwidth = 4;
@@ -74,22 +47,14 @@
             undofile = true;
             incsearch = true;
             updatetime = 50;
-            # `iskeyword += -` so dw/diw/ciw treat hyphenated words as one.
-            # (nvf renders vim.options as vim.opt; iskeyword append needs lua,
-            # so it lives in luaConfigRC.tony-opts below.)
           };
 
           clipboard = {
             enable = true;
-            registers = "unnamedplus"; # Tony: clipboard:append("unnamedplus")
+            registers = "unnamedplus";
             providers.wl-copy.enable = true;
           };
 
-          # --- Theme: base16 ----------------------------------------------------------
-          # Baked fallback palette only. At startup (and live on every
-          # wallpaper change) luaConfigRC.noctalia-colors below overrides this
-          # with the Noctalia palette (neovim community template ->
-          # ~/.config/nvim/lua/matugen.lua + SIGUSR1).
           theme = {
             enable = true;
             name = "base16";
@@ -115,12 +80,12 @@
 
           statusline.lualine.enable = true;
           visuals.nvim-web-devicons.enable = true;
-          utility.ccc.enable = true; # replaces nvim-highlight-colors
+          utility.ccc.enable = true;
           utility.undotree.enable = true;
 
           git = {
             enable = true;
-            vim-fugitive.enable = true; # Tony: tpope/vim-fugitive
+            vim-fugitive.enable = true;
             gitsigns.enable = true;
           };
 
@@ -136,15 +101,15 @@
 
           treesitter = {
             enable = true;
-            context.enable = true; # sticky header, replaces tonycontext.lua
+            context.enable = true;
           };
 
-          autocomplete.nvim-cmp.enable = true; # Tony: hrsh7th/nvim-cmp stack
+          autocomplete.nvim-cmp.enable = true;
           autopairs.nvim-autopairs.enable = true;
           comments.comment-nvim.enable = true;
 
           terminal.toggleterm = {
-            enable = true; # replaces flterm.lua floating terminal
+            enable = true;
             mappings.open = "<leader>ft";
           };
 
@@ -163,9 +128,6 @@
             ui.enable = true;
           };
 
-          # --- Languages ---------------------------------------------------------
-          # Tony's LSP set (lua, css, php/intelephense, ts, zig, nix, rust,
-          # go, json, haskell) plus the full C/C++ stack.
           languages = {
             enableTreesitter = true;
             enableFormat = true;
@@ -173,7 +135,7 @@
             enableDAP = true;
 
             clang = {
-              enable = true; # C/C++ everything: treesitter, clangd, format, DAP
+              enable = true;
               cHeader = true;
               lsp.servers = [ "clangd" ];
               format.type = [ "clang-format" ];
@@ -197,19 +159,16 @@
             markdown.enable = true;
             bash.enable = true;
             zig.enable = true;
-            php.enable = true; # Tony: intelephense
+            php.enable = true;
           };
 
-          # --- Tony keybinds (keybinds.lua + after/plugin/*) ----------------------
           keymaps = [
-            # netrw explorer
             {
               key = "<leader>cd";
               mode = "n";
               action = ":Ex<CR>";
               desc = "Open Ex";
             }
-            # move selected block (Tony: Alt Up/Down in vscode)
             {
               key = "J";
               mode = "v";
@@ -220,13 +179,11 @@
               mode = "v";
               action = ":m '<-2<CR>gv=gv";
             }
-            # join lines, keep cursor
             {
               key = "J";
               mode = "n";
               action = "mzJ`z";
             }
-            # half-page scroll, keep cursor centered
             {
               key = "<C-d>";
               mode = "n";
@@ -247,7 +204,6 @@
               mode = "n";
               action = "Nzzzv";
             }
-            # blackhole paste/delete (don't clobber clipboard)
             {
               key = "<leader>p";
               mode = "x";
@@ -266,7 +222,6 @@
               mode = "i";
               action = "<Esc>";
             }
-            # quickfix / location navigation, centered
             {
               key = "<C-j>";
               mode = "n";
@@ -320,13 +275,11 @@
               action = ":checkhealth vim.lsp<CR>";
               desc = "LSP Info";
             }
-            # PHP lint (Tony: php-cs-fixer)
             {
               key = "<leader>cc";
               mode = "n";
               action = "<cmd>!php-cs-fixer fix % --using-cache=no<cr>";
             }
-            # substitute word under cursor (current line)
             {
               key = "<leader>s";
               mode = "n";
@@ -338,7 +291,6 @@
               action = "<cmd>!chmod +x %<CR>";
               silent = true;
             }
-            # yank to system clipboard (SSH-safe via OSC52, see luaConfigRC)
             {
               key = "<leader>y";
               mode = [
@@ -373,7 +325,6 @@
               desc = "Exit terminal mode";
             }
 
-            # --- Telescope (Tony <leader>f*) -------------------------------------
             {
               key = "<leader>ff";
               mode = "n";
@@ -423,7 +374,6 @@
               desc = "Man pages";
             }
 
-            # --- Harpoon extras (Tony: <C-p>/<C-n> nav, <leader>fl picker) ------
             {
               key = "<C-p>";
               mode = "n";
@@ -437,7 +387,6 @@
               desc = "Harpoon next";
             }
 
-            # --- LSP (Tony lsp.lua LspAttach maps) --------------------------------
             {
               key = "K";
               mode = "n";
@@ -498,13 +447,11 @@
             }
           ];
 
-          # --- Custom lua Tony nvf cannot express declaratively -------------------
           luaConfigRC = {
-            # iskeyword += - (hyphenated words are one word for dw/ciw)
+            # iskeyword += - so dw/ciw treat hyphenated words as one word.
             tony-opts = "vim.opt.iskeyword:append('-')";
 
-            # SSH-aware clipboard: OSC52 when over SSH, matching vim-oscyank's
-            # role in Tony's setup (yank works even on SSH).
+            # OSC52 clipboard when over SSH (yank works remotely).
             tony-osc52 = ''
               if vim.env.SSH_CONNECTION ~= nil then
                 local ok, osc52 = pcall(require, 'vim.ui.clipboard.osc52')
@@ -518,9 +465,7 @@
               end
             '';
 
-            # Tony's plugin/docgen.lua: C kernel-doc generator on <leader>dg.
-            # (C/C++ focus; Go/Rust/Python variants from the original were
-            # dropped — nvf languages already cover those via LSP snippets.)
+            # C kernel-doc generator on <leader>dg.
             tony-docgen = ''
               local function generate_c_doc(bufnr, row, line)
                 local stripped = line:gsub("^%s*static%s+", ""):gsub("^%s*inline%s+", ""):gsub("^%s*extern%s+", "")
@@ -557,7 +502,7 @@
               vim.keymap.set('n', '<leader>dg', tony_generate_doc, { desc = 'Generate C doc comment' })
             '';
 
-            # Tony's plugin/quickformat.lua: explode paren args on <leader>qq.
+            # Explode parenthesized args on <leader>qq.
             tony-quickformat = ''
               local function reformat_parenthesized_content()
                 local bufnr = vim.api.nvim_get_current_buf()
@@ -580,7 +525,7 @@
               vim.keymap.set('n', '<leader>qq', reformat_parenthesized_content, { desc = 'Explode paren args' })
             '';
 
-            # Tony's harpoon+Telescope picker on <leader>fl.
+            # Harpoon + Telescope picker on <leader>fl.
             tony-harpoon-picker = ''
               vim.keymap.set('n', '<leader>fl', function()
                 local ok, harpoon = pcall(require, 'harpoon')
@@ -596,8 +541,7 @@
               end, { desc = 'Harpoon list (Telescope)' })
             '';
 
-            # Tony's grep-file-basename (<leader>fc) and config-dir
-            # finder (<leader>fi, pointed at this repo).
+            # <leader>fc grep-file-basename; <leader>fi find in /etc/nixos.
             tony-telescope-extras = ''
               local ok, builtin = pcall(require, 'telescope.builtin')
               if ok then
@@ -610,7 +554,7 @@
               end
             '';
 
-            # Tony's lsp.lua diagnostics style (rounded borders, icons).
+            # Rounded-border diagnostics with icons.
             tony-diagnostics = ''
               vim.diagnostic.config({
                 virtual_text = true,
@@ -625,13 +569,9 @@
               })
             '';
 
-            # Noctalia live palette -> base16 + lualine, so the powerline
-            # follows the wallpaper. The Noctalia "neovim" template rewrites
-            # ~/.config/nvim/lua/matugen.lua on every palette change and
-            # SIGUSR1s nvim. We load it at startup (over the baked fallback
-            # above), rebuild the lualine theme from the base16 globals, and
-            # take over the SIGUSR1 handler so changes apply live, no restart.
-            # Manual re-sync: :NoctaliaTheme
+            # Noctalia live palette -> base16 + lualine: load the neovim
+            # template output at startup and on every SIGUSR1 (wallpaper
+            # change), then rebuild the lualine theme. Manual re-sync: :NoctaliaTheme
             noctalia-colors = ''
               local function noctalia_slot(slot, fallback)
                 for _, s in ipairs({ slot, slot:lower(), slot:upper() }) do
@@ -716,9 +656,7 @@
         };
       };
 
-      # C/C++ toolchain on PATH (complements what nvf installs itself):
-      # compilers/build, bear (generates compile_commands.json for clangd),
-      # lldb (DAP), cmake-format + clang extra tools.
+      # C/C++ toolchain on PATH (complements what nvf installs itself).
       home.packages = with pkgs; [
         gcc
         cmake

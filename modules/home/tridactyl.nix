@@ -1,8 +1,5 @@
-# Tridactyl (vim-like Firefox extension) native messaging host.
-# FireFox reads per-user hosts from ~/.mozilla/native-messaging-hosts;
-# the nixpkgs package ships its manifest already pointing at the store
-# binary (lib/mozilla/native-messaging-hosts/tridactyl.json), so we only
-# surface it at the path the browser actually looks up.
+# Tridactyl native messaging host: surface the store manifest at the path
+# Firefox reads (~/.mozilla/native-messaging-hosts).
 { ... }:
 {
   flake.homeManagerModules.tridactyl = { pkgs, ... }: {

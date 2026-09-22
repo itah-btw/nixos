@@ -1,22 +1,25 @@
 # Performance + power for this HP Intel laptop (nvme, Intel NPU).
-#
-# - fstrim: weekly SSD discard (nvme longevity + sustained write speed).
-# - zram: compressed RAM swap (softens RAM pressure; no disk partition).
-# - thermald: Intel thermal daemon (laptop fan/thermal headroom).
-# - Redistributable firmware: actually enables the microcode/firmware blob
-#   path hardware-configuration.nix reads via
-#   `hardware.enableRedistributableFirmware` (plus fwupd updates in session.nix).
 { ... }:
 {
   flake.nixosModules.performance = {
     services.fstrim.enable = true;
+    services.thermald.enable = true;
+    # earlyoom kills the biggest process before the kernel OOM-er does;
+    # matters here because the only real backstop is zram (no big disk swap).
+    services.earlyoom.enable = true;
 
+    # Modest zram (was 50% — too easy to exhaust into OOM) plus a small
+    # 4G disk swapfile as a cushion for genuine memory spikes.
     zramSwap = {
       enable = true;
-      memoryPercent = 50;
+      memoryPercent = 30;
     };
-
-    services.thermald.enable = true;
+    swapDevices = [
+      {
+        device = "/swapfile";
+        size = 4096;
+      }
+    ];
 
     hardware.enableRedistributableFirmware = true;
   };
