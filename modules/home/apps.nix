@@ -17,6 +17,7 @@
     programs.kitty = {
       enable = true;
       settings = {
+        font_family = "JetBrainsMono Nerd Font";
         # Experimental cursor trail; odd number, higher = longer trail.
         cursor_trail = 3;
         # Glass terminal: translucent background + compositor blur behind it.
@@ -123,10 +124,10 @@
               orphan = true;
             }
           ];
-          imv = [
+          imv-dir = [
             {
-              run = "imv %s";
-              desc = "Open with imv";
+              run = "imv-dir %s";
+              desc = "Open with imv-dir";
               for = "linux";
               orphan = true;
             }
@@ -207,7 +208,7 @@
           {
             mime = "image/*";
             use = [
-              "imv"
+              "imv-dir"
               "open"
             ];
           }
@@ -266,9 +267,16 @@
     # Prefer-dark for xdg-desktop-portal-gtk (Firefox save/open dialogs),
     # which reads org.gnome.desktop.interface color-scheme. Kept in dconf
     # (not settings.ini) so Noctalia's GTK templates keep owning that file.
+    # Inter is the default UI font here too; monospace stays JetBrainsMono
+    # to match kitty.
     dconf = {
       enable = true;
-      settings."org/gnome/desktop/interface".color-scheme = "prefer-dark";
+      settings."org/gnome/desktop/interface" = {
+        color-scheme = "prefer-dark";
+        font-name = "Inter 11";
+        document-font-name = "Inter 11";
+        monospace-font-name = "JetBrainsMono Nerd Font 11";
+      };
     };
 
     # zoxide: fast `z` directory jumping (bash init provides the `z` function).
@@ -290,6 +298,7 @@
 
       # --- Daily essentials -------------------------------------------------
       firefox
+      stremio-linux-shell
       proton-vpn
       libreoffice
       zathura
@@ -311,6 +320,9 @@
       })
       grim
       slurp
+
+      # Applies color palettes (e.g. Catppuccin) to images/wallpapers.
+      lutgen
 
       # --- TUI / terminal helpers -----------------------------------------
       fastfetch

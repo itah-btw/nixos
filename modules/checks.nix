@@ -9,6 +9,7 @@
 #     keys, no declarative custom palettes)
 #   - Noctalia composition (Umbriel autostart => no systemd units)
 #   - Noctalia binary cache wired, MariaDB loopback-only
+#   - starship.toml stays runtime-managed by Noctalia (no HM settings/presets)
 #
 # One entry per host in `checkedHosts`. Hosts without the Noctalia home
 # module automatically skip the Noctalia guards (`or` defaults in
@@ -43,6 +44,8 @@ let
         hasNoctalia = hmNoctalia != null && (hmNoctalia.enable or false);
         noctaliaSystemdSystem = cfg.programs.noctalia.systemd.enable or false;
         noctaliaSystemdHome = if hm != null then (hm.programs.noctalia.systemd.enable or false) else false;
+        starshipSettings = if hm != null then (hm.programs.starship.settings or { }) else { };
+        starshipPresets = if hm != null then (hm.programs.starship.presets or [ ]) else [ ];
         umbrielAutostart =
           if hm != null then (hm.programs.umbriel.settings.general.autostart or null) else null;
       }
@@ -84,6 +87,11 @@ let
         mkCheck "binary-cache" ''.substituters | index("https://noctalia.cachix.org") != null'';
       "${name}-mariadb-loopback" =
         mkCheck "mariadb-loopback" ''.mysqlBind == null or .mysqlBind == "127.0.0.1"'';
+      # starship.toml is runtime-managed by Noctalia's Starship template
+      # (palette sync); HM-managed settings/presets would clobber it on
+      # switch and break Noctalia's apply.sh (read-only store symlink).
+      "${name}-starship-unmanaged" =
+        mkCheck "starship-unmanaged" "(.starshipSettings == {}) and (.starshipPresets == [])";
     };
 in
 {

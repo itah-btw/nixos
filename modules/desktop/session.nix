@@ -75,6 +75,13 @@
       inter
     ];
 
+    # Inter is the default UI font. Monospace stays JetBrainsMono (kitty
+    # sets it explicitly too, so terminals keep the nerd-font glyphs).
+    fonts.fontconfig.defaultFonts = {
+      sansSerif = [ "Inter" ];
+      monospace = [ "JetBrainsMono Nerd Font" ];
+    };
+
     # No text-to-speech: explicitly off, no speech dispatcher,
     # screen-reader/TTS daemons or engines pulled in by default.
     services.speechd.enable = false;

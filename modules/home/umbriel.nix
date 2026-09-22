@@ -1,7 +1,6 @@
 # Umbriel compositor user config (dotfile: ~/.config/umbriel/config.toml).
 # System side (package, sessions) lives in ../desktop/session.nix.
-{ ... }:
-{
+{ ... }: {
   flake.homeManagerModules.umbriel = {
     programs.umbriel = {
       enable = true;
@@ -28,7 +27,7 @@
           # Primary way Noctalia starts (NOT systemd; see noctalia.nix).
           autostart = [ "noctalia" ];
           xwayland = true;
-          show_cheatsheet = true;
+          show_cheatsheet = false;
         };
         layout = {
           mode = "scrolling";
@@ -67,7 +66,6 @@
           "Mod+Slash" = "cheatsheet-toggle";
 
           # --- App launches ---
-          "Mod+Y" = "spawn:kitty yazi";
           "Mod+E" = "spawn:kitty yazi";
           "Mod+B" = "spawn:firefox";
           "Mod+Shift+F23" = "spawn:kitty opencode";
@@ -187,6 +185,9 @@
           "Mod+Comma" = "spawn:noctalia msg settings-toggle";
           "Mod+V" = "spawn:noctalia msg panel-toggle clipboard";
           "Mod+W" = "spawn:noctalia msg panel-toggle wallpaper";
+          "Mod+Ctrl+W" = "spawn:noctalia msg wallpaper-next";
+          "Mod+Ctrl+Shift+W" = "spawn:noctalia msg wallpaper-previous";
+          "Mod+Shift+W" = "spawn:noctalia msg wallpaper-random";
           "Mod+X" = "spawn:noctalia msg bar-toggle";
           "Alt+Tab" = {
             action = "spawn:noctalia msg window-switcher";

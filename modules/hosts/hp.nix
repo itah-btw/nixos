@@ -43,6 +43,7 @@
       config.flake.nixosModules.keyring
       config.flake.nixosModules.fingerprint
       config.flake.nixosModules.mariadb
+      config.flake.nixosModules.shell
 
       # Home Manager (NixOS module). User dotfiles live in
       # flake.homeManagerModules.*, composed by name here.
@@ -67,6 +68,7 @@
             config.flake.homeManagerModules.cursor
             config.flake.homeManagerModules.nvf
             config.flake.homeManagerModules.mariadb
+            config.flake.homeManagerModules.shell
           ];
         };
       }

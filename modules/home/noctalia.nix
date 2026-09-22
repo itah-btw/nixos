@@ -34,7 +34,7 @@
           key_source = "secret-service";
         };
         shell = {
-          font_family = "JetBrainsMono Nerd Font";
+          font_family = "Inter";
           corner_radius_scale = 1.0;
           # Glass shell: translucent settings window. Panels below.
           settings_window_translucent = true;
