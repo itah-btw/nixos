@@ -46,6 +46,16 @@
       };
     };
 
+    # `push <msg>` — stage + commit + push the NixOS config in one shot.
+    programs.fish.functions.push = {
+      description = "Stage, commit and push the /etc/nixos flake";
+      body = ''
+        git -C /etc/nixos add -A; and \
+        git -C /etc/nixos commit -m "$argv[1]"; and \
+        git -C /etc/nixos push
+      '';
+    };
+
     # Starship: integration only (prompt init in fish/bash). The config file
     # (~/.config/starship.toml) is runtime-managed by Noctalia's Starship
     # template (palette sync via marker injection), so settings/presets stay

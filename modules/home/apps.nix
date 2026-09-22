@@ -63,6 +63,14 @@
         rollback = "sudo nix-env --rollback --profile /nix/var/nix/profiles/system";
         doctor = "nix doctor";
       };
+      # `push <msg>` — stage + commit + push the NixOS config in one shot.
+      initExtra = ''
+        push() {
+          git -C /etc/nixos add -A && \
+          git -C /etc/nixos commit -m "$1" && \
+          git -C /etc/nixos push
+        }
+      '';
     };
 
     # Yazi file manager (dotfile: ~/.config/yazi/)
