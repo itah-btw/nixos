@@ -1,13 +1,7 @@
-# nixpkgs unfree policy: only the packages actually unfree on this machine.
-# If a new unfree package is added, extend the predicate — do not flip
-# allowUnfree back on globally.
-{ lib, ... }:
+# nixpkgs policy: allow unfree packages globally.
+{ ... }:
 {
   flake.nixosModules.nixpkgs = {
-    nixpkgs.config.allowUnfreePredicate =
-      pkg:
-      builtins.elem (lib.getName pkg) [
-        "stremio-linux-shell"
-      ];
+    nixpkgs.config.allowUnfree = true;
   };
 }

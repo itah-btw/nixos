@@ -25,5 +25,8 @@
       dates = "weekly";
       options = "--delete-older-than 14d";
     };
+
+    # Nix helper: `nh os switch/test/boot`, `nh clean` (see aliases).
+    programs.nh.enable = true;
   };
 }

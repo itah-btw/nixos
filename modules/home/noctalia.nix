@@ -17,26 +17,18 @@
         shell = {
           font_family = "Inter";
           corner_radius_scale = 1.0;
-          settings_window_translucent = true;
           clipboard_enabled = true;
           clipboard_keep_from_closed_apps = true;
           clipboard_history_max_entries = 100;
-          panel = {
-            transparency_mode = "soft";
-            shadow = true;
-          };
         };
         audio = {
           enable_sounds = false;
         };
         notification = {
           enable_daemon = true;
-          background_opacity = 0.85;
         };
-        osd.background_opacity = 0.85;
         bar.main = {
           position = "top";
-          background_opacity = 0.85;
           start = [
             "launcher"
             "wallpaper"

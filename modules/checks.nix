@@ -4,7 +4,7 @@
 { config, lib, ... }:
 let
   hosts = config.flake.nixosConfigurations;
-  checkedHosts = [ "hp" ];
+  checkedHosts = builtins.attrNames hosts;
 
   factsFor =
     name:

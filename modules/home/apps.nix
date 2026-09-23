@@ -1,6 +1,5 @@
 # Everyday apps + their dotfiles. Shell aliases live in ./aliases.nix.
-{ ... }:
-{
+{ ... }: {
   flake.homeManagerModules.apps = { pkgs, ... }: {
     programs.git = {
       enable = true;
@@ -18,10 +17,7 @@
       enable = true;
       settings = {
         font_family = "JetBrainsMono Nerd Font";
-        cursor_trail = 3;
-        # Glass terminal over the Umbriel window blur.
-        background_opacity = 0.85;
-        background_blur = 30;
+        cursor_trail = 1;
       };
       # Noctalia writes themes/noctalia.conf at runtime; this include is the
       # declarative half (kitty.conf is a read-only store symlink, so
@@ -33,7 +29,6 @@
 
     programs.yazi = {
       enable = true;
-      enableBashIntegration = true;
       shellWrapperName = "y";
       extraPackages = with pkgs; [
         zip
@@ -230,7 +225,6 @@
 
     programs.zoxide = {
       enable = true;
-      enableBashIntegration = true;
     };
 
     # kitty + zoxide are installed by their programs.*.enable above.
@@ -241,7 +235,7 @@
       playerctl
       pavucontrol
       curl
-
+      llama-cpp
       firefox
       stremio-linux-shell
       proton-vpn
@@ -262,14 +256,18 @@
       })
       grim
       slurp
-
       lutgen
-
       fastfetch
       btop
       eza
       bat
       lazygit
+
+      # Telescope live_grep/find_files + general CLI.
+      ripgrep
+      fd
+      fzf
+      unzip
 
       # Required by the Noctalia LibreOffice template's apply.sh (assembles
       # the .oxt with `zip -qr` on theme change; yazi's zip is wrapped).

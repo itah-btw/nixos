@@ -3,10 +3,11 @@
 {
   flake.nixosModules.performance = {
     services.fstrim.enable = true;
-    services.thermald.enable = true;
-    # earlyoom kills the biggest process before the kernel OOM-er does;
-    # matters here because the only real backstop is zram (no big disk swap).
-    services.earlyoom.enable = true;
+    # Single OOM backstop: systemd-oomd (default on NixOS). earlyoom removed:
+    # running both races on the same pressure signal.
+    systemd.oomd.enable = true;
+    # thermald removed: power-profiles-daemon (desktop/session.nix) owns
+    # Intel P-state/platform_profile; running both thrashes frequency.
 
     # Modest zram (was 50% — too easy to exhaust into OOM) plus a small
     # 4G disk swapfile as a cushion for genuine memory spikes.

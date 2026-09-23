@@ -10,8 +10,10 @@
     };
 
   flake.homeManagerModules.shell = { ... }: {
+    # Shell enables live here (aliases.nix only sets aliases + push).
+    programs.bash.enable = true;
+    programs.fish.enable = true;
     programs.fish = {
-      enable = true;
       interactiveShellInit = ''
         set -g fish_greeting
       '';
@@ -27,7 +29,21 @@
       enableBashIntegration = true;
     };
 
-    programs.zoxide.enableFishIntegration = true;
-    programs.yazi.enableFishIntegration = true;
+    programs.direnv = {
+      enable = true;
+      enableBashIntegration = true;
+      enableFishIntegration = true;
+      nix-direnv.enable = true;
+    };
+
+    # Shell integrations (programs themselves are enabled in apps.nix).
+    programs.zoxide = {
+      enableFishIntegration = true;
+      enableBashIntegration = true;
+    };
+    programs.yazi = {
+      enableFishIntegration = true;
+      enableBashIntegration = true;
+    };
   };
 }

@@ -36,6 +36,11 @@
     services.fwupd.enable = true;
     security.polkit.enable = true;
     services.accounts-daemon.enable = true;
+    # PipeWire is enabled via Noctalia recommendedServices, but realtime
+    # scheduling needs rtkit explicitly (verified: rtkit was off).
+    security.rtkit.enable = true;
+    # HP laptop: CUPS printing (avahi mDNS lives in core/networking.nix).
+    services.printing.enable = true;
 
     # umbriel module configures xdg-desktop-portal-umbriel as the backend;
     # gtk portal stays as fallback for file choosers.

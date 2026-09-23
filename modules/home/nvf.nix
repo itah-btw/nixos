@@ -104,7 +104,10 @@
             context.enable = true;
           };
 
-          autocomplete.nvim-cmp.enable = true;
+          autocomplete.blink-cmp.enable = true;
+          # blink-cmp provides its own signature help (nvf's lsp-signature
+          # asserts against blink.cmp, so it stays off).
+          autocomplete.blink-cmp.setupOpts.signature.enabled = true;
           autopairs.nvim-autopairs.enable = true;
           comments.comment-nvim.enable = true;
 
@@ -118,7 +121,7 @@
             formatOnSave = true;
             lightbulb.enable = true;
             trouble.enable = true;
-            lspSignature.enable = true;
+            lspSignature.enable = false;
           };
 
           formatter.conform-nvim.enable = true;

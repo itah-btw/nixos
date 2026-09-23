@@ -1,7 +1,7 @@
 # User account.
 { ... }:
 {
-  flake.nixosModules.user = { pkgs, ... }: {
+  flake.nixosModules.user = { ... }: {
     users.users."itah" = {
       isNormalUser = true;
       description = "itah";
@@ -9,7 +9,6 @@
         "networkmanager"
         "wheel"
       ];
-      packages = with pkgs; [ ];
     };
     # Explicit: wheel keeps prompting for a password on sudo (rb/rollback).
     security.sudo.wheelNeedsPassword = true;

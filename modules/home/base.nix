@@ -14,6 +14,8 @@
       _JAVA_AWT_WM_NONREPARENTING = "1";
       # Default editor for yazi's $EDITOR opener, git, and other tools.
       EDITOR = "nvim";
+      # nh helper finds this flake without --flake every time.
+      NH_FLAKE = "/etc/nixos";
     };
 
     # Default wallpaper browse folder when `wallpaper.directory = ""`.
