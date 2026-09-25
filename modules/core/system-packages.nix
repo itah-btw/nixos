@@ -7,6 +7,7 @@
       python3
       git
       opencode
+      kdePackages.kdeconnect-kde
     ];
   };
 }

@@ -17,9 +17,22 @@
 
         # LocalSend: TCP + UDP 53317, scoped to the wifi NIC only
         # (globally-open 53317 leaks discovery on untrusted networks).
-        networking.firewall.interfaces."wlp0s20f3" = {
+        # KDE Connect discovery + transfer: TCP + UDP 1714-1764.
+        networking.firewall.interfaces."wlan0" = {
           allowedTCPPorts = [ 53317 ];
           allowedUDPPorts = [ 53317 ];
+          allowedTCPPortRanges = [
+            {
+              from = 1714;
+              to = 1764;
+            }
+          ];
+          allowedUDPPortRanges = [
+            {
+              from = 1714;
+              to = 1764;
+            }
+          ];
         };
       }
 

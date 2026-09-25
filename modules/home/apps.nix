@@ -209,6 +209,22 @@
         "inode/directory" = "yazi.desktop";
       };
     };
+    # Override the raw yazi package .desktop (Terminal=true, Exec=yazi %f —
+    # spawned with no TTY it dies with ENOTTY and nothing opens). Ours opens
+    # in kitty so xdg-open actually lands in a terminal file browser.
+    xdg.desktopEntries."yazi" = {
+      name = "Yazi File Manager";
+      comment = "Open directory in the yazi terminal file manager";
+      exec = "kitty --class yazi -e yazi %f";
+      terminal = false;
+      mimeType = [ "inode/directory" ];
+      categories = [
+        "System"
+        "FileManager"
+        "FileTools"
+        "ConsoleOnly"
+      ];
+    };
     xdg.configFile."xdg-terminals.list".text = ''
       kitty.desktop
     '';
@@ -238,6 +254,7 @@
       llama-cpp
       firefox
       stremio-linux-shell
+      proton-authenticator
       proton-vpn
       libreoffice
       zathura
@@ -272,6 +289,18 @@
       # Required by the Noctalia LibreOffice template's apply.sh (assembles
       # the .oxt with `zip -qr` on theme change; yazi's zip is wrapped).
       zip
+
+      # gdbus (glib) — the Noctalia Phone Connect plugin talks to KDE Connect
+      # via `gdbus`; without it the device list stays empty ("no devices").
+      glib
+      # File picker for the plugin's share/avatar ops (kdialog/zenity).
+      zenity
+
+      # Android debugging (adb/fastboot; udev uaccess rules are automatic
+      # via systemd, no extra NixOS option needed on unstable).
+      android-tools
+      # Android OTA extraction (payload bins from update images/factory ROMs).
+      payload-dumper-go
     ];
   };
 }

@@ -21,7 +21,11 @@
           include.optional.files = [ "noctalia.toml" ];
           general = {
             # Primary way Noctalia starts (NOT systemd; see noctalia.nix).
-            autostart = [ "noctalia" ];
+            # kdeconnect-indicator starts the KDE Connect daemon (system pkg).
+            autostart = [
+              "noctalia"
+              "kdeconnect-indicator"
+            ];
             xwayland = true;
             show_cheatsheet = false;
           };
@@ -32,6 +36,9 @@
               center_underfull_strip = false;
               default_extent_fraction = 0.5;
             };
+          };
+          appearance = {
+            corner_radius = 0;
           };
           input.keyboard = {
             # Mirrors services.xserver.xkb.layout (core/locale.nix).
