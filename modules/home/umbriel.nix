@@ -12,6 +12,30 @@
           trap 'rm -f "$tmp"' EXIT
           grim -g "$(slurp)" "$tmp" && tesseract "$tmp" - -l eng+ind 2>/dev/null | wl-copy
         '')
+        # Noctalia's brightness step is a fixed 5% (kDefaultBrightnessStep),
+        # which wrecks both ends of the range: down goes 5% -> 0% in one press,
+        # and with the 1% floor from noctalia.nix, up from 1% lands on 6% and
+        # the next press drops straight back to 1%. Snap onto a
+        # 10/5/4/3/2/1 ladder instead, read from the panel. Every press is an
+        # absolute brightness-set, which still fires the OSD.
+        (pkgs.writeShellScriptBin "brightness-step" ''
+          pct=""
+          for dev in /sys/class/backlight/*; do
+            if [ -r "$dev/brightness" ] && [ -r "$dev/max_brightness" ]; then
+              pct=$(( 100 * $(cat "$dev/brightness") / $(cat "$dev/max_brightness") ))
+              break
+            fi
+          done
+          if [ "$1" = "up" ]; then
+            [ -n "$pct" ] || exec noctalia msg brightness-up
+            if [ "$pct" -lt 5 ]; then target=$(( pct + 1 )); else target=$(( pct + 5 )); fi
+          else
+            [ -n "$pct" ] || exec noctalia msg brightness-down
+            if [ "$pct" -le 5 ]; then target=$(( pct - 1 )); else target=5; fi
+            [ "$target" -lt 1 ] && target=1
+          fi
+          noctalia msg brightness-set "$target"
+        '')
       ];
       programs.umbriel = {
         enable = true;
@@ -38,8 +62,62 @@
             };
           };
           appearance = {
-            corner_radius = 0;
+            # Let translucent fullscreen windows (e.g. kitty) keep their
+            # opacity and blur the desktop instead of going opaque.
+            opaque_fullscreen = false;
+            # Master blur switch; surfaces opt in via window/layer rules.
+            blur = {
+              enabled = true;
+              # One shared wallpaper blur per output (cheap). Layer rules
+              # override this with blur_optimized = false so panels blur the
+              # windows behind them, not the wallpaper.
+              optimized = true;
+              passes = 3;
+              radius = 12;
+              noise = 0.02;
+              brightness = 0.95;
+              contrast = 0.95;
+              saturation = 1.1;
+            };
           };
+          # Later rules win per field. Blur only shows where a surface is
+          # transparent. Kitty's own background_opacity stays 1.0
+          # (home/apps.nix), so these are the effective alphas: focused 1.0,
+          # unfocused 0.8, focused kitty 0.9.
+          window_rule = [
+            {
+              blur = true;
+            }
+            {
+              match.is_focused = false;
+              opacity = 0.8;
+            }
+            {
+              # Noctalia Settings draws its own translucent background, so the
+              # 0.8 dim let too much of the bright wallpaper through. Keep it
+              # at full alpha whether or not it has focus.
+              match.app_id = "^dev[.]noctalia[.]Noctalia$";
+              opacity = 1.0;
+            }
+            {
+              match.app_id = "^kitty$";
+              match.is_focused = true;
+              opacity = 0.9;
+            }
+          ];
+          # Noctalia layer surfaces (bar, panels, dock, toasts, OSD, switcher)
+          # stay translucent so the compositor can blur what is behind them.
+          # No `noctalia-wallpaper`/`-backdrop`: blurring those would blur
+          # the wallpaper itself.
+          layer_rule = [
+            {
+              match.namespace = "^noctalia-(bar-.+|panel|attached-panel|notification|osd|dock|window-switcher)$";
+              blur = true;
+              blur_popups = true;
+              blur_ignore_alpha = 0.5;
+              blur_optimized = false;
+            }
+          ];
           input.keyboard = {
             # Mirrors services.xserver.xkb.layout (core/locale.nix).
             layout = "us";
@@ -145,6 +223,15 @@
             "Mod+Page_Up" = "workspace-previous";
             "Mod+Page_Down" = "workspace-next";
 
+            # --- Power ---
+            # No hardware key for this on this laptop: KEY_DISPLAY_OFF (253)
+            # and KEY_SCREENSAVER (160) are not advertised by any of its input
+            # devices, so those keysyms would never fire here. Any later
+            # keypress or pointer motion wakes the panel again
+            # (Server::wakeDpmsOutputs), and the wake runs *before* the
+            # action, so this key cannot double as a toggle.
+            "Mod+Shift+D" = "dpms-off";
+
             # --- Outputs (multi-monitor) ---
             "Mod+Ctrl+Left" = "output-focus-left";
             "Mod+Ctrl+Down" = "output-focus-down";
@@ -209,11 +296,11 @@
             "XF86AudioNext" = "spawn:noctalia msg media next";
             "XF86AudioPrev" = "spawn:noctalia msg media previous";
             "XF86MonBrightnessUp" = {
-              action = "spawn:noctalia msg brightness-up";
+              action = "spawn:brightness-step up";
               allow_when_locked = true;
             };
             "XF86MonBrightnessDown" = {
-              action = "spawn:noctalia msg brightness-down";
+              action = "spawn:brightness-step down";
               allow_when_locked = true;
             };
           };

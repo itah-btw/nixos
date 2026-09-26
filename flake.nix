@@ -34,6 +34,12 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
+    # plasma-manager: declarative Plasma settings, tv host only (modules/home/tv.nix).
+    plasma-manager = {
+      url = "github:nix-community/plasma-manager";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+
     # treefmt wrapper: makes `nix fmt` discover files itself (plain
     # nixfmt can't — `nix fmt` passes no paths). Follows nixpkgs so the
     # formatter builds against the same package set.

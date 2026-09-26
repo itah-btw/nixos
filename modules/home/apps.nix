@@ -18,6 +18,11 @@
       settings = {
         font_family = "JetBrainsMono Nerd Font";
         cursor_trail = 1;
+        # Opacity lives in Umbriel's window rules (umbriel.nix): focused 0.9,
+        # unfocused 0.8, and the blur comes from the compositor too. Kitty's
+        # own background stays opaque so those rule values are the effective
+        # alpha instead of being multiplied twice.
+        background_opacity = 1.0;
       };
       # Noctalia writes themes/noctalia.conf at runtime; this include is the
       # declarative half (kitty.conf is a read-only store symlink, so
