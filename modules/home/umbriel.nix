@@ -129,18 +129,25 @@ _: {
             theme = config.home.pointerCursor.name;
             size = config.home.pointerCursor.size;
           };
-          # Only chords that differ from Umbriel's defaults are listed. The
-          # defaults (kept, not restated here) are: focus arrows + HJKL,
-          # Mod+Wheel, Mod+F1 next; Mod+Shift+arrows + HJKL move and consume;
-          # Mod+Comma / Mod+Period consume; Mod+1..9 and Mod+Shift+1..9
-          # workspaces; Mod+Q close and Mod+O overview, both with repeat=false
-          # so holding them cannot cascade; Mod+R / Mod+Shift+R / Mod+M /
-          # Mod+P / Mod+T state toggles. Writing one of those as a plain string
-          # would reset repeat to true, which is why none appear as strings.
           keybinds = {
+            # Full layout, deliberately explicit: most of these chords also
+            # match Umbriel's built-in defaults, and restating them means an
+            # upstream default change cannot silently move a key. A bind here
+            # replaces the default for the same chord, so this doubles as the
+            # override list. Two forms: a plain string takes every flag at its
+            # default, a table sets them (repeat / allow_when_locked /
+            # allow_when_inhibited).
+
             # --- Apps & session ---
             "Mod+Return" = "spawn:kitty";
             "Mod" = "spawn:noctalia msg panel-toggle launcher";
+            # Table form, not a string: Umbriel ships this chord with
+            # repeat=false, and the string form resets repeat to true, so
+            # holding Mod+Q would close every window focus lands on.
+            "Mod+Q" = {
+              action = "window-close";
+              repeat = false;
+            };
             "Mod+Shift+Q" = "session-quit";
             "Mod+Escape" = "spawn:noctalia msg panel-toggle session";
             "Mod+Shift+Escape" = {
@@ -157,10 +164,37 @@ _: {
             "Mod+I" = "spawn:protonvpn-app";
             "Mod+Shift+E" = "spawn:noctalia msg panel-toggle launcher /emo";
 
-            # --- Focus last / move / consume / sizing (scrolling-first) ---
+            # --- Focus ---
+            # HJKL restates the arrow binds on purpose: the left hand lives there.
+            # Both sets also match Umbriel defaults; listed in full so the whole
+            # layout reads in one place and an upstream default change cannot
+            # silently move a key.
+            "Mod+Left" = "window-focus-left";
+            "Mod+Down" = "window-focus-down";
+            "Mod+Up" = "window-focus-up";
+            "Mod+Right" = "window-focus-right";
+            "Mod+H" = "window-focus-left";
+            "Mod+J" = "window-focus-down";
+            "Mod+K" = "window-focus-up";
+            "Mod+L" = "window-focus-right";
+            "Mod+F1" = "window-focus-next";
             "Mod+Grave" = "window-focus-last";
+            "Mod+WheelUp" = "window-focus-left";
+            "Mod+WheelDown" = "window-focus-right";
+
+            # --- Move / consume / extents ---
+            "Mod+Shift+Left" = "column-move-left";
+            "Mod+Shift+Down" = "window-move-down";
+            "Mod+Shift+Up" = "window-move-up";
+            "Mod+Shift+Right" = "column-move-right";
+            "Mod+Shift+H" = "column-move-left";
+            "Mod+Shift+J" = "window-move-down";
+            "Mod+Shift+K" = "window-move-up";
+            "Mod+Shift+L" = "column-move-right";
             "Mod+Bracketleft" = "window-consume-or-expel-left";
             "Mod+Bracketright" = "window-consume-or-expel-right";
+            "Mod+R" = "window-cycle-primary-extent";
+            "Mod+Shift+R" = "window-cycle-primary-extent-back";
             "Mod+Alt+R" = "window-cycle-secondary-extent";
             "Mod+Alt+Shift+R" = "window-cycle-secondary-extent-back";
             "Mod+Minus" = "window-modify-primary-extent:-0.1";
@@ -170,11 +204,37 @@ _: {
             "Mod+Ctrl+T" = "workspace-set-layout:toggle";
 
             # --- Window state ---
+            "Mod+T" = "window-toggle-floating";
             "Mod+Shift+T" = "window-focus-switch-floating";
+            "Mod+P" = "window-toggle-pinned";
+            "Mod+M" = "window-toggle-maximize-to-edges";
             "Mod+F" = "window-toggle-maximize";
             "Mod+Shift+F" = "window-toggle-fullscreen";
 
-            # --- Workspaces: prev/next only (1-9 are defaults) ---
+            # --- Workspaces ---
+            # Mod+O is a table so the overview cannot thrash open/closed while held.
+            "Mod+O" = {
+              action = "overview-toggle";
+              repeat = false;
+            };
+            "Mod+1" = "workspace-switch:1";
+            "Mod+2" = "workspace-switch:2";
+            "Mod+3" = "workspace-switch:3";
+            "Mod+4" = "workspace-switch:4";
+            "Mod+5" = "workspace-switch:5";
+            "Mod+6" = "workspace-switch:6";
+            "Mod+7" = "workspace-switch:7";
+            "Mod+8" = "workspace-switch:8";
+            "Mod+9" = "workspace-switch:9";
+            "Mod+Shift+1" = "window-move-to-workspace:1";
+            "Mod+Shift+2" = "window-move-to-workspace:2";
+            "Mod+Shift+3" = "window-move-to-workspace:3";
+            "Mod+Shift+4" = "window-move-to-workspace:4";
+            "Mod+Shift+5" = "window-move-to-workspace:5";
+            "Mod+Shift+6" = "window-move-to-workspace:6";
+            "Mod+Shift+7" = "window-move-to-workspace:7";
+            "Mod+Shift+8" = "window-move-to-workspace:8";
+            "Mod+Shift+9" = "window-move-to-workspace:9";
             "Mod+Page_Up" = "workspace-previous";
             "Mod+Page_Down" = "workspace-next";
 
@@ -188,6 +248,9 @@ _: {
             "Mod+Shift+D" = "dpms-off";
 
             # --- Outputs (multi-monitor) ---
+            # Ctrl+arrows focus an output, Ctrl+Shift+arrows move the window there,
+            # Alt+arrows swap this workspace with the one on that output. HJKL is
+            # again a deliberate duplicate of the arrows.
             "Mod+Ctrl+Left" = "output-focus-left";
             "Mod+Ctrl+Down" = "output-focus-down";
             "Mod+Ctrl+Up" = "output-focus-up";
@@ -213,14 +276,14 @@ _: {
             "Mod+Alt+H" = "workspace-swap-active-output-left";
             "Mod+Alt+J" = "workspace-swap-active-output-down";
             "Mod+Alt+K" = "workspace-swap-active-output-up";
-
-            # --- Scratchpad ---
             "Mod+Space" = "scratchpad-toggle";
             "Mod+Shift+Space" = "window-move-to-scratchpad";
             "Mod+Ctrl+Space" = "window-restore-from-scratchpad";
             "Mod+Tab" = "scratchpad-focus-next";
 
-            # --- Noctalia shell (IPC; screenshots on Print) ---
+            # --- Noctalia shell (IPC) ---
+            # Routed through `noctalia msg` rather than bound to Noctalia surfaces
+            # directly, so panels and the OSD animate. Screenshots on Print.
             "Mod+S" = "spawn:noctalia msg panel-toggle control-center";
             "Mod+Comma" = "spawn:noctalia msg settings-toggle";
             "Mod+V" = "spawn:noctalia msg panel-toggle clipboard";
@@ -242,7 +305,10 @@ _: {
             "Mod+Ctrl+A" = "spawn:noctalia msg annotate";
             "Mod+Shift+O" = "spawn:ocr-copy";
 
-            # --- Media / volume / brightness (via Noctalia so OSD shows) ---
+            # --- Media / volume / brightness ---
+            # Volume and media go via Noctalia so the OSD shows. Brightness calls
+            # the local ladder script, and both are allow_when_locked so they work
+            # on the lock screen.
             "XF86AudioRaiseVolume" = "spawn:noctalia msg volume-up";
             "XF86AudioLowerVolume" = "spawn:noctalia msg volume-down";
             "XF86AudioMute" = "spawn:noctalia msg volume-mute";
