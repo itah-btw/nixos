@@ -1,12 +1,7 @@
-# Home Manager base: identity, environment, well-known directories.
-{ ... }:
-{
+# Home Manager session environment and well-known directories. Identity
+# (username/home/stateVersion) lives in ./identity.nix.
+_: {
   flake.homeManagerModules.base = { config, ... }: {
-    home.username = "itah";
-    home.homeDirectory = "/home/itah";
-    home.stateVersion = "26.11";
-    programs.home-manager.enable = true;
-
     home.sessionVariables = {
       NIXOS_OZONE_WL = "1";
       MOZ_ENABLE_WAYLAND = "1";

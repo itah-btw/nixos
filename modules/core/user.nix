@@ -1,7 +1,6 @@
 # User account.
-{ ... }:
-{
-  flake.nixosModules.user = { ... }: {
+_: {
+  flake.nixosModules.user = _: {
     users.users."itah" = {
       isNormalUser = true;
       description = "itah";

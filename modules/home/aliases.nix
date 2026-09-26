@@ -1,5 +1,5 @@
 # Single source of truth for bash + fish aliases and the `push` / `deploy-tv` helpers.
-{ ... }:
+_:
 let
   aliases = {
     ls = "eza --icons";
@@ -18,8 +18,8 @@ let
     nclean = "nh clean all --keep 5";
     gc14 = "sudo nix-collect-garbage --delete-older-than 14d";
     optimize = "sudo nix-store --optimise";
-    gen = "sudo nix-env --list-generations --profile /nix/var/nix/profiles/system";
-    rollback = "sudo nix-env --rollback --profile /nix/var/nix/profiles/system";
+    gen = "sudo nixos-rebuild list-generations";
+    rollback = "sudo nixos-rebuild rollback";
     doctor = "nix doctor";
   };
   pushBash = ''
@@ -31,28 +31,25 @@ let
         git push )
     }
   '';
-  # Remote deploy for the tv box (password-only ssh, see tv skill): build the
-  # closure here, copy it over LAN, then activate remotely. Only the last
-  # step is disruptive, so confirmation happens after the copy.
+  # Remote deploy for the tv box: build the closure here, copy it over LAN,
+  # then activate remotely. Only the last step is disruptive, so confirmation
+  # happens after the copy. Plain ssh -- the box authorises this machine's key
+  # (modules/tv/openssh.nix), and sudo on the box still wants its password.
   deployTvBash = ''
     deploy-tv() {
-      local wrap toplevel st confirm tv_env
-      wrap=$(mktemp -d) || return 1
-      printf '#!/bin/sh\nexec sshpass -e ssh "$@"\n' > "$wrap/ssh" && chmod +x "$wrap/ssh" || { rm -rf "$wrap"; return 1; }
-      tv_env="PATH=$wrap:/nix/store/6w31qyqsggbzdgldvmdsbhhdp1p2ykk1-sshpass-1.10/bin:/run/current-system/sw/bin:/usr/bin:/bin SSHPASS=1909 TERM=xterm"
-      toplevel=$(env $tv_env nix build --print-out-paths --no-link /etc/nixos#nixosConfigurations.tv.config.system.build.toplevel) || { rm -rf "$wrap"; return 1; }
-      env $tv_env NIX_SSHOPTS="-o StrictHostKeyChecking=accept-new" nix copy --to "ssh://itah@192.168.0.62" "$toplevel" || { rm -rf "$wrap"; return 1; }
+      local toplevel st confirm
+      toplevel=$(nix build --print-out-paths --no-link /etc/nixos#nixosConfigurations.tv.config.system.build.toplevel) || return 1
+      NIX_SSHOPTS="-o StrictHostKeyChecking=accept-new" nix copy --to "ssh://itah@192.168.0.62" "$toplevel" || return 1
       read -p "Copied $toplevel. Switch the TV now (interrupts playback)? [y/N] " confirm
-      [ "$confirm" = "y" ] || [ "$confirm" = "Y" ] || { echo "not switching; activate later by re-running deploy-tv"; rm -rf "$wrap"; return 0; }
-      env $tv_env sshpass -e ssh -o StrictHostKeyChecking=accept-new "itah@192.168.0.62" "echo 1909 | sudo -S nix-env -p /nix/var/nix/profiles/system --set $toplevel && echo 1909 | sudo -S $toplevel/bin/switch-to-configuration switch"
+      [ "$confirm" = "y" ] || [ "$confirm" = "Y" ] || { echo "not switching; activate later by re-running deploy-tv"; return 0; }
+      ssh -o StrictHostKeyChecking=accept-new "itah@192.168.0.62" "echo 1909 | sudo -S nix-env -p /nix/var/nix/profiles/system --set $toplevel && echo 1909 | sudo -S $toplevel/bin/switch-to-configuration switch"
       st=$?
-      rm -rf "$wrap"
       return $st
     }
   '';
 in
 {
-  flake.homeManagerModules.aliases = { ... }: {
+  flake.homeManagerModules.aliases = _: {
     programs.bash = {
       shellAliases = aliases;
       initExtra = pushBash + deployTvBash;
@@ -63,21 +60,15 @@ in
     programs.fish.functions."deploy-tv" = {
       description = "Build the tv closure here, copy it to the box, ask, then switch";
       body = ''
-        set -l wrap (mktemp -d); or return 1
-        printf '#!/bin/sh\nexec sshpass -e ssh "$@"\n' > $wrap/ssh; and chmod +x $wrap/ssh; or begin rm -rf $wrap; return 1; end
-        set -l tv_env "PATH=$wrap:/nix/store/6w31qyqsggbzdgldvmdsbhhdp1p2ykk1-sshpass-1.10/bin:/run/current-system/sw/bin:/usr/bin:/bin" "SSHPASS=1909" "TERM=xterm"
-        set -l toplevel (env $tv_env nix build --print-out-paths --no-link /etc/nixos#nixosConfigurations.tv.config.system.build.toplevel); or begin rm -rf $wrap; return 1; end
-        env $tv_env "NIX_SSHOPTS=-o StrictHostKeyChecking=accept-new" nix copy --to "ssh://itah@192.168.0.62" $toplevel; or begin rm -rf $wrap; return 1; end
+        set -l toplevel (nix build --print-out-paths --no-link /etc/nixos#nixosConfigurations.tv.config.system.build.toplevel); or return 1
+        env "NIX_SSHOPTS=-o StrictHostKeyChecking=accept-new" nix copy --to "ssh://itah@192.168.0.62" $toplevel; or return 1
         read -P "Copied $toplevel. Switch the TV now (interrupts playback)? [y/N] " confirm
         if test "$confirm" != y; and test "$confirm" != Y
           echo "not switching; activate later by re-running deploy-tv"
-          rm -rf $wrap
           return 0
         end
-        env $tv_env sshpass -e ssh -o StrictHostKeyChecking=accept-new "itah@192.168.0.62" "echo 1909 | sudo -S nix-env -p /nix/var/nix/profiles/system --set $toplevel && echo 1909 | sudo -S $toplevel/bin/switch-to-configuration switch"
-        set -l st $status
-        rm -rf $wrap
-        return $st
+        ssh -o StrictHostKeyChecking=accept-new "itah@192.168.0.62" "echo 1909 | sudo -S nix-env -p /nix/var/nix/profiles/system --set $toplevel && echo 1909 | sudo -S $toplevel/bin/switch-to-configuration switch"
+        return $status
       '';
     };
     programs.fish.functions.push = {

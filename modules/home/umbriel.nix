@@ -1,8 +1,11 @@
 # Umbriel compositor user config. System side lives in desktop/session.nix.
-{ ... }:
-{
+_: {
   flake.homeManagerModules.umbriel =
-    { pkgs, ... }:
+    {
+      config,
+      pkgs,
+      ...
+    }:
     {
       # OCR helper: region-select, OCR (eng+ind), copy to clipboard.
       # Deps (grim/slurp/tesseract/wl-clipboard) live in home/apps.nix.
@@ -43,6 +46,8 @@
           # Noctalia->Umbriel template supplies [colors] via this include;
           # apply.sh cannot edit the read-only store symlink itself.
           include.optional.files = [ "noctalia.toml" ];
+          # Unlisted keys keep Umbriel's defaults (xwayland, scrolling layout
+          # with gap 8, 3-pass blur at its own radius/contrast).
           general = {
             # Primary way Noctalia starts (NOT systemd; see noctalia.nix).
             # kdeconnect-indicator starts the KDE Connect daemon (system pkg).
@@ -50,34 +55,26 @@
               "noctalia"
               "kdeconnect-indicator"
             ];
-            xwayland = true;
             show_cheatsheet = false;
           };
-          layout = {
-            mode = "scrolling";
-            gap = 8;
-            scrolling = {
-              center_underfull_strip = false;
-              default_extent_fraction = 0.5;
-            };
+          layout.scrolling = {
+            # Default is true; false keeps a half-filled strip left-aligned.
+            center_underfull_strip = false;
+            default_extent_fraction = 0.5;
           };
           appearance = {
             # Let translucent fullscreen windows (e.g. kitty) keep their
             # opacity and blur the desktop instead of going opaque.
             opaque_fullscreen = false;
-            # Master blur switch; surfaces opt in via window/layer rules.
+            # Blur parameters. `enabled` is Umbriel's default and is what the
+            # window/layer rules below switch on per surface; `optimized`
+            # likewise defaults to true (one shared wallpaper blur per output,
+            # cheap) and is overridden to false by the layer rule so panels
+            # blur the windows behind them rather than the wallpaper.
             blur = {
-              enabled = true;
-              # One shared wallpaper blur per output (cheap). Layer rules
-              # override this with blur_optimized = false so panels blur the
-              # windows behind them, not the wallpaper.
-              optimized = true;
-              passes = 3;
               radius = 12;
-              noise = 0.02;
               brightness = 0.95;
               contrast = 0.95;
-              saturation = 1.1;
             };
           };
           # Later rules win per field. Blur only shows where a surface is
@@ -128,14 +125,22 @@
             natural_scroll = true;
           };
           input.cursor = {
-            theme = "Bibata-Modern-Ice";
-            size = 24;
+            # Single source of truth: home/cursor.nix.
+            theme = config.home.pointerCursor.name;
+            size = config.home.pointerCursor.size;
           };
+          # Only chords that differ from Umbriel's defaults are listed. The
+          # defaults (kept, not restated here) are: focus arrows + HJKL,
+          # Mod+Wheel, Mod+F1 next; Mod+Shift+arrows + HJKL move and consume;
+          # Mod+Comma / Mod+Period consume; Mod+1..9 and Mod+Shift+1..9
+          # workspaces; Mod+Q close and Mod+O overview, both with repeat=false
+          # so holding them cannot cascade; Mod+R / Mod+Shift+R / Mod+M /
+          # Mod+P / Mod+T state toggles. Writing one of those as a plain string
+          # would reset repeat to true, which is why none appear as strings.
           keybinds = {
             # --- Apps & session ---
             "Mod+Return" = "spawn:kitty";
             "Mod" = "spawn:noctalia msg panel-toggle launcher";
-            "Mod+Q" = "window-close";
             "Mod+Shift+Q" = "session-quit";
             "Mod+Escape" = "spawn:noctalia msg panel-toggle session";
             "Mod+Shift+Escape" = {
@@ -152,33 +157,10 @@
             "Mod+I" = "spawn:protonvpn-app";
             "Mod+Shift+E" = "spawn:noctalia msg panel-toggle launcher /emo";
 
-            # --- Focus navigation (arrows + HJKL + F1 + wheel) ---
-            "Mod+Left" = "window-focus-left";
-            "Mod+Down" = "window-focus-down";
-            "Mod+Up" = "window-focus-up";
-            "Mod+Right" = "window-focus-right";
-            "Mod+H" = "window-focus-left";
-            "Mod+J" = "window-focus-down";
-            "Mod+K" = "window-focus-up";
-            "Mod+L" = "window-focus-right";
-            "Mod+F1" = "window-focus-next";
+            # --- Focus last / move / consume / sizing (scrolling-first) ---
             "Mod+Grave" = "window-focus-last";
-            "Mod+WheelUp" = "window-focus-left";
-            "Mod+WheelDown" = "window-focus-right";
-
-            # --- Move / consume / sizing (scrolling-first) ---
-            "Mod+Shift+Left" = "column-move-left";
-            "Mod+Shift+Down" = "window-move-down";
-            "Mod+Shift+Up" = "window-move-up";
-            "Mod+Shift+Right" = "column-move-right";
-            "Mod+Shift+H" = "column-move-left";
-            "Mod+Shift+J" = "window-move-down";
-            "Mod+Shift+K" = "window-move-up";
-            "Mod+Shift+L" = "column-move-right";
             "Mod+Bracketleft" = "window-consume-or-expel-left";
             "Mod+Bracketright" = "window-consume-or-expel-right";
-            "Mod+R" = "window-cycle-primary-extent";
-            "Mod+Shift+R" = "window-cycle-primary-extent-back";
             "Mod+Alt+R" = "window-cycle-secondary-extent";
             "Mod+Alt+Shift+R" = "window-cycle-secondary-extent-back";
             "Mod+Minus" = "window-modify-primary-extent:-0.1";
@@ -188,38 +170,11 @@
             "Mod+Ctrl+T" = "workspace-set-layout:toggle";
 
             # --- Window state ---
-            "Mod+T" = "window-toggle-floating";
             "Mod+Shift+T" = "window-focus-switch-floating";
-            "Mod+P" = "window-toggle-pinned";
-            "Mod+M" = "window-toggle-maximize-to-edges";
             "Mod+F" = "window-toggle-maximize";
             "Mod+Shift+F" = "window-toggle-fullscreen";
 
-            # --- Overview ---
-            "Mod+O" = {
-              action = "overview-toggle";
-              repeat = false;
-            };
-
-            # --- Workspaces 1-9 (+ move) & prev/next ---
-            "Mod+1" = "workspace-switch:1";
-            "Mod+2" = "workspace-switch:2";
-            "Mod+3" = "workspace-switch:3";
-            "Mod+4" = "workspace-switch:4";
-            "Mod+5" = "workspace-switch:5";
-            "Mod+6" = "workspace-switch:6";
-            "Mod+7" = "workspace-switch:7";
-            "Mod+8" = "workspace-switch:8";
-            "Mod+9" = "workspace-switch:9";
-            "Mod+Shift+1" = "window-move-to-workspace:1";
-            "Mod+Shift+2" = "window-move-to-workspace:2";
-            "Mod+Shift+3" = "window-move-to-workspace:3";
-            "Mod+Shift+4" = "window-move-to-workspace:4";
-            "Mod+Shift+5" = "window-move-to-workspace:5";
-            "Mod+Shift+6" = "window-move-to-workspace:6";
-            "Mod+Shift+7" = "window-move-to-workspace:7";
-            "Mod+Shift+8" = "window-move-to-workspace:8";
-            "Mod+Shift+9" = "window-move-to-workspace:9";
+            # --- Workspaces: prev/next only (1-9 are defaults) ---
             "Mod+Page_Up" = "workspace-previous";
             "Mod+Page_Down" = "workspace-next";
 

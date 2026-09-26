@@ -1,8 +1,7 @@
 # MariaDB server (loopback-only, manual start) + mycli (TUI).
 # mysql-workbench removed: 8.0.46 fails against boost 1.91 on unstable —
 # re-add once upstream fixes it; use DBeaver / Beekeeper Studio meanwhile.
-{ ... }:
-{
+_: {
   flake.nixosModules.mariadb = { pkgs, lib, ... }: {
     services.mysql = {
       enable = true;

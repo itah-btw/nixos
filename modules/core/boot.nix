@@ -1,6 +1,5 @@
 # Bootloader (systemd-boot EFI) + latest kernel.
-{ ... }:
-{
+_: {
   flake.nixosModules.boot = { pkgs, ... }: {
     boot.kernelPackages = pkgs.linuxPackages_latest;
     boot.loader.systemd-boot.enable = true;

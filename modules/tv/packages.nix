@@ -1,7 +1,5 @@
 # TV system packages + Firefox + offline docs trim.
-# Ported from the box's configuration.nix (package set kept as-is).
-{ ... }:
-{
+_: {
   flake.nixosModules.tv-packages =
     { pkgs, ... }:
     {
@@ -11,14 +9,12 @@
         stremio-linux-shell
         git
         libva-utils
-        # For tv-media-disk-health (tv/media.nix). NixOS dropped
-        # services.smartd, so smartctl is the only way left to read SMART
-        # off this box's disks.
+        # For tv-media-disk-health (tv/media.nix): NixOS dropped services.smartd,
+        # so smartctl is the only way left to read SMART off this box.
         smartmontools
-        # Stremio bundles its own mpv and does read ~/.config/mpv/mpv.conf,
-        # so the tuning in home/tv.nix is already live for it. This puts the
-        # same tuned player on PATH directly, for pointing mpv at a file on
-        # the media HDD.
+        # Stremio bundles its own mpv and does read ~/.config/mpv/mpv.conf, so
+        # the tuning in home/tv.nix is already live for it. This puts the same
+        # tuned player on PATH directly, for pointing mpv at a file on the HDD.
         mpv
         opencode
       ];

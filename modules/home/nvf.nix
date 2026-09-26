@@ -2,8 +2,7 @@
 # Baked base16 colors are a fallback only: Noctalia's "neovim" template
 # rewrites ~/.config/nvim/lua/matugen.lua on every palette change and
 # SIGUSR1s nvim (see luaConfigRC.noctalia-colors).
-{ ... }:
-{
+_: {
   flake.homeManagerModules.nvf =
     {
       pkgs,

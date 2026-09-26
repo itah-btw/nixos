@@ -1,7 +1,6 @@
 # Desktop session: Umbriel compositor + Noctalia shell + Noctalia Greeter.
 # User-side settings live in ../home/{umbriel,noctalia}.nix.
-{ ... }:
-{
+_: {
   flake.nixosModules.session = { config, pkgs, ... }: {
     programs.umbriel.enable = true;
 
@@ -30,24 +29,20 @@
       };
     };
 
-    hardware.bluetooth.enable = true;
-    services.upower.enable = true;
-    services.power-profiles-daemon.enable = true;
+    # Bluetooth, UPower, power-profiles-daemon and NetworkManager come from
+    # programs.noctalia.recommendedServices above; greetd, polkit and
+    # accountsd from the greeter module. Only what they do not cover is here.
     services.fwupd.enable = true;
-    security.polkit.enable = true;
-    services.accounts-daemon.enable = true;
     # PipeWire is enabled via Noctalia recommendedServices, but realtime
     # scheduling needs rtkit explicitly (verified: rtkit was off).
     security.rtkit.enable = true;
     # HP laptop: CUPS printing (avahi mDNS lives in core/networking.nix).
     services.printing.enable = true;
 
-    # umbriel module configures xdg-desktop-portal-umbriel as the backend;
-    # gtk portal stays as fallback for file choosers.
-    xdg.portal = {
-      enable = true;
-      extraPortals = with pkgs; [ xdg-desktop-portal-gtk ];
-    };
+    # Umbriel's module already enables the portal and installs
+    # xdg-desktop-portal-umbriel; the gtk portal is added as the fallback for
+    # file choosers.
+    xdg.portal.extraPortals = [ pkgs.xdg-desktop-portal-gtk ];
 
     # System-installed so the greeter can see them (home-only fonts are not).
     fonts.packages = with pkgs; [
