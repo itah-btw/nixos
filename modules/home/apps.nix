@@ -1,5 +1,5 @@
 # Everyday apps + their dotfiles. Shell aliases live in ./aliases.nix.
-{ ... }: {
+_: {
   flake.homeManagerModules.apps = { pkgs, ... }: {
     programs.git = {
       enable = true;
@@ -34,10 +34,10 @@
 
     programs.yazi = {
       enable = true;
+      enableBashIntegration = true;
+      enableFishIntegration = true;
       shellWrapperName = "y";
       extraPackages = with pkgs; [
-        zip
-        unzip
         p7zip
         zstd
       ];
@@ -244,8 +244,12 @@
       };
     };
 
+    # Shell integrations live with the program they belong to; shell.nix keeps
+    # only the shells themselves.
     programs.zoxide = {
       enable = true;
+      enableBashIntegration = true;
+      enableFishIntegration = true;
     };
 
     # kitty + zoxide are installed by their programs.*.enable above.
@@ -289,10 +293,10 @@
       ripgrep
       fd
       fzf
+      # Archives: zip/unzip are here rather than only in yazi's extraPackages
+      # because the Noctalia LibreOffice template's apply.sh shells out to
+      # `zip -qr` (yazi's copies are wrapped and not on the session PATH).
       unzip
-
-      # Required by the Noctalia LibreOffice template's apply.sh (assembles
-      # the .oxt with `zip -qr` on theme change; yazi's zip is wrapped).
       zip
 
       # gdbus (glib) — the Noctalia Phone Connect plugin talks to KDE Connect

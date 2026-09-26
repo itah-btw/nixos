@@ -1,7 +1,6 @@
 # Tridactyl native messaging host: surface the store manifest at the path
 # Firefox reads (~/.mozilla/native-messaging-hosts).
-{ ... }:
-{
+_: {
   flake.homeManagerModules.tridactyl = { pkgs, ... }: {
     home.packages = [ pkgs.tridactyl-native ];
 

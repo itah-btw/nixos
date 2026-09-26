@@ -1,5 +1,5 @@
 {
-  description = "NixOS (unstable) + Home Manager + Umbriel / Noctalia / Noctalia Greeter (dendritic)";
+  description = "Two NixOS hosts (hp: Umbriel/Noctalia, tv: Plasma Bigscreen) + Home Manager, dendritic";
 
   inputs = {
     nixpkgs.url = "github:nixos/nixpkgs/nixos-unstable";
@@ -9,10 +9,10 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
-    # Noctalia shell. Pinned to the `cachix` branch so you hit the
-    # pre-built binary cache instead of compiling locally.
-    # Do NOT add `inputs.nixpkgs.follows` here (per upstream docs it
-    # changes the derivation hash and breaks the cache).
+    # Noctalia shell, pinned to the `cachix` branch so you hit the pre-built
+    # binary cache instead of compiling locally. Do NOT add
+    # `inputs.nixpkgs.follows` here: per upstream docs it changes the
+    # derivation hash and breaks the cache.
     noctalia = {
       url = "github:noctalia-dev/noctalia/cachix";
     };
@@ -27,37 +27,34 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
-    # nvf: modular Neovim configuration framework (Home Manager module).
-    # Follows nixpkgs so the editor builds against the same package set.
+    # nvf: modular Neovim configuration framework (home/nvf.nix, hp only).
     nvf = {
       url = "github:NotAShelf/nvf";
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
-    # plasma-manager: declarative Plasma settings, tv host only (modules/home/tv.nix).
+    # plasma-manager: declarative Plasma settings (home/tv.nix, tv only).
     plasma-manager = {
       url = "github:nix-community/plasma-manager";
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
-    # treefmt wrapper: makes `nix fmt` discover files itself (plain
-    # nixfmt can't — `nix fmt` passes no paths). Follows nixpkgs so the
-    # formatter builds against the same package set.
+    # treefmt wrapper: makes `nix fmt` discover files itself (plain nixfmt
+    # cannot -- `nix fmt` passes it no paths).
     treefmt-nix = {
       url = "github:numtide/treefmt-nix";
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
-    # Dendritic plumbing: every file under ./modules is a flake-parts
-    # module, auto-imported. Host composition lives in
-    # modules/hosts/hp.nix and references modules BY NAME
-    # (config.flake.nixosModules.<name>), so files can be moved/renamed
-    # freely without fixing import paths.
+    # Dendritic plumbing: every file under ./modules is a flake-parts module,
+    # auto-imported. Composition lives in modules/hosts/*.nix and references
+    # modules BY NAME, so files can be moved or renamed freely.
     flake-parts.url = "github:hercules-ci/flake-parts";
     import-tree.url = "github:denful/import-tree";
   };
 
-  # Noctalia binary cache (avoids local compiles). See:
+  # Noctalia binary cache, so a non-flake build still avoids local compiles.
+  # Mirrored in modules/core/nix.nix. See:
   # https://docs.noctalia.dev/noctalia/getting-started/nixos/
   nixConfig = {
     extra-substituters = [ "https://noctalia.cachix.org" ];

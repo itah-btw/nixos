@@ -1,6 +1,5 @@
 # Nix client behavior: flakes, Noctalia cache, auto-GC.
-{ ... }:
-{
+_: {
   flake.nixosModules.nix = {
     nix.settings.experimental-features = [
       "nix-command"

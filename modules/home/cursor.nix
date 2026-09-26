@@ -1,7 +1,6 @@
 # Cursor theme (Bibata Modern Ice), user-session side. System/greeter side
 # lives in desktop/session.nix; compositor side in umbriel.nix.
-{ ... }:
-{
+_: {
   flake.homeManagerModules.cursor =
     { pkgs, ... }:
     {

@@ -66,6 +66,7 @@
             inputs.noctalia.homeModules.default
             inputs.umbriel.homeModules.default
 
+            config.flake.homeManagerModules.identity
             config.flake.homeManagerModules.base
             config.flake.homeManagerModules.umbriel
             config.flake.homeManagerModules.noctalia
