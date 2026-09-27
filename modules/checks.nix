@@ -1,20 +1,31 @@
-# Flake-level validation guards, built by `nix flake check`. Per host: identity,
-# single DM + greetd, no TTS, no X server, firewall + auto-GC on, Noctalia
-# theming/composition, binary cache (with key), MariaDB loopback, starship
-# unmanaged. Plus one flake-wide guard that every module is wired into a host.
-{ config, lib, ... }:
+# Policy guards, run by `nix flake check`. Every rule is a jq predicate over one
+# JSON blob describing the whole flake, so they are a single derivation and one
+# build reports every failure at once. Rules are `all(.[]; ...)` over the
+# per-host facts rather than repeated per host: a rule for a feature only one
+# host has is vacuous on the other.
+{
+  config,
+  lib,
+  ...
+}:
 let
   hosts = config.flake.nixosConfigurations;
-  checkedHosts = builtins.attrNames hosts;
+  constants = config.flake.constants;
+
+  # US separates a rule's name from its condition, RS separates records. Neither
+  # can occur in a rule, and this keeps multi-line jq programs intact.
+  us = builtins.fromJSON "\"\\u001f\"";
+  rs = builtins.fromJSON "\"\\u001e\"";
 
   factsFor =
     name:
     let
       cfg = hosts.${name}.config;
-      hm = cfg.home-manager.users.itah or null;
+      hm = cfg.home-manager.users.${constants.username} or null;
       hmNoctalia = if hm != null then (hm.programs.noctalia or null) else null;
     in
     {
+      inherit name;
       hostName = cfg.networking.hostName or null;
       speechd = cfg.services.speechd.enable or false;
       firewall = cfg.networking.firewall.enable or false;
@@ -40,100 +51,160 @@ let
         if hm != null then (hm.programs.umbriel.settings.general.autostart or null) else null;
     };
 
-  # Runs a jq predicate over a JSON blob and fails the build with a message.
-  mkAssert =
-    pkgs: name: factsFile: cond:
-    pkgs.runCommand name { nativeBuildInputs = [ pkgs.jq ]; } ''
-      jq -e '${cond}' "${factsFile}" > /dev/null \
-        || { echo '${name}: CHECK FAILED' >&2; exit 1; }
-      touch "$out"
-    '';
+  # Sorted and de-duplicated: order-insensitive, and a name in both namespaces
+  # (mariadb, shell, syncthing, tv-kodi) collapses to one.
+  names =
+    xs:
+    builtins.sort builtins.lessThan (
+      lib.foldl' (acc: n: if lib.elem n acc then acc else acc ++ [ n ]) [ ] xs
+    );
 
-  checkFor =
-    pkgs: name:
-    let
-      facts = pkgs.writeText "${name}-facts.json" (builtins.toJSON (factsFor name));
-      mkCheck = checkName: cond: mkAssert pkgs "${name}-${checkName}" facts cond;
-    in
-    {
-      "${name}-host-identity" = mkCheck "host-identity" ''.hostName == "${name}"'';
-      "${name}-no-tts" = mkCheck "no-tts" ".speechd == false";
-      "${name}-firewall" = mkCheck "firewall" ".firewall == true";
-      "${name}-auto-gc" = mkCheck "auto-gc" ".autoGc == true";
-      # Both sessions are Wayland-only; tv additionally asserts this at build
-      # time via nix-store -q on its own closure.
-      "${name}-no-x-server" = mkCheck "no-x-server" ".xserver == false";
-      "${name}-single-dm" = mkCheck "single-dm" "[.displayManagers[]] | map(select(.)) | length == 1";
-      "${name}-greeter-greetd" =
-        mkCheck "greeter-greetd" ''if .displayManagers."noctalia-greeter" then .greetd else true end'';
-      "${name}-noctalia-theming" = mkCheck "noctalia-theming" ''
-        if .hasNoctalia
-        then (((.noctaliaSettings | has("theme") or has("wallpaper") or has("backdrop")) | not)
-          and (.customPalettes == {}))
-        else true end'';
-      "${name}-noctalia-composition" = mkCheck "noctalia-composition" ''
-        ((.umbrielAutostart // []) | index("noctalia")) as $auto
-        | if $auto
-          then (.noctaliaSystemdSystem == false and .noctaliaSystemdHome == false)
-          else true end'';
-      # Substituter alone is not enough: without the key, Nix refuses the cache.
-      "${name}-binary-cache" = mkCheck "binary-cache" ''
-        (.substituters | index("https://noctalia.cachix.org")) != null
-        and ((.trustedKeys | map(startswith("noctalia.cachix.org-1:")) | any)) == true'';
-      "${name}-mariadb-loopback" =
-        mkCheck "mariadb-loopback" ''.mysqlBind == null or .mysqlBind == "127.0.0.1"'';
-      "${name}-starship-unmanaged" =
-        mkCheck "starship-unmanaged" "(.starshipSettings == {}) and (.starshipPresets == [])";
-    };
+  wiring = {
+    defined = names (
+      builtins.attrNames config.flake.nixosModules ++ builtins.attrNames config.flake.homeManagerModules
+    );
+    declared = names (
+      lib.concatMap (h: h.nixos ++ h.home) (builtins.attrValues config.flake.hostModules)
+    );
+  };
 
-  # Every module this flake defines must be composed by name into at least one
-  # host, and every name a host asks for must exist. Catches the failure mode
-  # dendritic imports cannot: a file that evaluates fine and is never used.
-  wiring =
-    let
-      hostDir = ./hosts;
-      hostFiles = lib.filter (n: lib.hasSuffix ".nix" n) (builtins.attrNames (builtins.readDir hostDir));
-      # Whole-line comments are dropped first, so commenting a module out
-      # really orphans it. A reference trailing code on the same line would
-      # still count; the host files do not use that form.
-      hostText = lib.concatStringsSep "\n" (
-        lib.filter (line: !(lib.hasPrefix "#" (lib.trim line))) (
-          lib.concatMap (n: lib.splitString "\n" (builtins.readFile (hostDir + "/${n}"))) hostFiles
-        )
-      );
-      # After splitting on `config.flake.`, every chunk starts with
-      # `nixosModules.<name>` or `homeManagerModules.<name>` followed by the
-      # rest of the line, so drop the namespace and read the name.
-      nameOf =
-        chunk:
-        let
-          rest =
-            if lib.hasPrefix "nixosModules." chunk then
-              lib.removePrefix "nixosModules." chunk
-            else if lib.hasPrefix "homeManagerModules." chunk then
-              lib.removePrefix "homeManagerModules." chunk
-            else
-              null;
-          matched = if rest == null then null else builtins.match "([A-Za-z0-9_-]+).*" rest;
-        in
-        if matched == null then null else lib.head matched;
-      referenced = builtins.filter (n: n != null) (
-        map nameOf (lib.tail (lib.splitString "config.flake." hostText))
-      );
-      defined =
-        builtins.attrNames config.flake.nixosModules ++ builtins.attrNames config.flake.homeManagerModules;
-    in
+  # Guards against a typo, which would otherwise evaluate to "" and silently
+  # blank out a username, a path or a layout.
+  expectedConstants = builtins.sort builtins.lessThan [
+    "locale"
+    "layout"
+    "root"
+    "timeZone"
+    "tvAddress"
+    "username"
+  ];
+
+  rules = [
     {
-      defined = builtins.sort builtins.lessThan defined;
-      referenced = lib.foldl' (acc: n: if lib.elem n acc then acc else acc ++ [ n ]) [ ] referenced;
-    };
+      name = "modules-wired";
+      # Both directions: an unreferenced module is dead, and an unknown name
+      # would fail later and less clearly.
+      cond = "(.wiring.defined - .wiring.declared) == [] and (.wiring.declared - .wiring.defined) == []";
+    }
+    {
+      name = "constants-intact";
+      cond = "(.constants | sort) == ${builtins.toJSON expectedConstants}";
+    }
+    {
+      name = "host-identity";
+      cond = ".hosts | to_entries | all(.[]; .value.hostName == .key)";
+    }
+    {
+      name = "single-dm";
+      cond = ".hosts | all(.[]; [.displayManagers[]] | map(select(.)) | length == 1)";
+    }
+    {
+      name = "greeter-implies-greetd";
+      cond = ''.hosts | all(.[]; if .displayManagers."noctalia-greeter" then .greetd else true end)'';
+    }
+    {
+      name = "no-tts";
+      cond = ".hosts | all(.[]; .speechd == false)";
+    }
+    {
+      name = "no-x-server";
+      cond = ".hosts | all(.[]; .xserver == false)";
+    }
+    {
+      name = "firewall";
+      cond = ".hosts | all(.[]; .firewall == true)";
+    }
+    {
+      name = "auto-gc";
+      cond = ".hosts | all(.[]; .autoGc == true)";
+    }
+    {
+      name = "binary-cache";
+      # Without the key Nix refuses the substituter.
+      cond = ''
+        .hosts | all(.[];
+          (.substituters | index("https://noctalia.cachix.org")) != null
+          and ((.trustedKeys | map(startswith("noctalia.cachix.org-1:")) | any)) == true)
+      '';
+    }
+    {
+      name = "mariadb-loopback";
+      cond = ''.hosts | all(.[]; .mysqlBind == null or .mysqlBind == "127.0.0.1")'';
+    }
+    {
+      name = "noctalia-theming-runtime";
+      # Theming stays Noctalia's.
+      cond = ''
+        .hosts | all(.[];
+          if .hasNoctalia
+          then (((.noctaliaSettings | has("theme") or has("wallpaper") or has("backdrop")) | not)
+            and (.customPalettes == {}))
+          else true end)
+      '';
+    }
+    {
+      name = "noctalia-single-launcher";
+      # Umbriel starts Noctalia, systemd must not.
+      cond = ''
+        .hosts | all(.[];
+          ((.umbrielAutostart // []) | index("noctalia")) as $auto
+          | if $auto
+            then (.noctaliaSystemdSystem == false and .noctaliaSystemdHome == false)
+            else true end)
+      '';
+    }
+    {
+      name = "starship-unmanaged";
+      # starship.toml is Noctalia's; HM would make it a read-only symlink.
+      cond = ".hosts | all(.[]; (.starshipSettings == {}) and (.starshipPresets == []))";
+    }
+  ];
+
+  blob = builtins.toJSON {
+    inherit wiring;
+    constants = builtins.attrNames constants;
+    hosts = lib.listToAttrs (map (n: lib.nameValuePair n (factsFor n)) (builtins.attrNames hosts));
+  };
 in
 {
-  perSystem = { pkgs, ... }: {
-    checks = (lib.foldl' (acc: name: acc // checkFor pkgs name) { } checkedHosts) // {
-      modules-wired = mkAssert pkgs "modules-wired" (pkgs.writeText "wiring.json" (
-        builtins.toJSON wiring
-      )) "(.defined - .referenced) == [] and (.referenced - .defined) == []";
+  perSystem =
+    { pkgs, ... }:
+    {
+      checks = {
+        # Per-rule verdict, and all failures reported together.
+        policy =
+          pkgs.runCommand "flake-policy"
+            {
+              nativeBuildInputs = [ pkgs.jq ];
+              passAsFile = [
+                "blob"
+                "rules"
+              ];
+              inherit blob;
+              USCHAR = us;
+              rules = builtins.concatStringsSep rs (map (r: "${r.name}${us}${r.cond}") rules) + rs;
+            }
+            ''
+              status=0
+              while IFS= read -r -d "$(printf '\036')" record; do
+                [ -n "$record" ] || continue
+                name=''${record%%"$USCHAR"*}
+                cond=''${record#*"$USCHAR"}
+                if jq -e "$cond" "$blobPath" > /dev/null 2>&1; then
+                  echo "ok   $name"
+                else
+                  echo "FAIL $name"
+                  jq "$cond" "$blobPath" 2>&1 | sed 's/^/       /' | head -10
+                  status=1
+                fi
+              done < "$rulesPath"
+              if [ "$status" -ne 0 ]; then
+                echo >&2
+                echo "flake-policy: FAILED" >&2
+                exit 1
+              fi
+              touch "$out"
+            '';
+      };
     };
-  };
 }
