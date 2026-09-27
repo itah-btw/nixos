@@ -10,8 +10,11 @@
       enable = true;
       openFirewall = true;
       settings = {
-        # Until the key below is confirmed after a real reboot. Then drop it.
-        PasswordAuthentication = true;
+        # Key-only. The key is installed into
+        # users.users.itah.openssh.authorizedKeys below, so the next activation
+        # of this config is what makes it work -- verified from hp with
+        # `ssh tv true` after deploying.
+        PasswordAuthentication = false;
         PermitRootLogin = "no";
       };
     };

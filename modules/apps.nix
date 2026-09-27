@@ -117,7 +117,18 @@
             }
           ];
         };
+        # yazi matches only the FIRST rule whose mime matches
+        # (yazi-config/src/open/open_rules.rs:26), so order is load-bearing:
+        # text/html would otherwise be claimed by the text/* rule below and
+        # never reach Firefox.
         open.prepend_rules = [
+          {
+            mime = "{text/html,application/xhtml+xml}";
+            use = [
+              "firefox"
+              "open"
+            ];
+          }
           {
             mime = "text/*";
             use = [
@@ -164,13 +175,6 @@
             mime = "{audio,video}/*";
             use = [
               "mpv"
-              "open"
-            ];
-          }
-          {
-            mime = "{text/html,application/xhtml+xml}";
-            use = [
-              "firefox"
               "open"
             ];
           }

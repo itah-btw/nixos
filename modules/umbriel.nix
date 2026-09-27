@@ -13,13 +13,27 @@
         (pkgs.writeShellScriptBin "ocr-copy" ''
           tmp=$(mktemp --suffix .png)
           trap 'rm -f "$tmp"' EXIT
-          grim -g "$(slurp)" "$tmp" && tesseract "$tmp" - -l eng+ind 2>/dev/null | wl-copy
+          grim -g "$(slurp)" "$tmp" || exit 1
+          # Capture before copying. Piping a failed run straight into wl-copy
+          # would clear the clipboard instead of leaving it alone.
+          text=$(tesseract "$tmp" - -l eng+ind 2>/dev/null) || {
+            echo "ocr-copy: tesseract failed; clipboard untouched" >&2
+            exit 1
+          }
+          if [ -z "$text" ]; then
+            echo "ocr-copy: no text recognised; clipboard untouched" >&2
+            exit 1
+          fi
+          printf '%s' "$text" | wl-copy
         '')
 
-        # Noctalia's brightness step is a fixed 5%, which wrecks both ends: down
-        # goes 5% -> 0% in one press, and up from the 1% floor lands on 6% then
-        # drops straight back to 1%. Snap onto a 10/5/4/3/2/1 ladder. Every press
-        # is an absolute set, so the OSD still fires.
+        # Noctalia's own step is a fixed 5%, which makes the bottom end
+        # unreachable: from the 1% floor an up-press would land on 6% and the
+        # next down-press straight back to 1%, so 2-5% could never be held. Up
+        # is therefore 1% below 5% and 5% above it. Down is an absolute set to
+        # 5% from above and a 1% step at or below it, so anything over 5%
+        # reaches 5% in one press. The OSD only fires when the rounded percent
+        # changes, so a down-press already at the 1% floor is silent.
         (pkgs.writeShellScriptBin "brightness-step" ''
           pct=""
           for dev in /sys/class/backlight/*; do
@@ -158,7 +172,7 @@
             # --- App launches ---
             "Mod+E" = "spawn:kitty yazi";
             "Mod+B" = "spawn:firefox";
-            "Mod+Shift+F23" = "spawn:kitty -d /home/itah/Projects opencode";
+            "Mod+Shift+F23" = "spawn:kitty -d /home/${constants.username}/Projects opencode";
             "Mod+I" = "spawn:protonvpn-app";
             "Mod+Shift+E" = "spawn:noctalia msg panel-toggle launcher /emo";
 

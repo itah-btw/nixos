@@ -5,7 +5,7 @@ Two NixOS hosts and one Home Manager, as a [dendritic][dendritic] flake.
 | Host | Session | Role |
 | --- | --- | --- |
 | `hp` | Umbriel + Noctalia Shell, Noctalia Greeter | Laptop: desktop, mail, development |
-| `tv` | Plasma Big Screen, SDDM autologin | Appliance: Stremio, Kodi, local media on `/mnt/media` |
+| `tv` | Plasma Big Screen, SDDM autologin | Appliance: Stremio, Nuvio, local media on `/mnt/media` |
 
 [dendritic]: https://github.com/nix-community/flake-parts/wiki/Dendritic-Pattern
 
@@ -16,7 +16,7 @@ flake.nix                 inputs + the entry point; no logic
 hardware-configuration*.nix   generated, never hand-edited
 modules/
   options.nix             flake-private plumbing (wiring table, constants)
-  formatter.nix           `nix fmt` (nixfmt) and `nix lint` (deadnix + statix)
+  formatter.nix           `nix fmt` (nixfmt) and `nix run .#lint` (deadnix + statix)
   checks.nix              policy guards, run by `nix flake check`
   <feature>.nix           one feature, named after what it configures
   hosts/hp.nix            composition point for hp
@@ -77,7 +77,7 @@ wrapper — flake-parts does not provide `constants`:
 | Command | What it does |
 | --- | --- |
 | `nix fmt` | nixfmt only. Safe to run implicitly; `push` does it for you. |
-| `nix lint` | deadnix + statix, **check-only** — reports, never rewrites. |
+| `nix run .#lint` | deadnix + statix, **check-only** — reports, never rewrites. |
 | `nix flake check` | treefmt check plus the policy guards. |
 | `rb` / `dry` / `nsu` / `ntest` | rebuild, dry build, switch+update, test. |
 | `deploy-tv` | build the tv closure here, copy it over the LAN, then activate. |
@@ -95,10 +95,10 @@ rather than repeated per host: a rule for a feature only one host has is
 vacuous on the other, and a vacuous check still costs a build while reading as
 if it were protecting something.
 
-Current rules: `modules-wired`, `constants-intact`, `host-identity`,
-`single-dm`, `greeter-implies-greetd`, `no-tts`, `no-x-server`, `firewall`,
-`auto-gc`, `binary-cache`, `mariadb-loopback`, `noctalia-theming-runtime`,
-`noctalia-single-launcher`, `starship-unmanaged`.
+Current rules: `modules-wired`, `dual-namespace-wired`, `constants-intact`,
+`host-identity`, `single-dm`, `greeter-implies-greetd`, `no-tts`, `no-x-server`,
+`firewall`, `auto-gc`, `binary-cache`, `mariadb-loopback`,
+`noctalia-theming-runtime`, `noctalia-single-launcher`, `starship-unmanaged`.
 
 The last three encode decisions that are easy to break by accident and hard to
 notice when broken: Noctalia's theme, wallpaper and palettes must stay
@@ -129,7 +129,7 @@ repository.
   published. Prefixing them with `_` does *not* silence the warning —
   flake-parts ignores `_`-prefixed declarations under `flake`, so the option
   then resolves to nothing.
-- `statix`'s W20 (`repeated_keys`) is filtered out of `nix lint`. statix's own
+- `statix`'s W20 (`repeated_keys`) is filtered out of `nix run .#lint`. statix's own
   `disabled` config only suppresses it for two-occurrence spans and silently
   lets it through from three upwards, so the filter is applied in the script.
 - `boot.kernelPackages` is `linuxPackages_latest` on both hosts, so a new

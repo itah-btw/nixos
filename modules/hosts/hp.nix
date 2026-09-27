@@ -16,6 +16,7 @@ in
       "networking"
       "nix"
       "nixpkgs"
+      "nuvio"
       "performance"
       "session"
       "shell"
@@ -59,11 +60,17 @@ in
         # channel. Do NOT bump on upgrades.
         system.stateVersion = "26.11";
 
-        # LocalSend (53317) and KDE Connect (1714-1764), scoped to the wifi
-        # NIC: a global 53317 leaks discovery onto any network joined.
+        # LocalSend (53317) and KDE Connect (1714-1764), plus avahi's own
+        # discovery port, scoped to the wifi NIC: a global port leaks discovery
+        # onto any network joined.
         networking.firewall.interfaces."wlan0" = {
           allowedTCPPorts = [ 53317 ];
-          allowedUDPPorts = [ 53317 ];
+          # UDP 5353 is avahi's mDNS, the rule openFirewall used to add
+          # globally; upstream opens the UDP port only.
+          allowedUDPPorts = [
+            5353
+            53317
+          ];
           allowedTCPPortRanges = [
             {
               from = 1714;

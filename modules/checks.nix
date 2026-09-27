@@ -52,7 +52,7 @@ let
     };
 
   # Sorted and de-duplicated: order-insensitive, and a name in both namespaces
-  # (mariadb, shell, syncthing, tv-kodi) collapses to one.
+  # (mariadb, shell, syncthing) collapses to one.
   names =
     xs:
     builtins.sort builtins.lessThan (
@@ -66,6 +66,18 @@ let
     declared = names (
       lib.concatMap (h: h.nixos ++ h.home) (builtins.attrValues config.flake.hostModules)
     );
+    # A name in both namespaces (mariadb, shell, syncthing) collapses to one
+    # entry above, so the union comparison cannot see a host that wired only
+    # one side of it. dual-namespace-wired closes that.
+    dual = builtins.sort builtins.lessThan (
+      lib.filter (n: builtins.hasAttr n config.flake.homeManagerModules) (
+        builtins.attrNames config.flake.nixosModules
+      )
+    );
+    perHost = lib.mapAttrs (_: h: {
+      nixos = names h.nixos;
+      home = names h.home;
+    }) config.flake.hostModules;
   };
 
   # Guards against a typo, which would otherwise evaluate to "" and silently
@@ -85,6 +97,19 @@ let
       # Both directions: an unreferenced module is dead, and an unknown name
       # would fail later and less clearly.
       cond = "(.wiring.defined - .wiring.declared) == [] and (.wiring.declared - .wiring.defined) == []";
+    }
+    {
+      name = "dual-namespace-wired";
+      # A host that wires a module in both namespaces has to wire both sides:
+      # the nixosModules half alone would satisfy modules-wired.
+      cond = ''
+        .wiring as $w
+        | $w.perHost | to_entries | all(.[];
+            . as $e
+            | ([ $w.dual[] | select(. as $d | ($e.value.nixos | index($d)) != null) ]) as $a
+            | ([ $w.dual[] | select(. as $d | ($e.value.home | index($d)) != null) ]) as $b
+            | $a == $b)
+      '';
     }
     {
       name = "constants-intact";

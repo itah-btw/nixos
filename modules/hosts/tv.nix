@@ -13,10 +13,10 @@ in
       "networking"
       "nix"
       "nixpkgs"
+      "nuvio"
       "syncthing"
       "tv-bigscreen"
       "tv-display"
-      "tv-kodi"
       "tv-media"
       "tv-openssh"
       "tv-packages"
@@ -27,7 +27,6 @@ in
       "identity"
       "syncthing"
       "tv-home"
-      "tv-kodi"
     ];
   };
 
@@ -51,6 +50,11 @@ in
         # Single-boot appliance, so the menu is only for reaching an older
         # generation. Not 0: no rescue entry beats two seconds of black.
         boot.loader.timeout = 2;
+
+        # avahi mDNS on the wired NIC only, in place of openFirewall. A fixed
+        # appliance on the LAN has no roaming interface to protect, but scoping
+        # it keeps the discovery surface identical to the laptops'.
+        networking.firewall.interfaces."enp2s0".allowedUDPPorts = [ 5353 ];
 
         home-manager = config.flake.hmDefaults // {
           extraSpecialArgs = {
