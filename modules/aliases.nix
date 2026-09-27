@@ -79,9 +79,13 @@
                 ;;
             esac
 
-            # ssh -t so the box's sudo can prompt on a tty. The password is
-            # typed at that prompt, never stored here.
-            ssh -t "${target}" "nix-env -p /nix/var/nix/profiles/system --set $toplevel && $toplevel/bin/switch-to-configuration switch"
+            # sudo is absolute: an `ssh host cmd` session is a non-login shell
+            # and may not have /run/current-system/sw/bin on PATH. `ssh -t`
+            # gives it a tty, so sudo prompts for the password there and it is
+            # never stored here. sudo's credential cache means one prompt
+            # covers both commands.
+            sudo=/run/current-system/sw/bin/sudo
+            ssh -t "${target}" "$sudo nix-env -p /nix/var/nix/profiles/system --set $toplevel && $sudo $toplevel/bin/switch-to-configuration switch"
           '';
         })
       ];
