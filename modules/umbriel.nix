@@ -158,7 +158,7 @@
             # --- App launches ---
             "Mod+E" = "spawn:kitty yazi";
             "Mod+B" = "spawn:firefox";
-            "Mod+Shift+F23" = "spawn:kitty opencode";
+            "Mod+Shift+F23" = "spawn:kitty -d /home/itah/Projects opencode";
             "Mod+I" = "spawn:protonvpn-app";
             "Mod+Shift+E" = "spawn:noctalia msg panel-toggle launcher /emo";
 
