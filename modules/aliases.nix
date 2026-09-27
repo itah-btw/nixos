@@ -16,17 +16,24 @@
         lg = "lazygit";
         ff = "fastfetch";
 
-        # `rb` is the sudo path, which nh does not cover.
-        rb = "sudo nixos-rebuild switch --flake ${root}#hp --accept-flake-config";
-        dry = "nh os build --flake ${root}#hp";
-        nsu = "nh os switch --update ${root}";
-        ntest = "nh os test ${root}";
-        nclean = "nh clean all --keep 5";
+        # Every rebuild/GC path goes through nh, which auto-elevates with sudo
+        # and so prompts for the password. The flake is positional (nh has no
+        # --flake) and pinned to #hp: a bare flake resolves by hostname, which
+        # would switch whichever host you happen to be logged into.
+        rb = "nh os switch --accept-flake-config ${root}#hp";
+        nsu = "nh os switch --update --accept-flake-config ${root}#hp";
+        dry = "nh os build ${root}#hp";
+        ntest = "nh os test ${root}#hp";
+        gen = "nh os info";
+        rollback = "nh os rollback";
 
-        gc14 = "sudo nix-collect-garbage --delete-older-than 14d";
+        # The only thing that prunes system generations: every generation is a GC
+        # root, so the age-based timer in nix.nix can never remove one. 10 also
+        # matches boot.loader.systemd-boot.configurationLimit.
+        nclean = "nh clean all --keep 10";
+
+        # No nh equivalent for these two; they are plain nix commands.
         optimize = "sudo nix-store --optimise";
-        gen = "sudo nixos-rebuild list-generations";
-        rollback = "sudo nixos-rebuild rollback";
         doctor = "nix doctor";
       };
     in
