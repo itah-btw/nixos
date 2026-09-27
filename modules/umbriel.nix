@@ -28,12 +28,8 @@
         '')
 
         # Noctalia's own step is a fixed 5%, which makes the bottom end
-        # unreachable: from the 1% floor an up-press would land on 6% and the
-        # next down-press straight back to 1%, so 2-5% could never be held. Up
-        # is therefore 1% below 5% and 5% above it. Down is an absolute set to
-        # 5% from above and a 1% step at or below it, so anything over 5%
-        # reaches 5% in one press. The OSD only fires when the rounded percent
-        # changes, so a down-press already at the 1% floor is silent.
+        # unreachable: 1% + 5% = 6%, and the next press down is back to 1%. Up
+        # is 1% below 5% and 5% above; down is an absolute set to 5% above it.
         (pkgs.writeShellScriptBin "brightness-step" ''
           pct=""
           for dev in /sys/class/backlight/*; do

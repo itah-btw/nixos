@@ -165,14 +165,10 @@
             php.enable = true;
           };
 
-          # nvf merges these into its own keymap set and binds the later of two
-          # identical chords, silently. Where a chord below collided with nvf's
-          # default, nvf keeps the chord and the mapping moved aside:
-          #   <leader>co  Choose Ours (git-conflict) -> :copen moved to <leader>cq
-          #   <leader>fg  live_grep                  -> git_files moved to <leader>gf
-          #   <leader>fs  treesitter picker          -> grep_string moved to <leader>fw
-          # <C-j>/<C-k> were dropped outright: they were exact duplicates of
-          # <leader>cn and <leader>cp.
+          # nvf merges these in and binds the later of two identical chords with
+          # no diagnostic, so nvf keeps a colliding chord and the mapping moved:
+          # <leader>co copen -> cq, <leader>fg git_files -> gf, <leader>fs
+          # grep_string -> fw. <C-j>/<C-k> went: dupes of <leader>cn/cp.
           keymaps = [
             {
               key = "<leader>cd";

@@ -1,13 +1,14 @@
-# TV media HDD (500 GB ST3500312CS) + weekly SMART health check.
+# The TV's data disk (500 GB ST3500312CS) + weekly SMART check. Empty since
+# 2026-09-28: the Kodi addons that were its only contents went with Kodi.
 _: {
-  flake.nixosModules.tv-media =
+  flake.nixosModules.hdd =
     { pkgs, ... }:
     {
-      # By label, not UUID: mkfs assigns a new UUID on every format. ext4, not
-      # NTFS: Nix needs hardlinks, xattrs and real ownership. Root owned via
-      # `mkfs.ext4 -E root_owner=1000:100`; ext4 rejects uid=/gid= options.
+      # By label, not UUID: mkfs assigns a new UUID on every format. Relabelled
+      # to hdd on the disk with e2label, which has to happen before a deploy --
+      # `nofail` makes a wrong label a silent no-mount, not a boot failure.
       fileSystems."/mnt/media" = {
-        device = "/dev/disk/by-label/tv-media";
+        device = "/dev/disk/by-label/hdd";
         fsType = "ext4";
         options = [
           "noatime"
@@ -15,13 +16,13 @@ _: {
         ];
       };
 
-      # The only check on the only copy of the media library: NixOS dropped
-      # services.smartd. Journals, because Bigscreen runs no notification
-      # daemon. Root, because smartctl needs raw device access.
-      systemd.services.tv-media-disk-health =
+      # The only SMART check on this disk. Journals, not a daemon: Bigscreen
+      # runs no notification daemon. Root, because smartctl needs raw device
+      # access. NixOS dropped services.smartd.
+      systemd.services.hdd-disk-health =
         let
           script = pkgs.writeShellApplication {
-            name = "tv-media-disk-health";
+            name = "hdd-disk-health";
             runtimeInputs = [
               pkgs.coreutils
               pkgs.gawk
@@ -30,8 +31,10 @@ _: {
               pkgs.util-linux
             ];
             text = ''
+              # The whole disk: SMART attributes live on the device and
+              # smartctl misreports on a partition.
               device=/dev/sda
-              log() { logger -t tv-media-disk-health -- "$1"; }
+              log() { logger -t hdd-disk-health -- "$1"; }
 
               # nofail, and this box is switched off at the wall.
               if [ ! -b "$device" ]; then
@@ -87,7 +90,7 @@ _: {
               if [ "$health" != "PASSED" ] || [ -n "$zeroed" ]; then
                 log "FAIL: $summary; attributes at zero: ''${zeroed:-none}"
                 # Full attribute table and self-test log, once, when it matters.
-                printf '%s\n' "$out" | logger -t tv-media-disk-health
+                printf '%s\n' "$out" | logger -t hdd-disk-health
               else
                 log "OK: $summary"
               fi
@@ -95,19 +98,19 @@ _: {
           };
         in
         {
-          description = "Weekly SMART check on the media HDD, reported to the journal";
+          description = "Weekly SMART check on the data HDD, reported to the journal";
           # No wantedBy: the timer activates its own unit.
           serviceConfig = {
             Type = "oneshot";
-            ExecStart = "${script}/bin/tv-media-disk-health";
-            # A few seconds of reads on a 5400rpm disk; never compete with playback.
+            ExecStart = "${script}/bin/hdd-disk-health";
+            # A few seconds of reads on a 5400rpm disk; never compete with Stremio.
             CPUSchedulingPolicy = "idle";
             IOSchedulingClass = "idle";
           };
         };
 
-      systemd.timers.tv-media-disk-health = {
-        description = "Weekly SMART check on the media HDD";
+      systemd.timers.hdd-disk-health = {
+        description = "Weekly SMART check on the data HDD";
         wantedBy = [ "timers.target" ];
         timerConfig = {
           # Small hours on Sunday; the TV is often off then.

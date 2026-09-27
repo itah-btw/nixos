@@ -52,7 +52,7 @@ let
     };
 
   # Sorted and de-duplicated: order-insensitive, and a name in both namespaces
-  # (mariadb, shell, syncthing) collapses to one.
+  # (mariadb, shell) collapses to one.
   names =
     xs:
     builtins.sort builtins.lessThan (
@@ -66,9 +66,9 @@ let
     declared = names (
       lib.concatMap (h: h.nixos ++ h.home) (builtins.attrValues config.flake.hostModules)
     );
-    # A name in both namespaces (mariadb, shell, syncthing) collapses to one
-    # entry above, so the union comparison cannot see a host that wired only
-    # one side of it. dual-namespace-wired closes that.
+    # A name in both namespaces (mariadb, shell) collapses to one entry above,
+    # so the union comparison cannot see a host that wired only one side of it.
+    # dual-namespace-wired closes that.
     dual = builtins.sort builtins.lessThan (
       lib.filter (n: builtins.hasAttr n config.flake.homeManagerModules) (
         builtins.attrNames config.flake.nixosModules

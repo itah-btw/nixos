@@ -87,16 +87,8 @@
                 ;;
             esac
 
-            # sudo is absolute: an `ssh host cmd` session is a non-login shell
-            # and may not have the wrappers dir on PATH. `ssh -t` gives it a
-            # tty, so sudo prompts for the password there and it is never stored
-            # here. sudo's credential cache means one prompt covers both
-            # commands.
-            #
-            # /run/wrappers/bin/sudo, NOT /run/current-system/sw/bin/sudo: the
-            # latter symlinks into the store, and Nix never marks a store path
-            # setuid, so it fails with "must be owned by uid 0 and have the
-            # setuid bit set". The setuid copy is the wrapper.
+            # `ssh -t` for the tty sudo needs to prompt on. The wrapper, not
+            # sw/bin: Nix never marks a store path setuid, so that one fails.
             sudo=/run/wrappers/bin/sudo
             ssh -t "${target}" "$sudo nix-env -p /nix/var/nix/profiles/system --set $toplevel && $sudo $toplevel/bin/switch-to-configuration switch"
           '';

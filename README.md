@@ -5,7 +5,7 @@ Two NixOS hosts and one Home Manager, as a [dendritic][dendritic] flake.
 | Host | Session | Role |
 | --- | --- | --- |
 | `hp` | Umbriel + Noctalia Shell, Noctalia Greeter | Laptop: desktop, mail, development |
-| `tv` | Plasma Big Screen, SDDM autologin | Appliance: Stremio, Nuvio, local media on `/mnt/media` |
+| `tv` | Plasma Big Screen, SDDM autologin | Appliance: Stremio, local media on `/mnt/media` |
 
 [dendritic]: https://github.com/nix-community/flake-parts/wiki/Dendritic-Pattern
 

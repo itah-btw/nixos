@@ -13,11 +13,9 @@ in
       "networking"
       "nix"
       "nixpkgs"
-      "nuvio"
-      "syncthing"
       "tv-bigscreen"
       "tv-display"
-      "tv-media"
+      "hdd"
       "tv-openssh"
       "tv-packages"
       "tv-power"
@@ -25,7 +23,6 @@ in
     ];
     home = [
       "identity"
-      "syncthing"
       "tv-home"
     ];
   };

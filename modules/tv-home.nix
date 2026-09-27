@@ -18,7 +18,7 @@
     # Firefox has no policy for the download directory, so ~/Downloads is a
     # symlink to the HDD: downloads are large and read rarely, which suits a
     # 5400rpm disk and keeps multi-GB files off the NVMe. Only replaces an
-    # empty directory. /mnt/media is mounted nofail (tv-media.nix) and is often
+    # empty directory. /mnt/media is mounted nofail (hdd.nix) and is often
     # absent, since this box is switched off at the wall -- so it is checked
     # first, rather than silently writing downloads to the root disk.
     home.activation.downloadsOnMedia = ''

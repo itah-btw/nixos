@@ -16,11 +16,9 @@ in
       "networking"
       "nix"
       "nixpkgs"
-      "nuvio"
       "performance"
       "session"
       "shell"
-      "syncthing"
       "system-packages"
       "user"
     ];
@@ -34,7 +32,6 @@ in
       "noctalia"
       "nvf"
       "shell"
-      "syncthing"
       "tridactyl"
       "umbriel"
     ];

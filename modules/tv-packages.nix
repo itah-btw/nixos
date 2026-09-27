@@ -7,7 +7,7 @@
     environment.systemPackages = with pkgs; [
       stremio-linux-shell
       # NixOS dropped services.smartd, so smartctl is the only way left to read
-      # SMART off this box (tv-media.nix).
+      # SMART off this box (hdd.nix).
       smartmontools
       libva-utils
       # Stremio bundles its own mpv and reads ~/.config/mpv/mpv.conf, so the

@@ -18,11 +18,9 @@
           panel.transparency_mode = "glass";
         };
         brightness = {
-          # Floor clamp. The up-step in umbriel.nix is 1% below 5%, so the
-          # script itself never asks for 0; this also floors the
-          # `noctalia msg brightness-down` fallback it uses when no sysfs
-          # backlight device is readable, and 0% on this panel is unusably
-          # black.
+          # Floor clamp. The 1% step in umbriel.nix never asks for 0, but the
+          # brightness-down fallback it uses without a sysfs backlight device
+          # can, and 0% on this panel is unusably black.
           minimum_brightness = 0.01;
         };
         bar.main = {
