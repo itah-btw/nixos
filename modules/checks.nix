@@ -1,8 +1,7 @@
-# Policy guards, run by `nix flake check`. Every rule is a jq predicate over one
-# JSON blob describing the whole flake, so they are a single derivation and one
-# build reports every failure at once. Rules are `all(.[]; ...)` over the
-# per-host facts rather than repeated per host: a rule for a feature only one
-# host has is vacuous on the other.
+# Policy guards, run by `nix flake check`. One jq predicate per rule over a
+# single JSON blob of the whole flake, so one build reports every failure. Rules
+# are `all(.[]; ...)` over the per-host facts: repeated per host, a rule for a
+# one-host feature is vacuous on the other and still costs a build.
 {
   config,
   lib,
@@ -12,8 +11,8 @@ let
   hosts = config.flake.nixosConfigurations;
   constants = config.flake.constants;
 
-  # US separates a rule's name from its condition, RS separates records. Neither
-  # can occur in a rule, and this keeps multi-line jq programs intact.
+  # US separates name from condition, RS separates records. Neither can occur in a
+  # rule, which is what keeps multi-line jq programs intact.
   us = builtins.fromJSON "\"\\u001f\"";
   rs = builtins.fromJSON "\"\\u001e\"";
 
@@ -49,6 +48,7 @@ let
       starshipPresets = if hm != null then (hm.programs.starship.presets or [ ]) else [ ];
       umbrielAutostart =
         if hm != null then (hm.programs.umbriel.settings.general.autostart or null) else null;
+      umbrielKeybinds = if hm != null then (hm.programs.umbriel.settings.keybinds or { }) else { };
     };
 
   # Sorted and de-duplicated: order-insensitive, and a name in both namespaces
@@ -66,9 +66,8 @@ let
     declared = names (
       lib.concatMap (h: h.nixos ++ h.home) (builtins.attrValues config.flake.hostModules)
     );
-    # A name in both namespaces (mariadb, shell) collapses to one entry above,
-    # so the union comparison cannot see a host that wired only one side of it.
-    # dual-namespace-wired closes that.
+    # A name in both namespaces collapses to one entry above, so the union
+    # comparison cannot see a host that wired one side only. dual-namespace-wired.
     dual = builtins.sort builtins.lessThan (
       lib.filter (n: builtins.hasAttr n config.flake.homeManagerModules) (
         builtins.attrNames config.flake.nixosModules
@@ -78,10 +77,44 @@ let
       nixos = names h.nixos;
       home = names h.home;
     }) config.flake.hostModules;
+    # Derived, not hand-maintained: wired by more than one host. tv-prefix's input.
+    shared = names (
+      lib.filter (
+        n:
+        lib.length (
+          lib.filter (h: lib.elem n (h.nixos ++ h.home)) (builtins.attrValues config.flake.hostModules)
+        ) > 1
+      ) (lib.concatMap (h: h.nixos ++ h.home) (builtins.attrValues config.flake.hostModules))
+    );
   };
 
-  # Guards against a typo, which would otherwise evaluate to "" and silently
-  # blank out a username, a path or a layout.
+  # The Lua in nvf/ is data, not a module, so modules-wired cannot see it. A .lua
+  # nobody reads is dead; readDir maps names to bare strings, so attrNames first.
+  nvfLuaNames = lib.filter (name: lib.hasSuffix ".lua" name) (
+    builtins.attrNames (builtins.readDir ../nvf)
+  );
+
+  nvfLua = {
+    onDisk = builtins.sort builtins.lessThan (map (n: lib.removeSuffix ".lua" n) nvfLuaNames);
+    # The readLua / readLuaAtConfigRoot arguments in nvf.nix.
+    wired = [
+      "noctalia-colors"
+      "tony-diagnostics"
+      "tony-docgen"
+      "tony-harpoon-picker"
+      "tony-osc52"
+      "tony-quickformat"
+      "tony-telescope-extras"
+    ];
+    # A hex here is the palette written down twice.
+    withHex = builtins.sort builtins.lessThan (
+      lib.filter (
+        name: builtins.match ".*#[0-9a-fA-F]{6}.*" (builtins.readFile ../nvf/${name}) != null
+      ) nvfLuaNames
+    );
+  };
+
+  # A typo here would evaluate to "" and silently blank out a value.
   expectedConstants = builtins.sort builtins.lessThan [
     "locale"
     "layout"
@@ -94,21 +127,35 @@ let
   rules = [
     {
       name = "modules-wired";
-      # Both directions: an unreferenced module is dead, and an unknown name
-      # would fail later and less clearly.
+      # Both ways: an unreferenced module is dead, an unknown name fails later.
       cond = "(.wiring.defined - .wiring.declared) == [] and (.wiring.declared - .wiring.defined) == []";
     }
     {
       name = "dual-namespace-wired";
-      # A host that wires a module in both namespaces has to wire both sides:
-      # the nixosModules half alone would satisfy modules-wired.
+      # Half-wiring a dual module satisfies modules-wired. "Present means both
+      # halves" -- not "every dual module in both lists", which would reject a
+      # host needing just the nixos half.
       cond = ''
         .wiring as $w
         | $w.perHost | to_entries | all(.[];
             . as $e
             | ([ $w.dual[] | select(. as $d | ($e.value.nixos | index($d)) != null) ]) as $a
             | ([ $w.dual[] | select(. as $d | ($e.value.home | index($d)) != null) ]) as $b
-            | $a == $b)
+            | ($a - $b) == [] and ($b - $a) == [])
+      '';
+    }
+    {
+      name = "tv-prefix";
+      # No directory namespace, so a tv-only module's NAME has to say so. Found
+      # hdd.nix (tv-only, unprefixed) on its first run.
+      cond = ''
+        .wiring as $w
+        | def isTv: startswith("tv-");
+          def wired($h): $h.nixos + $h.home;
+          def unsharedTv: isTv and (. as $n | $w.shared | index($n) == null);
+          def unprefixedUnshared: (isTv | not) and (. as $n | $w.shared | index($n) == null);
+          ([ wired($w.perHost.tv)[] | select(unprefixedUnshared) ] | length) == 0
+          and ([ $w.perHost | to_entries[] | select(.key != "tv") | wired(.value)[] | select(unsharedTv) ] | length) == 0
       '';
     }
     {
@@ -183,20 +230,57 @@ let
       # starship.toml is Noctalia's; HM would make it a read-only symlink.
       cond = ".hosts | all(.[]; (.starshipSettings == {}) and (.starshipPresets == []))";
     }
+    {
+      name = "umbriel-repeat-trap";
+      # A string form resets repeat to true, so holding Mod+Q closed every window
+      # focus landed on. A chord deleted from umbriel.nix passes on purpose: this
+      # is about how a chord is written, not that it exists.
+      cond = ''
+        def noRepeat($host; $chord):
+          ($host.umbrielKeybinds[$chord] // null) as $b
+          | if $b == null then true
+            else (($b | type) == "object" and $b.repeat == false)
+            end;
+        .hosts | all(.[]; . as $host
+          | [ "Mod+Q", "Mod+O", "Mod+Shift+Escape", "Alt+Tab" ]
+          | all(.[]; noRepeat($host; .)))
+      '';
+    }
+    {
+      name = "nvf-lua-wired";
+      cond = "(.nvfLua.onDisk - .nvfLua.wired) == [] and (.nvfLua.wired - .nvfLua.onDisk) == []";
+    }
+    {
+      name = "nvf-palette-nix-only";
+      # The palette is written down once, in nvf.nix.
+      cond = ".nvfLua.withHex == []";
+    }
   ];
 
-  blob = builtins.toJSON {
-    inherit wiring;
+  facts = {
+    inherit wiring nvfLua;
     constants = builtins.attrNames constants;
     hosts = lib.listToAttrs (map (n: lib.nameValuePair n (factsFor n)) (builtins.attrNames hosts));
   };
+
+  # An unread fact still costs eval on every check. Nix-side, not a rule: no jq
+  # program can see the other rules' text.
+  unusedFacts = lib.filter (k: !lib.any (r: lib.hasInfix ".${k}" r.cond) rules) (
+    builtins.attrNames facts
+  );
+
+  blob =
+    assert
+      unusedFacts == [ ]
+      || builtins.trace "flake-policy: facts no rule reads: ${builtins.toJSON unusedFacts}" true;
+    builtins.toJSON facts;
 in
 {
   perSystem =
     { pkgs, ... }:
     {
       checks = {
-        # Per-rule verdict, and all failures reported together.
+        # Per-rule verdict, all failures together.
         policy =
           pkgs.runCommand "flake-policy"
             {

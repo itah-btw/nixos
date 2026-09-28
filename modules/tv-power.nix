@@ -18,9 +18,8 @@
     };
 
     # memoryPercent is a ceiling, not a reservation: zram only grows into RAM as
-    # pages are stored, so 50% costs nothing while idle. The 8.8 GB swap
-    # partition in hardware-configuration-tv.nix is likewise untouched and not
-    # for hibernation. Measure before "fixing" either number.
+    # pages are stored. The 8.8 GB swap partition is likewise not for hibernation.
+    # Measure before "fixing" either number.
     zramSwap = {
       enable = true;
       memoryPercent = 50;

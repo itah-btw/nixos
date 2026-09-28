@@ -1,8 +1,13 @@
-# Noctalia, non-theming settings only. theme, wallpaper, backdrop, templates and
-# customPalettes stay runtime-managed so wallpaper-derived palettes and
-# rotation keep working; the noctalia-theming-runtime guard fails otherwise.
+# Noctalia, non-theming settings only. theme/wallpaper/backdrop/templates and
+# customPalettes stay runtime-managed, or noctalia-theming-runtime fails.
 {
-  flake.homeManagerModules.noctalia = {
+  flake.homeManagerModules.noctalia = { pkgs, ... }: {
+    # Phone Connect's gdbus (no device list without it) and its file picker.
+    home.packages = with pkgs; [
+      glib
+      zenity
+    ];
+
     programs.noctalia = {
       enable = true;
       # Umbriel autostarts it (umbriel.nix), not systemd.
@@ -13,20 +18,17 @@
       settings = {
         shell = {
           font_family = "Inter";
-          # Umbriel blurs these, so they must stay translucent.
+          # Umbriel blurs these.
           settings_window_translucent = true;
           panel.transparency_mode = "glass";
         };
         brightness = {
-          # Floor clamp. The 1% step in umbriel.nix never asks for 0, but the
-          # brightness-down fallback it uses without a sysfs backlight device
-          # can, and 0% on this panel is unusably black.
+          # 0% on this panel is unusably black, and umbriel.nix's fallback can ask.
           minimum_brightness = 0.01;
         };
         bar.main = {
           background_opacity = 0.75;
-          # Default end row minus clipboard and brightness, which have keybinds
-          # (Mod+V, XF86MonBrightness*) that toggle them instead.
+          # Default end row minus the two that have keybinds: Mod+V, brightness.
           end = [
             "media"
             "tray"

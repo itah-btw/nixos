@@ -3,7 +3,51 @@
 # "unknown flake output"; expected. A leading `_` does NOT silence that --
 # flake-parts then resolves the option to nothing.
 { lib, ... }:
+let
+  # The nixosSystem call, shared by both hosts. Via _module.args, not
+  # config.flake: see the nixos skill's traps 9 and 10 before moving it.
+  mkHost =
+    {
+      inputs,
+      config,
+      name,
+      wiring,
+      stateVersion,
+      hardware,
+      nixosImports ? [ ],
+      hmImports ? [ ],
+      extra ? { },
+    }:
+    let
+      constants = config.flake.constants;
+    in
+    inputs.nixpkgs.lib.nixosSystem {
+      system = "x86_64-linux";
+      specialArgs = { inherit inputs constants; };
+      modules =
+        # One of the two path imports in the flake; the other is tv's.
+        [ hardware ]
+        ++ nixosImports
+        ++ [
+          inputs.home-manager.nixosModules.home-manager
+          (_: {
+            networking.hostName = name;
+            system.stateVersion = stateVersion;
+
+            home-manager = config.flake.hmDefaults // {
+              extraSpecialArgs = { inherit inputs constants; };
+              users.${constants.username}.imports =
+                hmImports ++ map (n: config.flake.homeManagerModules.${n}) wiring.home;
+            };
+          })
+        ]
+        ++ lib.optionals (extra != { }) [ extra ]
+        ++ map (n: config.flake.nixosModules.${n}) wiring.nixos;
+    };
+in
 {
+  config._module.args.mkHost = mkHost;
+
   # Threaded in via specialArgs / extraSpecialArgs: neither module system can
   # read `config.flake.*` from inside a module. checks.nix guards the key set.
   options.flake.constants = lib.mkOption {

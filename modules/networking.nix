@@ -8,9 +8,8 @@
     services.avahi = {
       enable = true;
       nssmdns4 = true;
-      # Not openFirewall: that opens 5353/udp on every interface, and mDNS is
-      # how LocalSend and KDE Connect are found, so it would answer their
-      # queries on whatever network the laptop joined. Scoped in hosts/*.nix.
+      # Not openFirewall: mDNS would answer LocalSend and KDE Connect queries on
+      # whatever network the laptop joined. Scoped in hosts/*.nix.
       openFirewall = false;
     };
   };

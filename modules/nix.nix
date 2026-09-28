@@ -17,11 +17,9 @@
       "noctalia.cachix.org-1:pCOR47nnMEo5thcxNDtzWpOxNFQsBRglJzxWPp3dkU4="
     ];
 
-    # Weekly GC as a safety net for ordinary unreferenced paths (build outputs,
-    # nix-shell closures, stale links). It cannot touch system generations:
-    # every generation in /nix/var/nix/profiles is a GC root, so the age filter
-    # never applies to them. `nclean` in aliases.nix is what prunes those.
-    # Rollback generations survive regardless: they are linked, not old.
+    # A safety net for ordinary unreferenced paths. It cannot touch system
+    # generations: every one in /nix/var/nix/profiles is a GC root, so the age
+    # filter never applies. `nclean` in aliases.nix prunes those instead.
     nix.gc = {
       automatic = true;
       dates = "weekly";

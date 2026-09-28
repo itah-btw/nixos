@@ -15,8 +15,7 @@
     };
 
     # Integration only. starship.toml is Noctalia's (palette sync); HM content
-    # would replace it with a read-only symlink (noctalia #3101). Enforced by
-    # the starship-unmanaged guard in checks.nix.
+    # would make it a read-only symlink (noctalia #3101). starship-unmanaged.
     programs.starship = {
       enable = true;
       enableFishIntegration = true;

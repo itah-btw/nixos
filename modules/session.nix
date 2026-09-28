@@ -1,9 +1,7 @@
-# hp desktop session: Umbriel, Noctalia, Noctalia Greeter. User-side settings
-# are in umbriel.nix and noctalia.nix.
+# hp desktop session. User-side settings are in umbriel.nix and noctalia.nix.
 {
   flake.nixosModules.session =
     {
-      config,
       constants,
       pkgs,
       ...
@@ -22,27 +20,25 @@
       services.displayManager.noctalia-greeter = {
         enable = true;
         passwordless-sync-users = [ constants.username ];
-        # System-installed: the greeter runs as its own user, so home-only
-        # cursors are invisible to it.
+        # System-installed: the greeter runs as its own user.
         cursorTheme.package = pkgs.bibata-cursors;
         settings = {
           cursor = {
             theme = "Bibata-Modern-Ice";
             size = 24;
           };
-          keyboard.layout = config.services.xserver.xkb.layout;
+          # The same scalar umbriel.nix hands the compositor.
+          keyboard.layout = constants.layout;
         };
       };
 
-      # Bluetooth, UPower, power-profiles-daemon and NetworkManager all come from
-      # programs.noctalia.recommendedServices above.
+      # All from programs.noctalia.recommendedServices above.
       services.fwupd.enable = true;
-      # PipeWire comes from recommendedServices, but rtkit does not.
+      # rtkit is the one thing recommendedServices does not bring.
       security.rtkit.enable = true;
       services.printing.enable = true;
 
-      # Umbriel's module already installs xdg-desktop-portal-umbriel; this is the
-      # file-chooser fallback.
+      # File-chooser fallback; Umbriel's module already has the portal.
       xdg.portal.extraPortals = [ pkgs.xdg-desktop-portal-gtk ];
 
       # System-installed so the greeter can see them.

@@ -4,52 +4,9 @@
     {
       config,
       constants,
-      pkgs,
       ...
     }:
     {
-      # OCR helper: region-select, OCR, copy. Deps in apps.nix.
-      home.packages = [
-        (pkgs.writeShellScriptBin "ocr-copy" ''
-          tmp=$(mktemp --suffix .png)
-          trap 'rm -f "$tmp"' EXIT
-          grim -g "$(slurp)" "$tmp" || exit 1
-          # Capture before copying. Piping a failed run straight into wl-copy
-          # would clear the clipboard instead of leaving it alone.
-          text=$(tesseract "$tmp" - -l eng+ind 2>/dev/null) || {
-            echo "ocr-copy: tesseract failed; clipboard untouched" >&2
-            exit 1
-          }
-          if [ -z "$text" ]; then
-            echo "ocr-copy: no text recognised; clipboard untouched" >&2
-            exit 1
-          fi
-          printf '%s' "$text" | wl-copy
-        '')
-
-        # Noctalia's own step is a fixed 5%, which makes the bottom end
-        # unreachable: 1% + 5% = 6%, and the next press down is back to 1%. Up
-        # is 1% below 5% and 5% above; down is an absolute set to 5% above it.
-        (pkgs.writeShellScriptBin "brightness-step" ''
-          pct=""
-          for dev in /sys/class/backlight/*; do
-            if [ -r "$dev/brightness" ] && [ -r "$dev/max_brightness" ]; then
-              pct=$(( 100 * $(cat "$dev/brightness") / $(cat "$dev/max_brightness") ))
-              break
-            fi
-          done
-          if [ "$1" = "up" ]; then
-            [ -n "$pct" ] || exec noctalia msg brightness-up
-            if [ "$pct" -lt 5 ]; then target=$(( pct + 1 )); else target=$(( pct + 5 )); fi
-          else
-            [ -n "$pct" ] || exec noctalia msg brightness-down
-            if [ "$pct" -le 5 ]; then target=$(( pct - 1 )); else target=5; fi
-            [ "$target" -lt 1 ] && target=1
-          fi
-          noctalia msg brightness-set "$target"
-        '')
-      ];
-
       programs.umbriel = {
         enable = true;
         settings = {
@@ -74,6 +31,8 @@
           };
 
           appearance = {
+            # Square windows; Umbriel's default is 10.
+            corner_radius = 0;
             # Let translucent fullscreen windows blur the desktop, not go opaque.
             opaque_fullscreen = false;
             # `enabled`/`optimized` are Umbriel defaults that the rules below
@@ -138,13 +97,10 @@
           };
 
           keybinds = {
-            # Full layout, deliberately explicit: most of these chords also
-            # match Umbriel's built-in defaults, and restating them means an
-            # upstream default change cannot silently move a key. A bind here
-            # replaces the default for the same chord, so this doubles as the
-            # override list. Two forms: a plain string takes every flag at its
-            # default, a table sets them (repeat / allow_when_locked /
-            # allow_when_inhibited).
+            # Meant to be exhaustive, so nothing fires from a default nobody wrote
+            # down. A string form resets repeat to true, hence table form below and
+            # umbriel-repeat-trap. Only the keypad workspace chords are left live;
+            # this laptop has no numpad.
 
             # --- Apps & session ---
             "Mod+Return" = "spawn:kitty";
@@ -201,6 +157,8 @@
             "Mod+Shift+L" = "column-move-right";
             "Mod+Bracketleft" = "window-consume-or-expel-left";
             "Mod+Bracketright" = "window-consume-or-expel-right";
+            # Kept upstream: a third chord for the consume binds above.
+            "Mod+Period" = "window-consume-right";
             "Mod+R" = "window-cycle-primary-extent";
             "Mod+Shift+R" = "window-cycle-primary-extent-back";
             "Mod+Alt+R" = "window-cycle-secondary-extent";
@@ -218,6 +176,8 @@
             "Mod+M" = "window-toggle-maximize-to-edges";
             "Mod+F" = "window-toggle-maximize";
             "Mod+Shift+F" = "window-toggle-fullscreen";
+            # Kept upstream: a second maximize path.
+            "Mod+Ctrl+F" = "window-toggle-maximize";
 
             # --- Workspaces ---
             # Mod+O is a table so the overview cannot thrash open/closed while held.

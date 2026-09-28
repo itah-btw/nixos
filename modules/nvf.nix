@@ -1,7 +1,4 @@
-# Neovim via nvf (NotAShelf/nvf), replicating tonybanters/nvim. The base16
-# colours below are a fallback only: Noctalia's neovim template rewrites
-# matugen.lua on every palette change and SIGUSR1s nvim, which the
-# noctalia-colors autocmd below picks up.
+# Neovim via nvf (NotAShelf/nvf), replicating tonybanters/nvim.
 {
   flake.homeManagerModules.nvf =
     {
@@ -10,6 +7,14 @@
       pkgs,
       ...
     }:
+    let
+      # Real files, not Nix strings, so stylua can format them and treefmt parse them.
+      readLua = name: builtins.readFile ../nvf/${name}.lua;
+
+      # @@CONFIG_ROOT@@ stays inside a literal so the .lua is still valid Lua.
+      readLuaAtConfigRoot =
+        name: builtins.replaceStrings [ "@@CONFIG_ROOT@@" ] [ constants.root ] (readLua name);
+    in
     {
       # The template writes ~/.config/nvim/lua/matugen.lua, but the nvf binary runs
       # with NVIM_APPNAME=nvf (rtp: ~/.config/nvf), so mirror it out of store.
@@ -53,6 +58,8 @@
             providers.wl-copy.enable = true;
           };
 
+          # Single source of the palette; noctalia-colors.lua reads these back out
+          # of vim.g.base16_gui00..0F. nvf-palette-nix-only guards a second copy.
           theme = {
             enable = true;
             name = "base16";
@@ -264,7 +271,7 @@
             {
               key = "<leader>cp";
               mode = "n";
-              action = ":cprev<CR>zz";
+              action = ":cprev<CR>";
             }
             {
               key = "<leader>li";
@@ -425,228 +432,26 @@
               action = ":lua vim.lsp.buf.code_action()<CR>";
             }
           ];
+
           luaConfigRC = {
             # iskeyword += - so dw/ciw treat hyphenated words as one word.
             tony-opts = "vim.opt.iskeyword:append('-')";
 
-            # OSC52 clipboard when over SSH (yank works remotely).
-            tony-osc52 = ''
-              if vim.env.SSH_CONNECTION ~= nil then
-                local ok, osc52 = pcall(require, 'vim.ui.clipboard.osc52')
-                if ok then
-                  vim.g.clipboard = {
-                    name = 'OSC 52',
-                    copy = { ['+'] = osc52.copy('+'), ['*'] = osc52.copy('*') },
-                    paste = { ['+'] = osc52.paste('+'), ['*'] = osc52.paste('*') },
-                  }
-                end
-              end
-            '';
+            tony-osc52 = readLua "tony-osc52";
+            tony-diagnostics = readLua "tony-diagnostics";
+            tony-docgen = readLua "tony-docgen";
+            tony-quickformat = readLua "tony-quickformat";
+            tony-harpoon-picker = readLua "tony-harpoon-picker";
+            tony-telescope-extras = readLuaAtConfigRoot "tony-telescope-extras";
 
-            # C kernel-doc generator on <leader>dg.
-            tony-docgen = ''
-              local function generate_c_doc(line)
-                local stripped = line:gsub("^%s*static%s+", ""):gsub("^%s*inline%s+", ""):gsub("^%s*extern%s+", "")
-                local ret, name, params = stripped:match('^%s*([%w_]+%s*%**)%s*([%w_]+)%s*%((.*)%)%s*{?%s*$')
-                if not name then return nil, 'No C function signature found on current line' end
-                local doc = { '/**', ' * ' .. name .. '() - ' }
-                if params and params:match('%S') and not params:match('^%s*void%s*$') then
-                  for param in params:gmatch('([^,]+)') do
-                    local pname = param:match('([%w_]+)%s*$') or param:match('%*%s*([%w_]+)') or param:match('([%w_]+)%s*%[')
-                    if pname then table.insert(doc, ' * @' .. pname .. ': ') end
-                  end
-                end
-                table.insert(doc, ' *')
-                ret = ret and ret:gsub("%s+", " "):gsub("^%s*", ""):gsub("%s*$", "") or ""
-                -- The type was parsed, so emit it rather than a bare " * Return: ".
-                if ret ~= "void" and ret ~= "" then table.insert(doc, ' * Return: ' .. ret) end
-                table.insert(doc, ' */')
-                return doc, nil
-              end
-              local function tony_generate_doc()
-                local bufnr = vim.api.nvim_get_current_buf()
-                local row = vim.api.nvim_win_get_cursor(0)[1]
-                local line = vim.api.nvim_buf_get_lines(bufnr, row - 1, row, false)[1]
-                local ft = vim.bo[bufnr].filetype
-                if ft ~= 'c' and ft ~= 'cpp' and ft ~= 'h' then
-                  vim.notify('No doc generator for filetype: ' .. ft, vim.log.levels.WARN)
-                  return
-                end
-                local doc, err = generate_c_doc(line)
-                if err then vim.notify(err, vim.log.levels.ERROR) return end
-                vim.api.nvim_buf_set_lines(bufnr, row - 1, row - 1, false, doc)
-                vim.api.nvim_win_set_cursor(0, { row, #doc[1] })
-                vim.cmd('startinsert!')
-              end
-              vim.keymap.set('n', '<leader>dg', tony_generate_doc, { desc = 'Generate C doc comment' })
-            '';
-
-            # Explode parenthesized args on <leader>qq.
-            tony-quickformat = ''
-              local function reformat_parenthesized_content()
-                local bufnr = vim.api.nvim_get_current_buf()
-                local row = vim.api.nvim_win_get_cursor(0)[1]
-                local line = vim.api.nvim_buf_get_lines(bufnr, row - 1, row, false)[1]
-                local inside = line:match('%((.-)%)')
-                if not inside then vim.notify('No content found inside parentheses', vim.log.levels.ERROR) return end
-                local prefix = line:match("^(.-)%(") or ""
-                local suffix = line:match("%)(.*)$") or ""
-                local parts = vim.split(inside, ',%s*')
-                if #parts == 0 then vim.notify('No comma-separated content found', vim.log.levels.ERROR) return end
-                local new_lines = { prefix .. '(' }
-                for i, part in ipairs(parts) do
-                  if i < #parts then table.insert(new_lines, '        ' .. part .. ',')
-                  else table.insert(new_lines, '        ' .. part) end
-                end
-                table.insert(new_lines, '    )' .. suffix)
-                vim.api.nvim_buf_set_lines(bufnr, row - 1, row, false, new_lines)
-              end
-              vim.keymap.set('n', '<leader>qq', reformat_parenthesized_content, { desc = 'Explode paren args' })
-            '';
-
-            # Harpoon + Telescope picker on <leader>fl.
-            tony-harpoon-picker = ''
-              vim.keymap.set('n', '<leader>fl', function()
-                local ok, harpoon = pcall(require, 'harpoon')
-                if not ok then vim.notify('harpoon not available', vim.log.levels.WARN) return end
-                local file_paths = {}
-                for _, item in ipairs(harpoon:list().items) do table.insert(file_paths, item.value) end
-                local conf = require('telescope.config').values
-                require('telescope.pickers').new(require('telescope.themes').get_ivy({ prompt_title = 'Working List' }), {
-                  finder = require('telescope.finders').new_table({ results = file_paths }),
-                  previewer = conf.file_previewer({}),
-                  sorter = conf.generic_sorter({}),
-                }):find()
-              end, { desc = 'Harpoon list (Telescope)' })
-            '';
-
-            # <leader>fc grep-file-basename; <leader>fi find in /etc/nixos.
-            tony-telescope-extras = ''
-              local ok, builtin = pcall(require, 'telescope.builtin')
-              if ok then
-                vim.keymap.set('n', '<leader>fc', function()
-                  builtin.grep_string({ search = vim.fn.expand('%:t:r') })
-                end, { desc = 'Grep file basename' })
-                vim.keymap.set('n', '<leader>fi', function()
-                  builtin.find_files({ cwd = '${constants.root}' })
-                end, { desc = 'Find in nixos config' })
-              end
-            '';
-
-            # Rounded-border diagnostics with icons.
-            tony-diagnostics = ''
-              vim.diagnostic.config({
-                virtual_text = true,
-                severity_sort = true,
-                float = { style = "minimal", border = "rounded", source = "if_many", header = "", prefix = "" },
-                signs = { text = {
-                  [vim.diagnostic.severity.ERROR] = "✘",
-                  [vim.diagnostic.severity.WARN] = "▲",
-                  [vim.diagnostic.severity.HINT] = "⚑",
-                  [vim.diagnostic.severity.INFO] = "»",
-                } },
-              })
-            '';
-
-            # Noctalia live palette -> base16 + lualine: load the neovim
-            # template output at startup and on every SIGUSR1 (wallpaper
-            # change), then rebuild the lualine theme. Manual re-sync: :NoctaliaTheme
-            noctalia-colors = ''
-              local function noctalia_slot(slot, fallback)
-                for _, s in ipairs({ slot, slot:lower(), slot:upper() }) do
-                  local v = vim.g["base16_gui" .. s]
-                  if type(v) == "string" and v:match("^#%x%x%x%x%x%x$") then
-                    return v
-                  end
-                end
-                return fallback
-              end
-
-              local function noctalia_lualine_theme()
-                local b00 = noctalia_slot("00", "#1a1b26")
-                local b01 = noctalia_slot("01", "#16161e")
-                local b02 = noctalia_slot("02", "#2f3549")
-                local b04 = noctalia_slot("04", "#a9b1d6")
-                local b05 = noctalia_slot("05", "#c0caf5")
-                local b06 = noctalia_slot("06", "#c0caf5")
-                local mode_bg = {
-                  normal = noctalia_slot("0D", "#7aa2f7"),
-                  insert = noctalia_slot("0B", "#9ece6a"),
-                  visual = noctalia_slot("0E", "#bb9af7"),
-                  replace = noctalia_slot("08", "#f7768e"),
-                  command = noctalia_slot("0A", "#e0af68"),
-                }
-                local function mode_section(bg)
-                  return {
-                    a = { bg = bg, fg = b00, gui = "bold" },
-                    b = { bg = b02, fg = b06 },
-                    c = { bg = b01, fg = b04 },
-                  }
-                end
-                return {
-                  normal = mode_section(mode_bg.normal),
-                  insert = mode_section(mode_bg.insert),
-                  visual = mode_section(mode_bg.visual),
-                  replace = mode_section(mode_bg.replace),
-                  command = mode_section(mode_bg.command),
-                  inactive = {
-                    a = { bg = b01, fg = b04, gui = "bold" },
-                    b = { bg = b01, fg = b04 },
-                    c = { bg = b01, fg = b04 },
-                  },
-                }
-              end
-
-              local function noctalia_apply_lualine()
-                local ok_ll, lualine = pcall(require, "lualine")
-                if not ok_ll or not lualine.get_config then return false end
-                local cur = lualine.get_config()
-                cur.options.theme = noctalia_lualine_theme()
-                pcall(lualine.setup, cur)
-                return true
-              end
-
-              local function noctalia_sync()
-                local ok, matugen = pcall(require, "matugen")
-                if ok and matugen then pcall(matugen.setup) end
-                noctalia_apply_lualine()
-              end
-
-              vim.api.nvim_create_autocmd("VimEnter", {
-                group = vim.api.nvim_create_augroup("NoctaliaColors", { clear = true }),
-                callback = function()
-                  -- VimEnter fires once per process, so there is no earlier
-                  -- handle to tear down here.
-                  noctalia_sync()
-                  local sig = vim.uv.new_signal()
-                  _G.__matugen_signal = sig
-                  sig:start("sigusr1", vim.schedule_wrap(function()
-                    package.loaded["matugen"] = nil
-                    noctalia_sync()
-                  end))
-                end,
-              })
-
-              vim.api.nvim_create_user_command("NoctaliaTheme", noctalia_sync, { desc = "Re-sync editor colors with Noctalia palette" })
-            '';
+            # Noctalia live palette -> base16 + lualine, on VimEnter and on every
+            # SIGUSR1 (wallpaper change). Manual re-sync: :NoctaliaTheme
+            noctalia-colors = readLua "noctalia-colors";
           };
         };
       };
 
-      # nvf resolves every C/C++ tool by absolute store path inside its own LSP,
-      # lint, formatter and DAP configs, so none of them reach the wrapper's PATH.
-      # This is the only thing that puts them there, and <leader>cc needs it.
-      home.packages = with pkgs; [
-        gcc
-        cmake
-        ninja
-        bear
-        lldb
-        gersemi
-        clang-tools
-        cppcheck
-        valgrind
-        php85Packages.php-cs-fixer
-      ];
+      # Not a C tool, so not in c-toolchain.nix: backs the PHP support above.
+      home.packages = [ pkgs.php85Packages.php-cs-fixer ];
     };
 }

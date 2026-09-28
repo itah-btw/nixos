@@ -8,9 +8,8 @@
       ...
     }:
     {
-      # No Xorg has ever run here, so services.xserver bought only a second login
-      # surface and its share of RAM. Plasma 6 runs XWayland out of
-      # plasma-workspace, so X11 *clients* are unaffected.
+      # X11 *clients* still work: Plasma 6 runs XWayland from plasma-workspace,
+      # so this costs only a second login surface and some RAM.
       services.xserver.enable = false;
 
       services.displayManager = {
@@ -32,9 +31,8 @@
       };
       xdg.portal.configPackages = [ pkgs.kdePackages.plasma-bigscreen ];
 
-      # Optional apps a 10-foot appliance never opens. Kept: the required set,
-      # qtbase/qttools (xdg-mime, xdg-terminal, qdbus kdeconnect),
-      # plasma-keyboard and konsole.
+      # Optional apps a 10-foot appliance never opens. Kept anyway: the required
+      # set, qtbase/qttools (xdg-mime, xdg-terminal, qdbus kdeconnect), and konsole.
       environment.plasma6.excludePackages = with pkgs.kdePackages; [
         kwin-x11
         kate
@@ -46,9 +44,8 @@
 
       programs.kdeconnect.enable = true;
 
-      # Intel HD 2500 (Ivy Bridge) decode via the community i965 VA-API driver.
-      # No HEVC/VP9/AV1 engine exists, so those decode on the CPU: 1080p is fine,
-      # 4K is not (AV1 measured 0.9x realtime).
+      # Intel HD 2500 (Ivy Bridge) via the community i965 VA-API driver. No
+      # HEVC/VP9/AV1 engine: 1080p is fine, 4K is not (AV1 0.9x realtime).
       hardware.graphics.extraPackages = [ pkgs.intel-vaapi-driver ];
 
       services.pulseaudio.enable = false;

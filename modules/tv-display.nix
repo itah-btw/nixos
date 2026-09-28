@@ -1,13 +1,11 @@
-# Re-assert 1920x1080@60 on the TV (user service + timer). The EDID marks
-# 1280x720@50 as *preferred*, and boot.kernelPackages is linuxPackages_latest,
-# so a kernel that shifts the advertised mode list silently drops the panel to
-# 720p50 with nothing on screen to say so.
+# Re-assert 1920x1080@60 on the TV (user service + timer). The EDID prefers
+# 1280x720@50 and the kernel is mainline-weekly, so a mode-list shift drops the
+# panel to 720p50 silently.
 _: {
   flake.nixosModules.tv-display =
     { pkgs, ... }:
     {
-      # Never manages kwinoutputconfig.json -- KWin owns that. No-op when the
-      # mode is already right or the TV is off.
+      # KWin owns kwinoutputconfig.json. No-op when already correct or the TV is off.
       systemd.user.services.tv-display-mode-guard =
         let
           script = pkgs.writeShellApplication {
@@ -15,8 +13,8 @@ _: {
             runtimeInputs = [
               pkgs.coreutils
               pkgs.jq
-              # kscreen-doctor ships in libkscreen, NOT in kscreen; with
-              # kdePackages.kscreen the guard would fail open, logging success.
+              # kscreen-doctor is in libkscreen, NOT kscreen: with kdePackages.kscreen
+              # the guard would fail open, logging success.
               pkgs.kdePackages.libkscreen
               # logger(1); user services get no /usr/bin.
               pkgs.util-linux
@@ -28,15 +26,13 @@ _: {
 
               log() { logger -t tv-display-mode-guard -- "$1"; }
 
-              # Fail loudly, not open: a guard that cannot run must not look
-              # like a healthy display.
+              # Fail loudly, not open: a guard that cannot run is not a healthy display.
               if ! command -v kscreen-doctor >/dev/null; then
                 log "FATAL: kscreen-doctor is not on PATH; the guard cannot run"
                 exit 1
               fi
 
-              # kscreen-doctor is a Qt app and aborts with no platform plugin
-              # (offscreen hangs), so hand it KWin's real Wayland socket.
+              # A Qt app: with no platform plugin it aborts, offscreen it hangs.
               if [ -e "$XDG_RUNTIME_DIR/wayland-0" ]; then
                 WAYLAND_DISPLAY=wayland-0
               else
@@ -49,11 +45,9 @@ _: {
               fi
               export WAYLAND_DISPLAY
 
-              # One token describing the situation. JSON mode names are rounded,
-              # so 1920x1080@60 also names the 59.94Hz entries; the refresh rate
-              # is what separates 60.00 from 59.94. The target is picked by
-              # name+rate, not a hardcoded id, because ids get renumbered when
-              # the EDID list changes -- the whole reason this service exists.
+              # Pick the target by name+rate, never a hardcoded id: ids get renumbered
+              # when the EDID list changes. The rate matters too -- mode names are
+              # rounded, so 1920x1080@60 also names the 59.94Hz entries.
               probe() {
                 kscreen-doctor -j 2>/dev/null | jq -r --arg o "$output" --arg w "$wantName" --argjson r "$wantRate" '
                   ([.outputs[] | select(.name == $o)][0]) as $out
@@ -71,7 +65,7 @@ _: {
                     end'
               }
 
-              # KWin may still be starting: retry briefly.
+              # KWin may still be starting.
               state=""
               attempt=0
               while [ "$attempt" -lt 10 ]; do
@@ -83,9 +77,7 @@ _: {
                 [ "$attempt" -lt 10 ] && sleep 6
               done
 
-              # Log lines interpolate $wantName only, never
-              # $wantName@$wantRate: wantName already carries its rate, so the
-              # pair would print "1920x1080@60@60".
+              # $wantName only, never $wantName@$wantRate: it already carries its rate.
               case "$state" in
                 ok)
                   log "$output already at $wantName; nothing to do"
@@ -115,8 +107,8 @@ _: {
         in
         {
           description = "Restore 1920x1080@60 on the TV if a kernel update changed the available EDID modes";
-          # Timer-driven, not wantedBy: graphical-session.target is not reliably
-          # pulled in on Plasma, the user manager always is.
+          # Timer-driven, not wantedBy: Plasma does not reliably pull in
+          # graphical-session.target, the user manager always is.
           serviceConfig = {
             Type = "oneshot";
             ExecStart = "${script}/bin/tv-display-mode-guard";
@@ -126,16 +118,14 @@ _: {
 
       systemd.user.timers.tv-display-mode-guard = {
         description = "Check the TV is on 1920x1080@60 shortly after login";
-        # Without this the timer stays "static" and never fires, even though
-        # timers.target is active: the user manager starts it at login, which is
-        # what OnStartupSec counts from.
+        # Without this the timer stays "static" and never fires, though timers.target
+        # is active: the user manager starts it at login, which OnStartupSec counts from.
         wantedBy = [ "timers.target" ];
         timerConfig = {
-          # 30s after the user manager starts, i.e. shortly after SDDM autologin.
+          # 30s after the user manager starts, i.e. just after SDDM autologin.
           OnStartupSec = "30s";
-          # Then keep checking: HDMI renegotiates on its own (TV power-cycle, an
-          # AVR handshake). A correct display costs one JSON query and no
-          # flicker, because kscreen-doctor only runs when the mode is wrong.
+          # Then keep checking: HDMI renegotiates on its own (TV power-cycle, AVR
+          # handshake). A correct display costs one JSON query and no flicker.
           OnUnitActiveSec = "2h";
           AccuracySec = "10s";
           Unit = "tv-display-mode-guard.service";

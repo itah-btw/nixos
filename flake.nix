@@ -9,10 +9,8 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
-    # Noctalia shell, pinned to the `cachix` branch so you hit the pre-built
-    # binary cache instead of compiling locally. Do NOT add
-    # `inputs.nixpkgs.follows` here: per upstream docs it changes the
-    # derivation hash and breaks the cache.
+    # `cachix` branch hits the pre-built binary cache. Do NOT add
+    # `inputs.nixpkgs.follows` here: it changes the derivation hash and breaks it.
     noctalia = {
       url = "github:noctalia-dev/noctalia/cachix";
     };
@@ -27,7 +25,7 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
-    # nvf: modular Neovim configuration framework (nvf.nix, hp only).
+    # nvf: modular Neovim config framework (nvf.nix, hp only).
     nvf = {
       url = "github:NotAShelf/nvf";
       inputs.nixpkgs.follows = "nixpkgs";
@@ -39,24 +37,21 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
-    # treefmt wrapper: makes `nix fmt` discover files itself (plain nixfmt
-    # cannot -- `nix fmt` passes it no paths).
+    # treefmt wrapper: `nix fmt` passes plain nixfmt no paths, so it cannot
+    # discover files itself.
     treefmt-nix = {
       url = "github:numtide/treefmt-nix";
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
-    # Dendritic plumbing: every file under ./modules is auto-imported. Each
-    # defines one feature under flake.nixosModules.<name> or
-    # flake.homeManagerModules.<name>, and the filename matches that name --
-    # the directory groups, it never namespaces. modules/hosts/*.nix are the
-    # composition points. See README.md.
+    # Dendritic plumbing: every file under ./modules is auto-imported, each
+    # defining one feature whose module name matches its filename. The
+    # directory groups, it never namespaces. hosts/*.nix compose. See README.md.
     flake-parts.url = "github:hercules-ci/flake-parts";
     import-tree.url = "github:denful/import-tree";
   };
 
   # Mirrors modules/nix.nix so a non-flake build also avoids local compiles.
-  # https://docs.noctalia.dev/noctalia/getting-started/nixos/
   nixConfig = {
     extra-substituters = [ "https://noctalia.cachix.org" ];
     extra-trusted-public-keys = [

@@ -1,6 +1,6 @@
-# `nix fmt` (nixfmt only) and `nix lint` (deadnix + statix, check-only). Kept
-# apart because the latter two are fixers: folded into the formatter, `push`
-# swept unrelated auto-fixes into whatever was being committed.
+# `nix fmt` (nixfmt + stylua) and `nix run .#lint` (deadnix + statix, check-only).
+# Fixers are kept out of the formatter: folded in, `push` swept unrelated auto-fixes
+# from other modules into whatever was being committed. stylua only reflows.
 { inputs, lib, ... }:
 {
   imports = [ inputs."treefmt-nix".flakeModule ];
@@ -17,6 +17,16 @@
     {
       treefmt.settings.global.excludes = excludes;
       treefmt.programs.nixfmt.enable = true;
+      # The hand-written Lua in nvf/, which also makes checks.treefmt a Lua
+      # syntax check -- stylua parses what it formats.
+      treefmt.programs.stylua = {
+        enable = true;
+        # Spaces at width 2, to match the Nix.
+        settings = {
+          indent_type = "Spaces";
+          indent_width = 2;
+        };
+      };
 
       packages.lint = pkgs.writeShellApplication {
         name = "nix-lint";
