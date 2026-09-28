@@ -1,4 +1,4 @@
-# C/C++ toolchain, for nvf: its LSP/lint/DAP configs resolve every tool by absolute
+# C/C++ toolchain, for nvim: the LSP/lint configs resolve every tool by absolute
 # store path, so this is the only thing that puts one on the wrapper's PATH.
 {
   flake.homeManagerModules.c-toolchain = { pkgs, ... }: {

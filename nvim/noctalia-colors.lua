@@ -1,6 +1,5 @@
--- Noctalia live palette -> base16 + lualine. The palette lives once, in
--- theme.base16-colors in modules/nvf.nix, published as vim.g.base16_gui00..0F.
--- So no colour literal here; nvf-palette-nix-only fails the build if one appears.
+-- matugen.lua (Noctalia's output) sets vim.g.base16_gui00..0F via
+-- base16-colorscheme, so no colour literal lives here.
 -- With the globals missing, lualine is left alone rather than given a stale copy.
 --
 -- Manual re-sync: :NoctaliaTheme

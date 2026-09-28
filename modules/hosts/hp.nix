@@ -36,8 +36,8 @@ let
       "cursor"
       "identity"
       "mariadb"
+      "neovim"
       "noctalia"
-      "nvf"
       "ocr"
       "shell"
       "tridactyl"
@@ -62,7 +62,6 @@ in
       inputs.noctalia-greeter.nixosModules.default
     ];
     hmImports = [
-      inputs.nvf.homeManagerModules.default
       inputs.noctalia.homeModules.default
       inputs.umbriel.homeModules.default
     ];

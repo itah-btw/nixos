@@ -25,10 +25,12 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
-    # nvf: modular Neovim config framework (nvf.nix, hp only).
-    nvf = {
-      url = "github:NotAShelf/nvf";
-      inputs.nixpkgs.follows = "nixpkgs";
+    # tonybanters/nvim: the Neovim config (neovim.nix, hp only). Not a flake,
+    # so this pins the config's revision only -- lua/manage.lua still clones
+    # each plugin unpinned at first launch. That is his design, not a bug.
+    tony-nvim = {
+      url = "github:tonybanters/nvim";
+      flake = false;
     };
 
     # plasma-manager: declarative Plasma settings (tv-home.nix, tv only).

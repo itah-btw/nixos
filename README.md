@@ -21,8 +21,8 @@ modules/
   <feature>.nix           one feature, named after what it configures
   hosts/hp.nix            composition point for hp
   hosts/tv.nix            composition point for tv
-nvf/
-  *.lua                   hand-written Lua, read as text by nvf.nix
+nvim/
+  *.lua                   hand-written Lua, copied into the Tony config by neovim.nix
 ```
 
 ## Conventions
@@ -49,10 +49,10 @@ whether an app is an app: yazi's 155 lines of mime rules and keybinds was 60% of
 is now the small stuff it always should have been. Desktop integration can
 still span two modules — `yazi.nix` overrides yazi's `.desktop` to run under
 kitty, and `apps.nix` owns kitty — which is why those cross-links are comments
-and not imports. The counter-case is `nvf.nix`: its 256-line keymap list is the
-same shape, but keymaps are meaningless apart from the options they bind, so
-splitting them would leave two files that are neither complete nor checkable on
-their own. The test is whether a block has a reason to change independently.
+and not imports. The counter-case is `neovim.nix`: it pins an upstream config
+(`tonybanters/nvim`) and layers local Lua on top, which is the same shape — the
+overlay only means anything next to the base it patches. The test is whether a
+block has a reason to change independently.
 
 **Host files are declarations; the scaffolding is `mkHost`.** `options.nix` holds
 the `nixosSystem` call, and each `modules/hosts/*.nix` passes a name, a wiring
@@ -64,12 +64,21 @@ assembling, and `options.nix` cannot define a plain `flake.*` attribute at all,
 because declaring `options.*` makes it a module whose top level may only be
 `config`/`options`.
 
-**Data a module reads is not a module.** The hand-written Lua for nvf lives in
-`nvf/*.lua` and is pulled in with `builtins.readFile`, so stylua can format it
-and `checks.treefmt` can parse it — neither works on a Nix string literal. The
-one value the Lua needs from `flake.constants` arrives as a `@@TOKEN@@` inside a
-Lua string and is substituted in `nvf.nix`; `nvf-lua-wired` asserts the file
-list and the `readLua` calls still agree.
+**Data a module reads is not a module.** The hand-written Lua lives in
+`nvim/*.lua` and is `cp`'d into the built config, so stylua can format it and
+`checks.treefmt` can parse it — neither works on a Nix string literal.
+`nvim-lua-wired` asserts the files on disk and the `cp` calls still agree.
+
+The Neovim config is upstream, not ours: `tony-nvim` is a pinned non-flake
+input, and `neovim.nix` copies it, drops `parser/nix.so` (it needs `libstdc++`,
+which Neovim's closure lacks) and adds two local files under `after/plugin/`,
+which is sourced after `plugin/` and so wins over his colours and LSP setup. His
+`manage.lua` clones the plugins into `stdpath("data")` on first start, so the
+input pins the config revision but not the plugin revisions.
+
+`~/.config/nvim` is linked leaf by leaf, never as one tree: Noctalia rewrites
+`lua/matugen.lua` on every palette change, and that path has to stay a real
+directory rather than a store symlink.
 
 **Hosts are the only place that composes.** `modules/hosts/*.nix` declares which
 modules each host gets in `flake.hostModules.<host>`, and builds its
@@ -112,7 +121,7 @@ wrapper — flake-parts does not provide `constants`:
 | --- | --- |
 | `nix fmt` | nixfmt + stylua. Safe to run implicitly; `push` does it for you. |
 | `nix run .#lint` | deadnix + statix, **check-only** — reports, never rewrites. |
-| `nix flake check` | treefmt check (which also parses the nvf Lua) plus the policy guards. |
+| `nix flake check` | treefmt check (which also parses the nvim Lua) plus the policy guards. |
 | `rb` / `dry` / `nsu` / `ntest` | rebuild, dry build, switch+update, test. |
 | `deploy-tv` | build the tv closure here, copy it over the LAN, then activate. |
 
@@ -134,8 +143,8 @@ Current rules: `modules-wired`, `dual-namespace-wired`, `tv-prefix`,
 `constants-intact`, `host-identity`, `single-dm`, `greeter-implies-greetd`,
 `no-tts`, `no-x-server`, `firewall`, `auto-gc`, `binary-cache`,
 `mariadb-loopback`, `noctalia-theming-runtime`, `noctalia-single-launcher`,
-`starship-unmanaged`, `umbriel-repeat-trap`, `nvf-lua-wired`,
-`nvf-palette-nix-only`.
+`starship-unmanaged`, `umbriel-repeat-trap`, `nvim-lua-wired`,
+`nvim-palette-not-in-lua`.
 
 The first three are about the wiring itself, and all three are things that used
 to be prose. `tv-prefix` is the clearest case: the `tv-` prefix was documented as

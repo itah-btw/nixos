@@ -88,29 +88,26 @@ let
     );
   };
 
-  # The Lua in nvf/ is data, not a module, so modules-wired cannot see it. A .lua
+  # The Lua in nvim/ is data, not a module, so modules-wired cannot see it. A .lua
   # nobody reads is dead; readDir maps names to bare strings, so attrNames first.
-  nvfLuaNames = lib.filter (name: lib.hasSuffix ".lua" name) (
-    builtins.attrNames (builtins.readDir ../nvf)
+  nvimLuaNames = lib.filter (name: lib.hasSuffix ".lua" name) (
+    builtins.attrNames (builtins.readDir ../nvim)
   );
 
-  nvfLua = {
-    onDisk = builtins.sort builtins.lessThan (map (n: lib.removeSuffix ".lua" n) nvfLuaNames);
-    # The readLua / readLuaAtConfigRoot arguments in nvf.nix.
+  nvimLua = {
+    onDisk = builtins.sort builtins.lessThan (map (n: lib.removeSuffix ".lua" n) nvimLuaNames);
+    # The cp arguments in neovim.nix. plugin-list.lua is the overlay, the other
+    # two are copied into after/plugin/.
     wired = [
       "noctalia-colors"
-      "tony-diagnostics"
-      "tony-docgen"
-      "tony-harpoon-picker"
+      "plugin-list"
       "tony-osc52"
-      "tony-quickformat"
-      "tony-telescope-extras"
     ];
     # A hex here is the palette written down twice.
     withHex = builtins.sort builtins.lessThan (
       lib.filter (
-        name: builtins.match ".*#[0-9a-fA-F]{6}.*" (builtins.readFile ../nvf/${name}) != null
-      ) nvfLuaNames
+        name: builtins.match ".*#[0-9a-fA-F]{6}.*" (builtins.readFile ../nvim/${name}) != null
+      ) nvimLuaNames
     );
   };
 
@@ -152,10 +149,12 @@ let
         .wiring as $w
         | def isTv: startswith("tv-");
           def wired($h): $h.nixos + $h.home;
-          def unsharedTv: isTv and (. as $n | $w.shared | index($n) == null);
           def unprefixedUnshared: (isTv | not) and (. as $n | $w.shared | index($n) == null);
-          ([ wired($w.perHost.tv)[] | select(unprefixedUnshared) ] | length) == 0
-          and ([ $w.perHost | to_entries[] | select(.key != "tv") | wired(.value)[] | select(unsharedTv) ] | length) == 0
+          def onTv: [ wired($w.perHost.tv)[] | select(unprefixedUnshared) ] | length;
+          # No exemption for a shared one: the prefix is a promise about the
+          # name, and a name that reaches hp is not TV-only whatever else uses it.
+          def offTv: [ $w.perHost | to_entries[] | select(.key != "tv") | wired(.value)[] | select(isTv) ] | length;
+          onTv == 0 and offTv == 0
       '';
     }
     {
@@ -247,18 +246,18 @@ let
       '';
     }
     {
-      name = "nvf-lua-wired";
-      cond = "(.nvfLua.onDisk - .nvfLua.wired) == [] and (.nvfLua.wired - .nvfLua.onDisk) == []";
+      name = "nvim-lua-wired";
+      cond = "(.nvimLua.onDisk - .nvimLua.wired) == [] and (.nvimLua.wired - .nvimLua.onDisk) == []";
     }
     {
-      name = "nvf-palette-nix-only";
-      # The palette is written down once, in nvf.nix.
-      cond = ".nvfLua.withHex == []";
+      name = "nvim-palette-not-in-lua";
+      # The palette lives in matugen.lua, which Noctalia writes at runtime.
+      cond = ".nvimLua.withHex == []";
     }
   ];
 
   facts = {
-    inherit wiring nvfLua;
+    inherit wiring nvimLua;
     constants = builtins.attrNames constants;
     hosts = lib.listToAttrs (map (n: lib.nameValuePair n (factsFor n)) (builtins.attrNames hosts));
   };

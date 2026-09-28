@@ -17,7 +17,7 @@
     {
       treefmt.settings.global.excludes = excludes;
       treefmt.programs.nixfmt.enable = true;
-      # The hand-written Lua in nvf/, which also makes checks.treefmt a Lua
+      # The hand-written Lua in nvim/, which also makes checks.treefmt a Lua
       # syntax check -- stylua parses what it formats.
       treefmt.programs.stylua = {
         enable = true;
