@@ -16,18 +16,15 @@
       customPalettes = { };
 
       settings = {
-        shell = {
-          font_family = "Inter";
-          # Umbriel blurs these.
-          settings_window_translucent = true;
-          panel.transparency_mode = "glass";
-        };
+        # Surfaces are solid on purpose, so panel transparency mode, the settings
+        # window and the bar's background opacity are all left at their opaque
+        # defaults; umbriel.nix is opaque for the same reason.
+        shell.font_family = "Inter";
         brightness = {
           # 0% on this panel is unusably black, and umbriel.nix's fallback can ask.
           minimum_brightness = 0.01;
         };
         bar.main = {
-          background_opacity = 0.75;
           # Default end row minus the two that have keybinds: Mod+V, brightness.
           end = [
             "media"

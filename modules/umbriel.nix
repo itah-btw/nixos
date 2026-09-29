@@ -33,8 +33,6 @@
           appearance = {
             # Square windows; Umbriel's default is 10.
             corner_radius = 0;
-            # Let translucent fullscreen windows blur the desktop, not go opaque.
-            opaque_fullscreen = false;
             # `enabled`/`optimized` are Umbriel defaults that the rules below
             # switch on per surface; the layer rule turns `optimized` off so
             # panels blur windows rather than the wallpaper.
@@ -45,32 +43,17 @@
             };
           };
 
-          # Later rules win per field, and blur only shows on transparent
-          # surfaces. Kitty's own background_opacity is 1.0 (apps.nix), so these
-          # are the effective alphas.
+          # Blur only, and only where it can show: nothing here lowers opacity,
+          # so the blur is inert until an app draws its own alpha. Umbriel's
+          # opacity default is 1.0, i.e. no translucency.
           window_rule = [
             {
               blur = true;
             }
-            {
-              match.is_focused = false;
-              opacity = 0.8;
-            }
-            {
-              # Settings draws its own background, so the 0.8 dim let too much
-              # bright wallpaper through.
-              match.app_id = "^dev[.]noctalia[.]Noctalia$";
-              opacity = 1.0;
-            }
-            {
-              match.app_id = "^kitty$";
-              match.is_focused = true;
-              opacity = 0.9;
-            }
           ];
 
-          # Noctalia surfaces stay translucent. No wallpaper/backdrop match:
-          # blurring those would blur the wallpaper itself.
+          # No wallpaper/backdrop match: blurring those would blur the
+          # wallpaper itself.
           layer_rule = [
             {
               match.namespace = "^noctalia-(bar-.+|panel|attached-panel|notification|osd|dock|window-switcher)$";

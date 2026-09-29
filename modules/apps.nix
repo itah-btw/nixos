@@ -70,7 +70,6 @@
       # Also in tv-packages.nix: used from hp too, not just the TV. 184 MiB of
       # closure, nearly all webkitgtk+abi=6.0, which only stremio pulls in.
       stremio-linux-shell
-
       proton-authenticator
       proton-vpn
       libreoffice
