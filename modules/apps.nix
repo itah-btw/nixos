@@ -40,8 +40,8 @@
       name = "adw-gtk3";
     };
     gtk.iconTheme = {
-      package = pkgs.papirus-icon-theme;
-      name = "Papirus-Dark";
+      package = pkgs.adwaita-icon-theme;
+      name = "Adwaita";
     };
 
     xdg.configFile."xdg-terminals.list".text = ''

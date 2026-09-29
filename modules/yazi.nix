@@ -1,5 +1,5 @@
 {
-  flake.homeManagerModules.yazi = { pkgs, ... }: {
+  flake.homeManagerModules.yazi = { config, pkgs, ... }: {
     programs.yazi = {
       enable = true;
       enableBashIntegration = true;
@@ -160,6 +160,7 @@
       name = "Yazi File Manager";
       comment = "Open directory in the yazi terminal file manager";
       exec = "kitty --class yazi -e yazi %f";
+      icon = "yazi";
       terminal = false;
       mimeType = [ "inode/directory" ];
       categories = [
@@ -168,6 +169,9 @@
         "FileTools"
       ];
     };
+
+    home.file.".local/share/icons/hicolor/512x512/apps/yazi.png".source =
+      "${config.programs.yazi.package}/share/pixmaps/yazi.png";
 
   };
 }
