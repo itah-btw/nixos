@@ -1,6 +1,6 @@
-# Plasma Big Screen (10-foot UI) on Wayland, SDDM autologin.
+# Appliance power: always-on, never suspend, no daemons this box cannot use.
 {
-  flake.nixosModules.tv-bigscreen =
+  flake.nixosModules.tv-system =
     {
       constants,
       lib,
@@ -8,8 +8,6 @@
       ...
     }:
     {
-      # X11 *clients* still work: Plasma 6 runs XWayland from plasma-workspace,
-      # so this costs only a second login surface and some RAM.
       services.xserver.enable = false;
 
       services.displayManager = {
@@ -26,13 +24,11 @@
 
       services.desktopManager.plasma6 = {
         enable = true;
-        # No Qt 5 app here: Firefox is not Qt, Stremio is GTK4, mpv is Qt 6.
         enableQt5Integration = false;
       };
       xdg.portal.configPackages = [ pkgs.kdePackages.plasma-bigscreen ];
 
       # Optional apps a 10-foot appliance never opens. Kept anyway: the required
-      # set, qtbase/qttools (xdg-mime, xdg-terminal, qdbus kdeconnect), and konsole.
       environment.plasma6.excludePackages = with pkgs.kdePackages; [
         kwin-x11
         kate
@@ -44,8 +40,6 @@
 
       programs.kdeconnect.enable = true;
 
-      # Intel HD 2500 (Ivy Bridge) via the community i965 VA-API driver. No
-      # HEVC/VP9/AV1 engine: 1080p is fine, 4K is not (AV1 0.9x realtime).
       hardware.graphics.extraPackages = [ pkgs.intel-vaapi-driver ];
 
       services.pulseaudio.enable = false;
@@ -59,5 +53,25 @@
 
       services.orca.enable = lib.mkForce false;
       services.speechd.enable = lib.mkForce false;
+
+      services.power-profiles-daemon.enable = false;
+      powerManagement.cpuFreqGovernor = "performance";
+
+      services.upower.enable = lib.mkForce false;
+      services.fwupd.enable = lib.mkForce false;
+      networking.wireless.enable = lib.mkForce false;
+      systemd.services.ModemManager.enable = false;
+
+      systemd.sleep.settings.Sleep = {
+        AllowHibernation = "no";
+        AllowHybridSleep = "no";
+        AllowSuspend = "no";
+        AllowSuspendThenHibernate = "no";
+      };
+
+      zramSwap = {
+        enable = true;
+        memoryPercent = 50;
+      };
     };
 }

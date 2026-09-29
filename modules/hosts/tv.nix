@@ -1,4 +1,3 @@
-# tv: Plasma Big Screen appliance; the other composition point is hp.nix.
 {
   inputs,
   config,
@@ -6,23 +5,19 @@
   ...
 }:
 let
-  # Sorted so adding a module is a one-line diff. Order does change the store
-  # hash (see the nixos skill) but not what the system is.
+  constants = config.flake.constants;
   wiring = {
     nixos = [
       "boot"
-      "locale"
+      "identity"
       "networking"
       "nix"
-      "nixpkgs"
       "shared-packages"
-      "tv-bigscreen"
       "tv-display"
       "tv-hdd"
       "tv-openssh"
       "tv-packages"
-      "tv-power"
-      "user"
+      "tv-system"
     ];
     home = [
       "identity"
@@ -37,20 +32,15 @@ in
     inherit inputs config;
     name = "tv";
     inherit wiring;
-    stateVersion = "26.11";
+    inherit (constants) stateVersion;
     hardware = ../../hardware-configuration-tv.nix;
 
     hmImports = [ inputs.plasma-manager.homeModules.plasma-manager ];
 
     extra = {
-      # Only for reaching an older generation. Not 0: no rescue entry beats
-      # two seconds of black.
       boot.loader.timeout = 2;
 
-      # avahi mDNS on the wired NIC only, in place of openFirewall: a fixed
-      # appliance has no roaming interface, but this keeps the discovery
-      # surface identical to the laptops'.
-      networking.firewall.interfaces."enp2s0".allowedUDPPorts = [ 5353 ];
+      networking.firewall.interfaces.${constants.lanIface}.allowedUDPPorts = [ constants.mdnsPort ];
     };
   };
 }

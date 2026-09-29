@@ -1,4 +1,3 @@
-# Fish login shell + Starship + direnv. Aliases: aliases.nix.
 {
   flake.nixosModules.shell = { constants, pkgs, ... }: {
     programs.fish.enable = true;
@@ -14,8 +13,6 @@
       '';
     };
 
-    # Integration only. starship.toml is Noctalia's (palette sync); HM content
-    # would make it a read-only symlink (noctalia #3101). starship-unmanaged.
     programs.starship = {
       enable = true;
       enableFishIntegration = true;

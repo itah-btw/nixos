@@ -1,10 +1,6 @@
-# Flake-private plumbing: wiring table, shared scalars, and the Home Manager
-# namespace flake-parts does not ship. `nix flake check` reports all four as
 # "unknown flake output"; expected. A leading `_` does NOT silence that --
-# flake-parts then resolves the option to nothing.
 { lib, ... }:
 let
-  # The nixosSystem call, shared by both hosts. Via _module.args, not
   # config.flake: see the nixos skill's traps 9 and 10 before moving it.
   mkHost =
     {
@@ -24,34 +20,38 @@ let
     inputs.nixpkgs.lib.nixosSystem {
       system = "x86_64-linux";
       specialArgs = { inherit inputs constants; };
-      modules =
-        # One of the two path imports in the flake; the other is tv's.
-        [ hardware ]
-        ++ nixosImports
-        ++ [
-          inputs.home-manager.nixosModules.home-manager
-          (_: {
-            networking.hostName = name;
-            system.stateVersion = stateVersion;
+      modules = [
+        hardware
+      ]
+      ++ nixosImports
+      ++ [
+        inputs.home-manager.nixosModules.home-manager
+        (_: {
+          networking.hostName = name;
+          system.stateVersion = stateVersion;
 
-            home-manager = config.flake.hmDefaults // {
-              extraSpecialArgs = { inherit inputs constants; };
-              users.${constants.username}.imports =
-                hmImports ++ map (n: config.flake.homeManagerModules.${n}) wiring.home;
-            };
-          })
-        ]
-        ++ lib.optionals (extra != { }) [ extra ]
-        ++ map (n: config.flake.nixosModules.${n}) wiring.nixos;
+          home-manager = config.flake.hmDefaults // {
+            extraSpecialArgs = { inherit inputs constants; };
+            users.${constants.username}.imports =
+              hmImports ++ map (n: config.flake.homeManagerModules.${n}) wiring.home;
+          };
+        })
+      ]
+      ++ lib.optionals (extra != { }) [ extra ]
+      ++ map (n: config.flake.nixosModules.${n}) wiring.nixos;
     };
 in
 {
   config._module.args.mkHost = mkHost;
 
-  # Threaded in via specialArgs / extraSpecialArgs: neither module system can
   # read `config.flake.*` from inside a module. checks.nix guards the key set.
   options.flake.constants = lib.mkOption {
-    type = lib.types.attrsOf lib.types.str;
+    type = lib.types.attrsOf (
+      lib.types.oneOf [
+        lib.types.str
+        lib.types.int
+      ]
+    );
     default = {
       username = "itah";
       root = "/etc/nixos";
@@ -59,24 +59,37 @@ in
       timeZone = "Asia/Jakarta";
       locale = "en_US.UTF-8";
       tvAddress = "192.168.0.62";
+      stateVersion = "26.11";
+      wlanIface = "wlan0";
+      lanIface = "enp2s0";
+      localsendPort = 53317;
+      mdnsPort = 5353;
+      sshPort = 22;
+      tvOutput = "HDMI-A-1";
+      tvMode = "1920x1080@60";
+      tvRate = 60;
+      mediaMount = "/mnt/media";
+      mediaLabel = "hdd";
+      cursorTheme = "Bibata-Modern-Ice";
+      cursorSize = 24;
+      sansFont = "Inter";
+      monoFont = "JetBrainsMono Nerd Font";
+      generationKeep = 5;
+      sshKey = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIIaw6LDDl480KBPXmmDpcy0jlMWMZFHCw635SvaH4HA3 itah@hp-nixos";
     };
     description = "Single source of truth for values shared across modules.";
   };
 
-  # Merged with the per-host parts in modules/hosts/*.nix.
   options.flake.hmDefaults = lib.mkOption {
     type = lib.types.attrs;
     default = {
       useGlobalPkgs = true;
       useUserPackages = true;
-      # Move a clobbering file aside rather than failing activation, which
-      # would leave the system switched and the home stale.
       backupFileExtension = "hm-backup";
     };
     description = "Home Manager options shared by every host.";
   };
 
-  # Hosts declare their module names here and compose from this same list, so
   # the declaration IS the wiring that checks.nix asserts.
   options.flake.hostModules = lib.mkOption {
     type = lib.types.attrsOf (

@@ -1,4 +1,3 @@
-# Umbriel compositor, user config. System side: session.nix.
 {
   flake.homeManagerModules.umbriel =
     {
@@ -10,32 +9,20 @@
       programs.umbriel = {
         enable = true;
         settings = {
-          # [colors] arrives at runtime via this include; apply.sh cannot edit the
-          # read-only symlink.
           include.optional.files = [ "noctalia.toml" ];
 
-          # Unlisted keys keep Umbriel's defaults.
           general = {
-            # The primary way Noctalia starts (NOT systemd; noctalia.nix).
-            autostart = [
-              "noctalia"
-              "kdeconnect-indicator"
-            ];
+            autostart = [ "noctalia" ];
             show_cheatsheet = false;
           };
 
           layout.scrolling = {
-            # Default true, which centres a half-filled strip.
             center_underfull_strip = false;
             default_extent_fraction = 0.5;
           };
 
           appearance = {
-            # Square windows; Umbriel's default is 10.
             corner_radius = 0;
-            # `enabled`/`optimized` are Umbriel defaults that the rules below
-            # switch on per surface; the layer rule turns `optimized` off so
-            # panels blur windows rather than the wallpaper.
             blur = {
               radius = 12;
               brightness = 0.95;
@@ -43,17 +30,12 @@
             };
           };
 
-          # Blur only, and only where it can show: nothing here lowers opacity,
-          # so the blur is inert until an app draws its own alpha. Umbriel's
-          # opacity default is 1.0, i.e. no translucency.
           window_rule = [
             {
               blur = true;
             }
           ];
 
-          # No wallpaper/backdrop match: blurring those would blur the
-          # wallpaper itself.
           layer_rule = [
             {
               match.namespace = "^noctalia-(bar-.+|panel|attached-panel|notification|osd|dock|window-switcher)$";
@@ -65,14 +47,12 @@
           ];
 
           input = {
-            # Layout from flake.constants, the same value the greeter reads.
             keyboard = {
               inherit (constants) layout;
               repeat_rate = 40;
               repeat_delay = 200;
             };
             touchpad.natural_scroll = true;
-            # Single source of truth: cursor.nix.
             cursor = {
               theme = config.home.pointerCursor.name;
               size = config.home.pointerCursor.size;
@@ -80,17 +60,10 @@
           };
 
           keybinds = {
-            # Meant to be exhaustive, so nothing fires from a default nobody wrote
-            # down. A string form resets repeat to true, hence table form below and
             # umbriel-repeat-trap. Only the keypad workspace chords are left live;
-            # this laptop has no numpad.
 
-            # --- Apps & session ---
             "Mod+Return" = "spawn:kitty";
             "Mod" = "spawn:noctalia msg panel-toggle launcher";
-            # Table form, not a string: Umbriel ships this chord with
-            # repeat=false, and the string form resets repeat to true, so
-            # holding Mod+Q would close every window focus lands on.
             "Mod+Q" = {
               action = "window-close";
               repeat = false;
@@ -104,18 +77,12 @@
             };
             "Mod+Slash" = "cheatsheet-toggle";
 
-            # --- App launches ---
             "Mod+E" = "spawn:kitty yazi";
             "Mod+B" = "spawn:firefox";
-            "Mod+Shift+F23" = "spawn:kitty -d /home/${constants.username}/Projects opencode";
+            "Mod+Shift+F23" = "spawn:kitty -d ${config.home.homeDirectory}/Projects opencode";
             "Mod+I" = "spawn:protonvpn-app";
             "Mod+Shift+E" = "spawn:noctalia msg panel-toggle launcher /emo";
 
-            # --- Focus ---
-            # HJKL restates the arrow binds on purpose: the left hand lives there.
-            # Both sets also match Umbriel defaults; listed in full so the whole
-            # layout reads in one place and an upstream default change cannot
-            # silently move a key.
             "Mod+Left" = "window-focus-left";
             "Mod+Down" = "window-focus-down";
             "Mod+Up" = "window-focus-up";
@@ -129,7 +96,6 @@
             "Mod+WheelUp" = "window-focus-left";
             "Mod+WheelDown" = "window-focus-right";
 
-            # --- Move / consume / extents ---
             "Mod+Shift+Left" = "column-move-left";
             "Mod+Shift+Down" = "window-move-down";
             "Mod+Shift+Up" = "window-move-up";
@@ -140,7 +106,6 @@
             "Mod+Shift+L" = "column-move-right";
             "Mod+Bracketleft" = "window-consume-or-expel-left";
             "Mod+Bracketright" = "window-consume-or-expel-right";
-            # Kept upstream: a third chord for the consume binds above.
             "Mod+Period" = "window-consume-right";
             "Mod+R" = "window-cycle-primary-extent";
             "Mod+Shift+R" = "window-cycle-primary-extent-back";
@@ -152,18 +117,14 @@
             "Mod+Shift+Equal" = "window-modify-secondary-extent:0.1";
             "Mod+Ctrl+T" = "workspace-set-layout:toggle";
 
-            # --- Window state ---
             "Mod+T" = "window-toggle-floating";
             "Mod+Shift+T" = "window-focus-switch-floating";
             "Mod+P" = "window-toggle-pinned";
             "Mod+M" = "window-toggle-maximize-to-edges";
             "Mod+F" = "window-toggle-maximize";
             "Mod+Shift+F" = "window-toggle-fullscreen";
-            # Kept upstream: a second maximize path.
             "Mod+Ctrl+F" = "window-toggle-maximize";
 
-            # --- Workspaces ---
-            # Mod+O is a table so the overview cannot thrash open/closed while held.
             "Mod+O" = {
               action = "overview-toggle";
               repeat = false;
@@ -189,19 +150,9 @@
             "Mod+Page_Up" = "workspace-previous";
             "Mod+Page_Down" = "workspace-next";
 
-            # --- Power ---
-            # No hardware key for this on this laptop: KEY_DISPLAY_OFF (253)
-            # and KEY_SCREENSAVER (160) are not advertised by any of its input
             # devices, so those keysyms would never fire here. Any later
-            # keypress or pointer motion wakes the panel again
-            # (Server::wakeDpmsOutputs), and the wake runs *before* the
-            # action, so this key cannot double as a toggle.
             "Mod+Shift+D" = "dpms-off";
 
-            # --- Outputs (multi-monitor) ---
-            # Ctrl+arrows focus an output, Ctrl+Shift+arrows move the window there,
-            # Alt+arrows swap this workspace with the one on that output. HJKL is
-            # again a deliberate duplicate of the arrows.
             "Mod+Ctrl+Left" = "output-focus-left";
             "Mod+Ctrl+Down" = "output-focus-down";
             "Mod+Ctrl+Up" = "output-focus-up";
@@ -232,9 +183,6 @@
             "Mod+Ctrl+Space" = "window-restore-from-scratchpad";
             "Mod+Tab" = "scratchpad-focus-next";
 
-            # --- Noctalia shell (IPC) ---
-            # Routed through `noctalia msg` rather than bound to Noctalia surfaces
-            # directly, so panels and the OSD animate. Screenshots on Print.
             "Mod+S" = "spawn:noctalia msg panel-toggle control-center";
             "Mod+Comma" = "spawn:noctalia msg settings-toggle";
             "Mod+V" = "spawn:noctalia msg panel-toggle clipboard";
@@ -256,10 +204,6 @@
             "Mod+Ctrl+A" = "spawn:noctalia msg annotate";
             "Mod+Shift+O" = "spawn:ocr-copy";
 
-            # --- Media / volume / brightness ---
-            # Volume and media go via Noctalia so the OSD shows. Brightness calls
-            # the local ladder script, and both are allow_when_locked so they work
-            # on the lock screen.
             "XF86AudioRaiseVolume" = "spawn:noctalia msg volume-up";
             "XF86AudioLowerVolume" = "spawn:noctalia msg volume-down";
             "XF86AudioMute" = "spawn:noctalia msg volume-mute";

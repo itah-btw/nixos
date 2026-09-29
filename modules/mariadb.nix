@@ -1,5 +1,3 @@
-# MariaDB server (loopback-only, manual start) + mycli. Not auto-started:
-# sudo systemctl start mysql.
 {
   flake.nixosModules.mariadb = { pkgs, lib, ... }: {
     services.mysql = {

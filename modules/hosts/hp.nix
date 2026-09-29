@@ -1,4 +1,3 @@
-# hp: Umbriel + Noctalia laptop; the other composition point is tv.nix.
 {
   inputs,
   config,
@@ -6,41 +5,32 @@
   ...
 }:
 let
-  # Sorted so adding a module is a one-line diff. Order does change the store
-  # hash (see the nixos skill) but not what the system is.
+  constants = config.flake.constants;
   wiring = {
     nixos = [
       "boot"
-      "fingerprint"
-      "hp-packages"
-      "keyring"
-      "locale"
+      "identity"
       "mariadb"
       "networking"
       "nix"
-      "nixpkgs"
       "performance"
+      "security"
       "session"
       "shared-packages"
       "shell"
-      "user"
     ];
     home = [
       "aliases"
-      "android"
       "apps"
       "base"
-      "brightness"
-      "c-toolchain"
       "cli-tools"
-      "cursor"
+      "dev"
       "identity"
       "mariadb"
       "neovim"
       "noctalia"
-      "ocr"
+      "scripts"
       "shell"
-      "tridactyl"
       "umbriel"
       "yazi"
     ];
@@ -53,7 +43,7 @@ in
     inherit inputs config;
     name = "hp";
     inherit wiring;
-    stateVersion = "26.11";
+    inherit (constants) stateVersion;
     hardware = ../../hardware-configuration.nix;
 
     nixosImports = [
@@ -67,28 +57,11 @@ in
     ];
 
     extra = {
-      # LocalSend (53317) and KDE Connect (1714-1764), plus avahi's own
-      # discovery port, scoped to the wifi NIC: a global port leaks discovery
-      # onto any network joined.
-      networking.firewall.interfaces."wlan0" = {
-        allowedTCPPorts = [ 53317 ];
-        # UDP 5353 is avahi's mDNS, the rule openFirewall used to add
-        # globally; upstream opens the UDP port only.
+      networking.firewall.interfaces.${constants.wlanIface} = {
+        allowedTCPPorts = [ constants.localsendPort ];
         allowedUDPPorts = [
-          5353
-          53317
-        ];
-        allowedTCPPortRanges = [
-          {
-            from = 1714;
-            to = 1764;
-          }
-        ];
-        allowedUDPPortRanges = [
-          {
-            from = 1714;
-            to = 1764;
-          }
+          constants.mdnsPort
+          constants.localsendPort
         ];
       };
     };

@@ -1,9 +1,3 @@
--- matugen.lua (Noctalia's output) sets vim.g.base16_gui00..0F via
--- base16-colorscheme, so no colour literal lives here.
--- With the globals missing, lualine is left alone rather than given a stale copy.
---
--- Manual re-sync: :NoctaliaTheme
-
 local function palette_slot(name)
   local value = vim.g["base16_gui" .. name]
   if type(value) == "string" and value:match("^#%x%x%x%x%x%x$") then
@@ -12,8 +6,6 @@ local function palette_slot(name)
   return nil
 end
 
--- Nil when a slot is unreadable, the signal to leave lualine alone. b05 is not
--- read: lualine draws no foreground from it.
 local function lualine_theme()
   local b00 = palette_slot("00")
   local b01 = palette_slot("01")
@@ -77,7 +69,6 @@ local function apply_lualine()
 end
 
 local function sync()
-  -- Dropping matugen from package.loaded picks up the file just rewritten.
   local ok, matugen = pcall(require, "matugen")
   if ok and matugen then
     pcall(matugen.setup)
@@ -88,7 +79,6 @@ end
 vim.api.nvim_create_autocmd("VimEnter", {
   group = vim.api.nvim_create_augroup("NoctaliaColors", { clear = true }),
   callback = function()
-    -- Once per process, so there is no earlier handle to tear down.
     sync()
     local signal = vim.uv.new_signal()
     _G.__matugen_signal = signal

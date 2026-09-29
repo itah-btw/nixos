@@ -1,4 +1,3 @@
-# Yazi: the terminal file manager, and the desktop's directory opener.
 {
   flake.homeManagerModules.yazi = { pkgs, ... }: {
     programs.yazi = {
@@ -90,9 +89,6 @@
             }
           ];
         };
-        # yazi matches only the FIRST rule whose mime matches
-        # (yazi-config/src/open/open_rules.rs:26), so order is load-bearing:
-        # text/html would otherwise be claimed by the text/* rule below and
         # never reach Firefox.
         open.prepend_rules = [
           {
@@ -155,16 +151,11 @@
       };
     };
 
-    # yazi as the directory-opener. enable travels with the default it exists
-    # for: without it, the mapping below is inert.
     xdg.mimeApps = {
       enable = true;
       defaultApplications."inode/directory" = "yazi.desktop";
     };
 
-    # The stock yazi .desktop sets Terminal=true and runs `yazi %f` with no TTY
-    # (ENOTTY, nothing opens). Ours opens in kitty, so it is registered as a
-    # non-terminal in apps.nix's xdg-terminals.list.
     xdg.desktopEntries.yazi = {
       name = "Yazi File Manager";
       comment = "Open directory in the yazi terminal file manager";
@@ -175,7 +166,6 @@
         "System"
         "FileManager"
         "FileTools"
-        "ConsoleOnly"
       ];
     };
 

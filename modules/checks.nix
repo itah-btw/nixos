@@ -1,7 +1,4 @@
-# Policy guards, run by `nix flake check`. One jq predicate per rule over a
-# single JSON blob of the whole flake, so one build reports every failure. Rules
-# are `all(.[]; ...)` over the per-host facts: repeated per host, a rule for a
-# one-host feature is vacuous on the other and still costs a build.
+# Policy guards, run by `nix build .#checks.x86_64-linux.policy`. One jq predicate
 {
   config,
   lib,
@@ -11,8 +8,6 @@ let
   hosts = config.flake.nixosConfigurations;
   constants = config.flake.constants;
 
-  # US separates name from condition, RS separates records. Neither can occur in a
-  # rule, which is what keeps multi-line jq programs intact.
   us = builtins.fromJSON "\"\\u001f\"";
   rs = builtins.fromJSON "\"\\u001e\"";
 
@@ -51,8 +46,6 @@ let
       umbrielKeybinds = if hm != null then (hm.programs.umbriel.settings.keybinds or { }) else { };
     };
 
-  # Sorted and de-duplicated: order-insensitive, and a name in both namespaces
-  # (mariadb, shell) collapses to one.
   names =
     xs:
     builtins.sort builtins.lessThan (
@@ -66,8 +59,6 @@ let
     declared = names (
       lib.concatMap (h: h.nixos ++ h.home) (builtins.attrValues config.flake.hostModules)
     );
-    # A name in both namespaces collapses to one entry above, so the union
-    # comparison cannot see a host that wired one side only. dual-namespace-wired.
     dual = builtins.sort builtins.lessThan (
       lib.filter (n: builtins.hasAttr n config.flake.homeManagerModules) (
         builtins.attrNames config.flake.nixosModules
@@ -77,7 +68,6 @@ let
       nixos = names h.nixos;
       home = names h.home;
     }) config.flake.hostModules;
-    # Derived, not hand-maintained: wired by more than one host. tv-prefix's input.
     shared = names (
       lib.filter (
         n:
@@ -88,22 +78,17 @@ let
     );
   };
 
-  # The Lua in nvim/ is data, not a module, so modules-wired cannot see it. A .lua
-  # nobody reads is dead; readDir maps names to bare strings, so attrNames first.
   nvimLuaNames = lib.filter (name: lib.hasSuffix ".lua" name) (
     builtins.attrNames (builtins.readDir ../nvim)
   );
 
   nvimLua = {
     onDisk = builtins.sort builtins.lessThan (map (n: lib.removeSuffix ".lua" n) nvimLuaNames);
-    # The cp arguments in neovim.nix. plugin-list.lua is the overlay, the other
-    # two are copied into after/plugin/.
     wired = [
       "noctalia-colors"
       "plugin-list"
       "tony-osc52"
     ];
-    # A hex here is the palette written down twice.
     withHex = builtins.sort builtins.lessThan (
       lib.filter (
         name: builtins.match ".*#[0-9a-fA-F]{6}.*" (builtins.readFile ../nvim/${name}) != null
@@ -111,27 +96,39 @@ let
     );
   };
 
-  # A typo here would evaluate to "" and silently blank out a value.
   expectedConstants = builtins.sort builtins.lessThan [
-    "locale"
+    "cursorSize"
+    "cursorTheme"
+    "generationKeep"
+    "lanIface"
     "layout"
+    "locale"
+    "localsendPort"
+    "mdnsPort"
+    "mediaLabel"
+    "mediaMount"
+    "monoFont"
     "root"
+    "sansFont"
+    "sshKey"
+    "sshPort"
+    "stateVersion"
     "timeZone"
     "tvAddress"
+    "tvMode"
+    "tvOutput"
+    "tvRate"
     "username"
+    "wlanIface"
   ];
 
   rules = [
     {
       name = "modules-wired";
-      # Both ways: an unreferenced module is dead, an unknown name fails later.
       cond = "(.wiring.defined - .wiring.declared) == [] and (.wiring.declared - .wiring.defined) == []";
     }
     {
       name = "dual-namespace-wired";
-      # Half-wiring a dual module satisfies modules-wired. "Present means both
-      # halves" -- not "every dual module in both lists", which would reject a
-      # host needing just the nixos half.
       cond = ''
         .wiring as $w
         | $w.perHost | to_entries | all(.[];
@@ -143,16 +140,12 @@ let
     }
     {
       name = "tv-prefix";
-      # No directory namespace, so a tv-only module's NAME has to say so. Found
-      # hdd.nix (tv-only, unprefixed) on its first run.
       cond = ''
         .wiring as $w
         | def isTv: startswith("tv-");
           def wired($h): $h.nixos + $h.home;
           def unprefixedUnshared: (isTv | not) and (. as $n | $w.shared | index($n) == null);
           def onTv: [ wired($w.perHost.tv)[] | select(unprefixedUnshared) ] | length;
-          # No exemption for a shared one: the prefix is a promise about the
-          # name, and a name that reaches hp is not TV-only whatever else uses it.
           def offTv: [ $w.perHost | to_entries[] | select(.key != "tv") | wired(.value)[] | select(isTv) ] | length;
           onTv == 0 and offTv == 0
       '';
@@ -191,7 +184,6 @@ let
     }
     {
       name = "binary-cache";
-      # Without the key Nix refuses the substituter.
       cond = ''
         .hosts | all(.[];
           (.substituters | index("https://noctalia.cachix.org")) != null
@@ -204,7 +196,6 @@ let
     }
     {
       name = "noctalia-theming-runtime";
-      # Theming stays Noctalia's.
       cond = ''
         .hosts | all(.[];
           if .hasNoctalia
@@ -226,14 +217,10 @@ let
     }
     {
       name = "starship-unmanaged";
-      # starship.toml is Noctalia's; HM would make it a read-only symlink.
       cond = ".hosts | all(.[]; (.starshipSettings == {}) and (.starshipPresets == []))";
     }
     {
       name = "umbriel-repeat-trap";
-      # A string form resets repeat to true, so holding Mod+Q closed every window
-      # focus landed on. A chord deleted from umbriel.nix passes on purpose: this
-      # is about how a chord is written, not that it exists.
       cond = ''
         def noRepeat($host; $chord):
           ($host.umbrielKeybinds[$chord] // null) as $b
@@ -251,7 +238,6 @@ let
     }
     {
       name = "nvim-palette-not-in-lua";
-      # The palette lives in matugen.lua, which Noctalia writes at runtime.
       cond = ".nvimLua.withHex == []";
     }
   ];
@@ -262,16 +248,12 @@ let
     hosts = lib.listToAttrs (map (n: lib.nameValuePair n (factsFor n)) (builtins.attrNames hosts));
   };
 
-  # An unread fact still costs eval on every check. Nix-side, not a rule: no jq
-  # program can see the other rules' text.
   unusedFacts = lib.filter (k: !lib.any (r: lib.hasInfix ".${k}" r.cond) rules) (
     builtins.attrNames facts
   );
 
   blob =
-    assert
-      unusedFacts == [ ]
-      || builtins.trace "flake-policy: facts no rule reads: ${builtins.toJSON unusedFacts}" true;
+    assert unusedFacts == [ ];
     builtins.toJSON facts;
 in
 {
@@ -279,7 +261,6 @@ in
     { pkgs, ... }:
     {
       checks = {
-        # Per-rule verdict, all failures together.
         policy =
           pkgs.runCommand "flake-policy"
             {
@@ -302,7 +283,7 @@ in
                   echo "ok   $name"
                 else
                   echo "FAIL $name"
-                  jq "$cond" "$blobPath" 2>&1 | sed 's/^/       /' | head -10
+                  jq "$cond" "$blobPath" 2>&1 | sed 's/^/       /' | head -50
                   status=1
                 fi
               done < "$rulesPath"
