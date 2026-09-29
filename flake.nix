@@ -48,7 +48,7 @@
 
     # Dendritic plumbing: every file under ./modules is auto-imported, each
     # defining one feature whose module name matches its filename. The
-    # directory groups, it never namespaces. hosts/*.nix compose. See README.md.
+    # directory groups, it never namespaces. hosts/*.nix compose.
     flake-parts.url = "github:hercules-ci/flake-parts";
     import-tree.url = "github:denful/import-tree";
   };

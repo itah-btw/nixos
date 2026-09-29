@@ -1,5 +1,5 @@
 # sshd for deploys, plus WoL. No passwordless sudo rule, and one could not be
-# scoped: activating a closure runs its code as root. See README.md.
+# scoped: activating a closure runs its code as root.
 {
   flake.nixosModules.tv-openssh = { constants, ... }: {
     networking.interfaces.enp2s0.wakeOnLan.enable = true;
