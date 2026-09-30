@@ -25,11 +25,11 @@
         ]
       },
       "locked": {
-        "lastModified": 1790791714,
-        "narHash": "sha256-QrjzGWirRBx+F/G6X0rt/SYYuSoWLiMGlzpgJ1T47RQ=",
+        "lastModified": 1790792194,
+        "narHash": "sha256-404+/PoCo34O0iruXzN2nY3sh2ZP7dxmdQ+duis2arI=",
         "owner": "nix-community",
         "repo": "home-manager",
-        "rev": "7c0c726efebae52925d0d6d280291b8feb520b8b",
+        "rev": "fab715cc65199017cc4d86312eb07c01230b01a4",
         "type": "github"
       },
       "original": {
@@ -50,6 +50,22 @@
       "original": {
         "owner": "denful",
         "repo": "import-tree",
+        "type": "github"
+      }
+    },
+    "mesa-pinned": {
+      "locked": {
+        "lastModified": 1790578696,
+        "narHash": "sha256-ZoxIApko70jCdbH3l20HWXOBaT2HZd87orzd2yJ9dVE=",
+        "owner": "nixos",
+        "repo": "nixpkgs",
+        "rev": "7a0f122f5090cf4c2ade2a13a0e229d4e19ba71f",
+        "type": "github"
+      },
+      "original": {
+        "owner": "nixos",
+        "repo": "nixpkgs",
+        "rev": "7a0f122f5090cf4c2ade2a13a0e229d4e19ba71f",
         "type": "github"
       }
     },
@@ -164,6 +180,7 @@
         "flake-parts": "flake-parts",
         "home-manager": "home-manager",
         "import-tree": "import-tree",
+        "mesa-pinned": "mesa-pinned",
         "nixpkgs": "nixpkgs",
         "noctalia": "noctalia",
         "noctalia-greeter": "noctalia-greeter",
