@@ -11,6 +11,17 @@ let
   us = builtins.fromJSON "\"\\u001f\"";
   rs = builtins.fromJSON "\"\\u001e\"";
 
+  # Text after `marker`, up to the next double quote. null if marker is absent.
+  quotedAfter =
+    marker: text:
+    let
+      parts = lib.splitString marker text;
+    in
+    if builtins.length parts < 2 then
+      null
+    else
+      lib.head (lib.splitString "\"" (lib.head (lib.tail parts)));
+
   factsFor =
     name:
     let
@@ -34,6 +45,11 @@ let
       substituters = cfg.nix.settings.extra-substituters or [ ];
       trustedKeys = cfg.nix.settings.extra-trusted-public-keys or [ ];
       mysqlBind = cfg.services.mysql.settings.mysqld.bind-address or null;
+      mysqlEnabled = cfg.services.mysql.enable or false;
+      mysqlWantedBy = cfg.systemd.services.mysql.wantedBy or [ ];
+      mediaMountOptions = cfg.fileSystems.${constants.mediaMount}.options or [ ];
+      autologinUser = cfg.services.displayManager.sddm.settings.Autologin.User or null;
+      sshPasswordAuth = cfg.services.openssh.settings.PasswordAuthentication or null;
       noctaliaSettings = if hmNoctalia != null then hmNoctalia.settings else { };
       customPalettes = if hmNoctalia != null then (hmNoctalia.customPalettes or { }) else { };
       hasNoctalia = hmNoctalia != null && (hmNoctalia.enable or false);
@@ -82,21 +98,39 @@ let
     builtins.attrNames (builtins.readDir ../nvim)
   );
 
+  # `${./../nvim/NAME.lua}` in neovim.nix, split on that path. Deriving this is the
+  # whole point: a hand-written `wired` list is a second copy of a fact that
+  # already lives in a file.
+  nvimLuaWired = lib.filter (n: n != null && n != "" && builtins.match "[A-Za-z0-9_-]+" n != null) (
+    map (chunk: lib.head (lib.splitString ".lua" chunk)) (
+      lib.tail (lib.splitString "./../nvim/" (builtins.readFile ./neovim.nix))
+    )
+  );
+
+  # Cut at the first `--` so a commented-out palette cannot trip the guard, and
+  # require a quoted hex so only real string literals count.
+  stripLuaComments =
+    text:
+    lib.concatStringsSep "\n" (
+      map (line: lib.head (lib.splitString "--" line)) (lib.splitString "\n" text)
+    );
+
   nvimLua = {
     onDisk = builtins.sort builtins.lessThan (map (n: lib.removeSuffix ".lua" n) nvimLuaNames);
-    wired = [
-      "noctalia-colors"
-      "plugin-list"
-      "tony-osc52"
-    ];
+    wired = builtins.sort builtins.lessThan (lib.unique nvimLuaWired);
     withHex = builtins.sort builtins.lessThan (
       lib.filter (
-        name: builtins.match ".*#[0-9a-fA-F]{6}.*" (builtins.readFile ../nvim/${name}) != null
+        name:
+        builtins.match ".*\"[^\"]*#[0-9a-fA-F]{6}[^\"]*\".*" (
+          stripLuaComments (builtins.readFile ../nvim/${name})
+        ) != null
       ) nvimLuaNames
     );
   };
 
   expectedConstants = builtins.sort builtins.lessThan [
+    "cachixKey"
+    "cachixSubstituter"
     "cursorSize"
     "cursorTheme"
     "generationKeep"
@@ -112,7 +146,6 @@ let
     "sansFont"
     "sshKey"
     "sshPort"
-    "stateVersion"
     "timeZone"
     "tvAddress"
     "tvMode"
@@ -121,6 +154,22 @@ let
     "username"
     "wlanIface"
   ];
+
+  cache = {
+    substituter = constants.cachixSubstituter;
+    key = constants.cachixKey;
+  };
+
+  # nixConfig is a static flake attribute, so flake.nix cannot read flake.constants.
+  # This is the copy that has to stay honest.
+  flakeNix = {
+    substituter = quotedAfter "extra-substituters = [ \"" (builtins.readFile ../flake.nix);
+    key =
+      let
+        bare = quotedAfter "noctalia.cachix.org-1:" (builtins.readFile ../flake.nix);
+      in
+      if bare == null then null else "noctalia.cachix.org-1:${bare}";
+  };
 
   rules = [
     {
@@ -160,7 +209,16 @@ let
     }
     {
       name = "single-dm";
-      cond = ".hosts | all(.[]; [.displayManagers[]] | map(select(.)) | length == 1)";
+      # Not just "exactly one": each host's DM is pinned, so swapping hp to gdm
+      # goes red instead of staying green.
+      cond = ''
+        .hosts | to_entries | all(.[];
+          (.key) as $host
+          | (.value.displayManagers) as $d
+          | ([ $d | to_entries[] | select(.value == true) | .key ]) as $on
+          | (if $host == "tv" then "sddm" else "noctalia-greeter" end) as $want
+          | ($on | length) == 1 and ($on[0]) == $want)
+      '';
     }
     {
       name = "greeter-implies-greetd";
@@ -185,14 +243,49 @@ let
     {
       name = "binary-cache";
       cond = ''
-        .hosts | all(.[];
-          (.substituters | index("https://noctalia.cachix.org")) != null
-          and ((.trustedKeys | map(startswith("noctalia.cachix.org-1:")) | any)) == true)
+        .cache as $c
+        | .hosts | all(.[];
+          ((.substituters | index($c.substituter)) != null
+          and (.trustedKeys | index($c.key)) != null))
       '';
+    }
+    {
+      name = "flake-nix-config-agrees";
+      # flake.nix's nixConfig cannot read flake.constants; this is what stops the
+      # two copies of the cache URL and key from drifting apart.
+      cond = "(.flakeNix.substituter == .cache.substituter) and (.flakeNix.key == .cache.key)";
     }
     {
       name = "mariadb-loopback";
       cond = ''.hosts | all(.[]; .mysqlBind == null or .mysqlBind == "127.0.0.1")'';
+    }
+    {
+      name = "mariadb-not-autostarted";
+      # Installed and configured, but wired into no boot target -- `enable = false`
+      # would also satisfy this while making it unstartable on demand.
+      cond = ''
+        .hosts | all(.[];
+          if .mysqlEnabled then (.mysqlWantedBy | length) == 0 else true end)
+      '';
+    }
+    {
+      name = "media-mount-timeout";
+      # `nofail` alone still lets a slow spin-up cost systemd's 90s default.
+      cond = ''
+        .hosts | all(.[];
+          if (.mediaMountOptions | length) == 0 then true
+          else (.mediaMountOptions | map(select(startswith("x-systemd.device-timeout="))) | length) >= 1
+          end)
+      '';
+    }
+    {
+      name = "tv-appliance-posture";
+      # Single-host on purpose: this encodes a decision about the tv box (autologin
+      # into a session with no lock screen, reachable over ssh), not a general rule.
+      cond = ''
+        def ok($h): ($h.autologinUser != null) and ($h.sshPasswordAuth == false);
+        .hosts | if has("tv") then ok(.tv) else true end
+      '';
     }
     {
       name = "noctalia-theming-runtime";
@@ -243,7 +336,12 @@ let
   ];
 
   facts = {
-    inherit wiring nvimLua;
+    inherit
+      wiring
+      nvimLua
+      cache
+      flakeNix
+      ;
     constants = builtins.attrNames constants;
     hosts = lib.listToAttrs (map (n: lib.nameValuePair n (factsFor n)) (builtins.attrNames hosts));
   };

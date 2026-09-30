@@ -8,8 +8,6 @@
       ...
     }:
     {
-      services.xserver.enable = false;
-
       services.displayManager = {
         defaultSession = "plasma-bigscreen-wayland";
         sessionPackages = [ pkgs.kdePackages.plasma-bigscreen ];

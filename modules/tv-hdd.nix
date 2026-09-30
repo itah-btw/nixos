@@ -8,6 +8,8 @@ _: {
         options = [
           "noatime"
           "nofail"
+          # Without this a slow spin-up still costs systemd's 90s default.
+          "x-systemd.device-timeout=10s"
         ];
       };
 
@@ -42,9 +44,11 @@ _: {
                 fi
               fi
 
+              # This disk is the tv's only writable storage, so an absent mount is a
+              # fault to report, not a "nothing to check".
               if [ -z "$device" ] || [ ! -b "$device" ]; then
-                log "''${device:-${constants.mediaMount} source $src} is absent; nothing to check"
-                exit 0
+                log "FAIL: ${constants.mediaMount} is not mounted, so there is no SMART data to read (''${device:-unresolved source: $src})"
+                exit 1
               fi
 
               rc=0

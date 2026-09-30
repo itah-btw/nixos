@@ -10,6 +10,7 @@ let
     nixos = [
       "boot"
       "identity"
+      "mesa"
       "networking"
       "nix"
       "shared-packages"
@@ -32,7 +33,7 @@ in
     inherit inputs config;
     name = "tv";
     inherit wiring;
-    inherit (constants) stateVersion;
+    stateVersion = "26.11";
     hardware = ../../hardware-configuration-tv.nix;
 
     hmImports = [ inputs.plasma-manager.homeModules.plasma-manager ];

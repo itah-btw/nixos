@@ -45,6 +45,8 @@
         monospace = [ constants.monoFont ];
       };
 
+      # Not a restatement: graphical-desktop.nix turns speechd on with
+      # `mkDefault true` whenever a display manager is enabled.
       services.speechd.enable = false;
     };
 }

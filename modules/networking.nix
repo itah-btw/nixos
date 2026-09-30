@@ -1,8 +1,8 @@
 {
   flake.nixosModules.networking = {
-    networking.networkmanager.wifi.backend = "iwd";
+    # noctalia's `recommendedServices` also provides NetworkManager on hp. This
+    # line is the only one that reaches tv, which runs no noctalia.
     networking.networkmanager.enable = true;
-    networking.firewall.enable = true;
     services.avahi = {
       enable = true;
       nssmdns4 = true;

@@ -4,12 +4,16 @@
   inputs = {
     nixpkgs.url = "github:nixos/nixpkgs/nixos-unstable";
 
+    # Do NOT float this. mesa-pinned is the driver set; see modules/mesa.nix.
+    mesa-pinned.url = "github:nixos/nixpkgs/7a0f122f5090cf4c2ade2a13a0e229d4e19ba71f";
+
     home-manager = {
       url = "github:nix-community/home-manager";
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
     # `cachix` branch hits the pre-built binary cache. Do NOT add
+    # `inputs.nixpkgs.follows` here: it breaks cachix.
     noctalia = {
       url = "github:noctalia-dev/noctalia/cachix";
     };
@@ -31,7 +35,11 @@
 
     plasma-manager = {
       url = "github:nix-community/plasma-manager";
-      inputs.nixpkgs.follows = "nixpkgs";
+      inputs = {
+        nixpkgs.follows = "nixpkgs";
+        # Without this the tv builds against a second, older home-manager.
+        home-manager.follows = "home-manager";
+      };
     };
 
     treefmt-nix = {
@@ -44,6 +52,9 @@
     import-tree.url = "github:denful/import-tree";
   };
 
+  # Not readable from flake.constants: nixConfig is a static flake attribute, so
+  # it cannot reach the module system. `flake-nix-config-agrees` is what keeps
+  # this copy honest.
   nixConfig = {
     extra-substituters = [ "https://noctalia.cachix.org" ];
     extra-trusted-public-keys = [

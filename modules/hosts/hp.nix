@@ -11,6 +11,7 @@ let
       "boot"
       "identity"
       "mariadb"
+      "mesa"
       "networking"
       "nix"
       "performance"
@@ -18,19 +19,22 @@ let
       "session"
       "shared-packages"
       "shell"
+      "wifi"
     ];
     home = [
       "aliases"
-      "apps"
       "base"
-      "cli-tools"
-      "dev"
+      "desktop"
+      "git"
       "identity"
       "mariadb"
       "neovim"
       "noctalia"
+      "packages"
       "scripts"
       "shell"
+      "terminal"
+      "tridactyl"
       "umbriel"
       "yazi"
     ];
@@ -43,7 +47,7 @@ in
     inherit inputs config;
     name = "hp";
     inherit wiring;
-    inherit (constants) stateVersion;
+    stateVersion = "26.11";
     hardware = ../../hardware-configuration.nix;
 
     nixosImports = [

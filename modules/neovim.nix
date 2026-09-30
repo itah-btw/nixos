@@ -21,7 +21,6 @@
     {
       home.packages = [
         pkgs.neovim
-        pkgs.phpPackages.php-cs-fixer
 
         (pkgs.writeShellApplication {
           name = "update-plugins";

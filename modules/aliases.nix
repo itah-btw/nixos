@@ -20,6 +20,10 @@
         # age timer in nix.nix can never remove one. Keep matches boot's limit.
         nclean = "nh clean all --keep ${toString generationKeep}";
 
+        # mariadb.nix clears wantedBy, so it never starts on its own.
+        mdb-up = "sudo systemctl start mysql";
+        mdb-down = "sudo systemctl stop mysql";
+
         optimize = "sudo nix-store --optimise";
         doctor = "nix doctor";
       };
@@ -36,8 +40,16 @@
             pkgs.nix
           ];
           text = ''
+            set -euo pipefail
             [ "$#" -ge 1 ] || { echo "usage: push <msg>" >&2; exit 1; }
-            cd ${root} && nix fmt && git add -A && git commit -m "$*" && git push
+            cd ${root}
+            # Gate before `git add`, so a red policy cannot leave a commit behind.
+            nix fmt
+            nix run .#lint
+            nix build .#checks.x86_64-linux.policy --no-link
+            git add -A
+            git commit -m "$*"
+            git push
           '';
         })
 
