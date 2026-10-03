@@ -1,5 +1,9 @@
 {
-  flake.homeManagerModules.git = { constants, ... }: {
+  flake.homeManagerModules.identity = { constants, ... }: {
+    home.username = constants.username;
+    home.homeDirectory = "/home/${constants.username}";
+    programs.home-manager.enable = true;
+
     programs.git = {
       enable = true;
       settings = {

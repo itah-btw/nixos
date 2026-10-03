@@ -10,8 +10,4 @@
     # priority. `enable = false` would be stronger but also unstartable.
     systemd.services.mysql.wantedBy = lib.mkForce [ ];
   };
-
-  flake.homeManagerModules.mariadb = { pkgs, ... }: {
-    home.packages = [ pkgs.mycli ];
-  };
 }

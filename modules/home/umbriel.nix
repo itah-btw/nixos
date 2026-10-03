@@ -3,9 +3,42 @@
     {
       config,
       constants,
+      pkgs,
       ...
     }:
     {
+      home.packages = with pkgs; [
+        glib
+        zenity
+      ];
+
+      programs.noctalia = {
+        enable = true;
+        systemd.enable = false;
+        # Pinned empty; noctalia-theming-runtime asserts it stays so.
+        customPalettes = { };
+
+        settings = {
+          shell.font_family = constants.sansFont;
+          brightness = {
+            minimum_brightness = 0.01;
+          };
+          bar.main = {
+            end = [
+              "media"
+              "tray"
+              "notifications"
+              "network"
+              "bluetooth"
+              "volume"
+              "battery"
+              "control-center"
+              "session"
+            ];
+          };
+        };
+      };
+
       programs.umbriel = {
         enable = true;
         settings = {
@@ -60,7 +93,6 @@
           };
 
           keybinds = {
-            # umbriel-repeat-trap. Only the keypad workspace chords are left live;
 
             "Mod+Return" = "spawn:kitty";
             "Mod" = "spawn:noctalia msg panel-toggle launcher";
@@ -150,7 +182,6 @@
             "Mod+Page_Up" = "workspace-previous";
             "Mod+Page_Down" = "workspace-next";
 
-            # devices, so those keysyms would never fire here. Any later
             "Mod+Shift+D" = "dpms-off";
 
             "Mod+Ctrl+Left" = "output-focus-left";

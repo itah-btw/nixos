@@ -9,7 +9,7 @@ _: {
             runtimeInputs = [
               pkgs.coreutils
               pkgs.jq
-              # the guard would fail open, logging success.
+              # Without libkscreen the guard would fail open, logging success.
               pkgs.kdePackages.libkscreen
               pkgs.util-linux
             ];
@@ -100,6 +100,8 @@ _: {
             Type = "oneshot";
             ExecStart = "${script}/bin/tv-display-mode-guard";
             Environment = "DBUS_SESSION_BUS_ADDRESS=unix:path=%t/bus";
+            # The probe loop can wait ~60s for the session to come up.
+            TimeoutStartSec = "180s";
           };
         };
 

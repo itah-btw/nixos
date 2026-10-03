@@ -12,8 +12,6 @@ let
       hardware,
       nixosImports ? [ ],
       hmImports ? [ ],
-      # Per-host overrides, applied on top of flake.hmDefaults.
-      hmDefaults ? { },
       # Home Manager tracks its own release here, independent of the NixOS
       # `stateVersion` below; the two move separately.
       hmStateVersion ? "26.11",
@@ -35,28 +33,16 @@ let
           networking.hostName = name;
           system.stateVersion = stateVersion;
 
-          home-manager =
-            # Per-host wins over the shared defaults.
-            config.flake.hmDefaults
-            // hmDefaults
-            // {
-              extraSpecialArgs = { inherit inputs constants; };
-              # Merge the per-user attrsets rather than replacing the key, or
-              # any `users.<name>` default would be dropped on the floor.
-              # `imports` stays additive: it is a listOf option in the HM
-              # submodule, so both sides apply.
-              users.${constants.username} =
-                (
-                  (config.flake.hmDefaults.users.${constants.username} or { })
-                  // (hmDefaults.users.${constants.username} or { })
-                )
-                // {
-                  home.stateVersion = hmStateVersion;
-                }
-                // {
-                  imports = hmImports ++ map (n: config.flake.homeManagerModules.${n}) wiring.home;
-                };
+          home-manager = {
+            useGlobalPkgs = true;
+            useUserPackages = true;
+            backupFileExtension = "hm-backup";
+            extraSpecialArgs = { inherit inputs constants; };
+            users.${constants.username} = {
+              home.stateVersion = hmStateVersion;
+              imports = hmImports ++ map (n: config.flake.homeManagerModules.${n}) wiring.home;
             };
+          };
         })
       ]
       ++ lib.optionals (extra != { }) [ extra ]
@@ -102,16 +88,6 @@ in
       cachixKey = "noctalia.cachix.org-1:pCOR47nnMEo5thcxNDtzWpOxNFQsBRglJzxWPp3dkU4=";
     };
     description = "Single source of truth for values shared across modules.";
-  };
-
-  options.flake.hmDefaults = lib.mkOption {
-    type = lib.types.attrs;
-    default = {
-      useGlobalPkgs = true;
-      useUserPackages = true;
-      backupFileExtension = "hm-backup";
-    };
-    description = "Home Manager options shared by every host.";
   };
 
   # the declaration IS the wiring that checks.nix asserts.

@@ -98,12 +98,12 @@ let
     builtins.attrNames (builtins.readDir ../nvim)
   );
 
-  # `${./../nvim/NAME.lua}` in neovim.nix, split on that path. Deriving this is the
+  # `${./../../nvim/NAME.lua}` in home/neovim.nix, split on that path. Deriving this is the
   # whole point: a hand-written `wired` list is a second copy of a fact that
   # already lives in a file.
   nvimLuaWired = lib.filter (n: n != null && n != "" && builtins.match "[A-Za-z0-9_-]+" n != null) (
     map (chunk: lib.head (lib.splitString ".lua" chunk)) (
-      lib.tail (lib.splitString "./../nvim/" (builtins.readFile ./neovim.nix))
+      lib.tail (lib.splitString "./../../nvim/" (builtins.readFile ./home/neovim.nix))
     )
   );
 

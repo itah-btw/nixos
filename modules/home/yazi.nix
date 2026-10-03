@@ -89,7 +89,6 @@
             }
           ];
         };
-        # never reach Firefox.
         open.prepend_rules = [
           {
             mime = "{text/html,application/xhtml+xml}";

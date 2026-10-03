@@ -1,9 +1,4 @@
 {
-  flake.nixosModules.shell = { constants, pkgs, ... }: {
-    programs.fish.enable = true;
-    users.users.${constants.username}.shell = pkgs.fish;
-  };
-
   flake.homeManagerModules.shell = {
     programs.bash.enable = true;
     programs.fish = {

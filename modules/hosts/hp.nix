@@ -8,32 +8,18 @@ let
   constants = config.flake.constants;
   wiring = {
     nixos = [
-      "boot"
-      "identity"
       "mariadb"
-      "mesa"
-      "networking"
-      "nix"
       "performance"
-      "security"
       "session"
-      "shared-packages"
-      "shell"
-      "wifi"
+      "system"
     ];
     home = [
-      "aliases"
-      "base"
       "desktop"
-      "git"
       "identity"
-      "mariadb"
       "neovim"
-      "noctalia"
       "packages"
       "scripts"
       "shell"
-      "terminal"
       "tridactyl"
       "umbriel"
       "yazi"

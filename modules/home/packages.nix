@@ -3,7 +3,6 @@
     home.packages =
       with pkgs;
       [
-        # desktop
         xdg-terminal-exec
         pavucontrol
         playerctl
@@ -12,7 +11,6 @@
         proton-vpn
         localsend
 
-        # shell
         eza
         bat
         lazygit
@@ -21,14 +19,12 @@
         curl
         wl-clipboard
 
-        # search and archives
         ripgrep
         fd
         fzf
         unzip
         zip
 
-        # languages and toolchains
         python3
         gcc
         cmake
@@ -50,7 +46,6 @@
         rustfmt
         clippy
 
-        # media
         mpv
         imv
         zathura
@@ -58,10 +53,11 @@
         stremio-linux-shell
         libreoffice
 
-        # workbench
         netbeans
         llama-cpp
         lutgen
+
+        mycli
       ]
       ++ [ pkgs.phpPackages.php-cs-fixer ];
   };

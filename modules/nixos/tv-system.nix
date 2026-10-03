@@ -26,7 +26,6 @@
       };
       xdg.portal.configPackages = [ pkgs.kdePackages.plasma-bigscreen ];
 
-      # Optional apps a 10-foot appliance never opens. Kept anyway: the required
       environment.plasma6.excludePackages = with pkgs.kdePackages; [
         kwin-x11
         kate
@@ -71,5 +70,19 @@
         enable = true;
         memoryPercent = 50;
       };
+
+      # ~100 MB of store a TV never reads.
+      documentation.nixos.enable = false;
+      documentation.man.enable = false;
+
+      programs.firefox.enable = true;
+
+      environment.systemPackages = with pkgs; [
+        stremio-linux-shell
+        smartmontools
+        libva-utils
+        mpv
+        yt-dlp
+      ];
     };
 }

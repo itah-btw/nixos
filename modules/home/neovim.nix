@@ -12,10 +12,10 @@
         cp -r ${tony} $out
         chmod -R u+w $out
         rm -f $out/parser/nix.so
-        cp ${./../nvim/tony-osc52.lua} $out/after/plugin/local-osc52.lua
-        cp ${./../nvim/noctalia-colors.lua} $out/after/plugin/local-noctalia.lua
+        cp ${./../../nvim/tony-osc52.lua} $out/after/plugin/local-osc52.lua
+        cp ${./../../nvim/noctalia-colors.lua} $out/after/plugin/local-noctalia.lua
         mv $out/lua/plugin-list.lua $out/lua/tony-plugin-list.lua
-        cp ${./../nvim/plugin-list.lua} $out/lua/plugin-list.lua
+        cp ${./../../nvim/plugin-list.lua} $out/lua/plugin-list.lua
       '';
     in
     {
@@ -26,7 +26,6 @@
           name = "update-plugins";
           runtimeInputs = [ pkgs.git ];
           text = ''
-            # manage.lua clones each plugin once, on first start, and never
             dir="''${XDG_DATA_HOME:-$HOME/.local/share}/nvim/plugins"  # manage.lua: stdpath("data")/plugins
             if [ ! -d "$dir" ]; then
               echo "no plugins in $dir; start nvim once so manage.lua clones them" >&2

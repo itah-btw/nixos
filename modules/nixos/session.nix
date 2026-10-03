@@ -48,5 +48,11 @@
       # Not a restatement: graphical-desktop.nix turns speechd on with
       # `mkDefault true` whenever a display manager is enabled.
       services.speechd.enable = false;
+
+      services.gnome.gnome-keyring.enable = true;
+      programs.seahorse.enable = true;
+      services.fprintd.enable = true;
+      security.pam.services.login.fprintAuth = false;
+      security.pam.services.greetd.fprintAuth = false;
     };
 }

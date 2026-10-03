@@ -8,16 +8,10 @@ let
   constants = config.flake.constants;
   wiring = {
     nixos = [
-      "boot"
-      "identity"
-      "mesa"
-      "networking"
-      "nix"
-      "shared-packages"
+      "system"
       "tv-display"
       "tv-hdd"
       "tv-openssh"
-      "tv-packages"
       "tv-system"
     ];
     home = [
