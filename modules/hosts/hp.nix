@@ -12,9 +12,11 @@ let
       "performance"
       "session"
       "system"
+      "web"
     ];
     home = [
       "desktop"
+      "fastfetch"
       "identity"
       "neovim"
       "packages"
@@ -48,7 +50,10 @@ in
 
     extra = {
       networking.firewall.interfaces.${constants.wlanIface} = {
-        allowedTCPPorts = [ constants.localsendPort ];
+        allowedTCPPorts = [
+          constants.localsendPort
+          constants.httpPort
+        ];
         allowedUDPPorts = [
           constants.mdnsPort
           constants.localsendPort

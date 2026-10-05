@@ -94,7 +94,7 @@
 
           keybinds = {
 
-            "Mod+Return" = "spawn:kitty";
+            "Mod+Return" = "spawn:foot";
             "Mod" = "spawn:noctalia msg panel-toggle launcher";
             "Mod+Q" = {
               action = "window-close";
@@ -109,9 +109,9 @@
             };
             "Mod+Slash" = "cheatsheet-toggle";
 
-            "Mod+E" = "spawn:kitty yazi";
+            "Mod+E" = "spawn:foot yazi";
             "Mod+B" = "spawn:firefox";
-            "Mod+Shift+F23" = "spawn:kitty -d ${config.home.homeDirectory}/Projects opencode";
+            "Mod+Shift+F23" = "spawn:foot -D ${config.home.homeDirectory}/Projects opencode";
             "Mod+I" = "spawn:protonvpn-app";
             "Mod+Shift+E" = "spawn:noctalia msg panel-toggle launcher /emo";
 

@@ -78,7 +78,6 @@
       programs.firefox.enable = true;
 
       environment.systemPackages = with pkgs; [
-        stremio-linux-shell
         smartmontools
         libva-utils
         mpv

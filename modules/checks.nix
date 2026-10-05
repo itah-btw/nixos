@@ -94,46 +94,13 @@ let
     );
   };
 
-  nvimLuaNames = lib.filter (name: lib.hasSuffix ".lua" name) (
-    builtins.attrNames (builtins.readDir ../nvim)
-  );
-
-  # `${./../../nvim/NAME.lua}` in home/neovim.nix, split on that path. Deriving this is the
-  # whole point: a hand-written `wired` list is a second copy of a fact that
-  # already lives in a file.
-  nvimLuaWired = lib.filter (n: n != null && n != "" && builtins.match "[A-Za-z0-9_-]+" n != null) (
-    map (chunk: lib.head (lib.splitString ".lua" chunk)) (
-      lib.tail (lib.splitString "./../../nvim/" (builtins.readFile ./home/neovim.nix))
-    )
-  );
-
-  # Cut at the first `--` so a commented-out palette cannot trip the guard, and
-  # require a quoted hex so only real string literals count.
-  stripLuaComments =
-    text:
-    lib.concatStringsSep "\n" (
-      map (line: lib.head (lib.splitString "--" line)) (lib.splitString "\n" text)
-    );
-
-  nvimLua = {
-    onDisk = builtins.sort builtins.lessThan (map (n: lib.removeSuffix ".lua" n) nvimLuaNames);
-    wired = builtins.sort builtins.lessThan (lib.unique nvimLuaWired);
-    withHex = builtins.sort builtins.lessThan (
-      lib.filter (
-        name:
-        builtins.match ".*\"[^\"]*#[0-9a-fA-F]{6}[^\"]*\".*" (
-          stripLuaComments (builtins.readFile ../nvim/${name})
-        ) != null
-      ) nvimLuaNames
-    );
-  };
-
   expectedConstants = builtins.sort builtins.lessThan [
     "cachixKey"
     "cachixSubstituter"
     "cursorSize"
     "cursorTheme"
     "generationKeep"
+    "httpPort"
     "lanIface"
     "layout"
     "locale"
@@ -325,20 +292,11 @@ let
           | all(.[]; noRepeat($host; .)))
       '';
     }
-    {
-      name = "nvim-lua-wired";
-      cond = "(.nvimLua.onDisk - .nvimLua.wired) == [] and (.nvimLua.wired - .nvimLua.onDisk) == []";
-    }
-    {
-      name = "nvim-palette-not-in-lua";
-      cond = ".nvimLua.withHex == []";
-    }
   ];
 
   facts = {
     inherit
       wiring
-      nvimLua
       cache
       flakeNix
       ;

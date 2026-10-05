@@ -8,6 +8,7 @@
       extraPackages = with pkgs; [
         p7zip
         zstd
+        imagemagick
       ];
       plugins.compress = pkgs.yaziPlugins.compress;
       keymap.mgr.prepend_keymap = [
@@ -80,10 +81,10 @@
               orphan = true;
             }
           ];
-          nvim = [
+          vis = [
             {
-              run = "nvim %s";
-              desc = "Open in Neovim";
+              run = "vis %s";
+              desc = "Open in vis";
               for = "linux";
               block = true;
             }
@@ -100,14 +101,14 @@
           {
             mime = "text/*";
             use = [
-              "nvim"
+              "vis"
               "edit"
             ];
           }
           {
             mime = "application/{json,ndjson,javascript,wine-extension-ini}";
             use = [
-              "nvim"
+              "vis"
               "edit"
             ];
           }
@@ -158,7 +159,7 @@
     xdg.desktopEntries.yazi = {
       name = "Yazi File Manager";
       comment = "Open directory in the yazi terminal file manager";
-      exec = "kitty --class yazi -e yazi %f";
+      exec = "foot --app-id=yazi yazi %f";
       icon = "yazi";
       terminal = false;
       mimeType = [ "inode/directory" ];

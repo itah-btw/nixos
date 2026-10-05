@@ -2,6 +2,7 @@
   flake.nixosModules.session =
     {
       constants,
+      lib,
       pkgs,
       ...
     }:
@@ -33,12 +34,22 @@
 
       xdg.portal.extraPortals = [ pkgs.xdg-desktop-portal-gtk ];
 
+      nixpkgs.config.allowUnfreePredicate =
+        pkg:
+        builtins.elem (lib.getName pkg) [
+          "corefonts"
+          "vista-fonts"
+          "vscode"
+        ];
+
       fonts.packages = with pkgs; [
         nerd-fonts.jetbrains-mono
         noto-fonts
         noto-fonts-color-emoji
         liberation_ttf
         inter
+        corefonts
+        vista-fonts
       ];
       fonts.fontconfig.defaultFonts = {
         sansSerif = [ constants.sansFont ];

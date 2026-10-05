@@ -72,12 +72,13 @@ in
       localsendPort = 53317;
       mdnsPort = 5353;
       sshPort = 22;
+      httpPort = 80;
       tvOutput = "HDMI-A-1";
       tvMode = "1920x1080@60";
       tvRate = 60;
       mediaMount = "/mnt/media";
       mediaLabel = "hdd";
-      cursorTheme = "Bibata-Modern-Ice";
+      cursorTheme = "Bibata-Original-Classic";
       cursorSize = 24;
       sansFont = "Inter";
       monoFont = "JetBrainsMono Nerd Font";

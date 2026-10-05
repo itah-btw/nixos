@@ -2,13 +2,7 @@
   flake.nixosModules.performance = {
     zramSwap = {
       enable = true;
-      memoryPercent = 30;
+      memoryPercent = 50;
     };
-    swapDevices = [
-      {
-        device = "/swapfile";
-        size = 4096;
-      }
-    ];
   };
 }

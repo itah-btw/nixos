@@ -14,7 +14,6 @@
         eza
         bat
         lazygit
-        fastfetch
         btop
         curl
         wl-clipboard
@@ -50,9 +49,10 @@
         imv
         zathura
         obs-studio
-        stremio-linux-shell
         libreoffice
 
+        vscode
+        php
         netbeans
         llama-cpp
         lutgen

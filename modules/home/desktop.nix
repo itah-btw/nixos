@@ -29,6 +29,7 @@
         enable = true;
         settings."org/gnome/desktop/interface" = {
           color-scheme = "prefer-dark";
+          icon-theme = "Adwaita";
           font-name = "${constants.sansFont} 11";
           document-font-name = "${constants.sansFont} 11";
           monospace-font-name = "${constants.monoFont} 11";
@@ -40,6 +41,9 @@
         _JAVA_AWT_WM_NONREPARENTING = "1";
         EDITOR = "nvim";
         NH_FLAKE = constants.root;
+        # Qt6 defaults to the xdgdesktopportal theme, which ignores the
+        # configured icon theme; route it through GTK settings instead.
+        QT_QPA_PLATFORMTHEME = "gtk3";
       };
 
       xdg.userDirs = {
@@ -48,21 +52,20 @@
       };
       home.file."Pictures/Wallpapers/.keep".text = "";
 
-      # yazi and umbriel spawn `kitty` by name, so the terminal is load-bearing.
-      programs.kitty = {
+      # yazi and umbriel spawn `foot` by name, so the terminal is load-bearing.
+      programs.foot = {
         enable = true;
         settings = {
-          font_family = constants.monoFont;
-          cursor_trail = 1;
-          background_opacity = 1.0;
+          main = {
+            font = "${constants.monoFont}:size=11";
+            pad = "0x0 center";
+            include = "~/.config/foot/themes/noctalia";
+          };
         };
-        extraConfig = ''
-          include themes/noctalia.conf
-        '';
       };
 
       xdg.configFile."xdg-terminals.list".text = ''
-        kitty.desktop
+        foot.desktop
       '';
     };
 }

@@ -1,10 +1,22 @@
 {
   flake.homeManagerModules.shell = {
-    programs.bash.enable = true;
+    programs.bash = {
+      enable = true;
+      initExtra = ''
+        if [ -z "''${FASTFETCH_GREETING:-}" ]; then
+          export FASTFETCH_GREETING=1
+          fastfetch
+        fi
+      '';
+    };
     programs.fish = {
       enable = true;
       interactiveShellInit = ''
         set -g fish_greeting
+        if not set -q FASTFETCH_GREETING
+          set -gx FASTFETCH_GREETING 1
+          fastfetch
+        end
       '';
     };
 

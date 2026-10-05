@@ -2,8 +2,6 @@
   flake.nixosModules.system =
     {
       constants,
-      inputs,
-      lib,
       pkgs,
       ...
     }:
@@ -12,13 +10,6 @@
       boot.loader.systemd-boot.enable = true;
       boot.loader.systemd-boot.configurationLimit = constants.generationKeep;
       boot.loader.efi.canTouchEfiVariables = true;
-
-      # mesa 26.2.3 built by nixpkgs 7a0f122 initialises EGL for noctalia; the
-      # b4fd65b1 rebuild of the *same version* returns EGL_NO_DISPLAY and the shell
-      # dies at startup (nixpkgs#553285 is a different 26.2 regression, same series).
-      # Pinned here so `nsu` can float nixpkgs without breaking the desktop.
-      hardware.graphics.package =
-        inputs.mesa-pinned.legacyPackages.${pkgs.stdenv.hostPlatform.system}.mesa;
 
       nix.settings.experimental-features = [
         "nix-command"
@@ -32,12 +23,6 @@
       nix.settings.extra-substituters = [ constants.cachixSubstituter ];
       nix.settings.extra-trusted-public-keys = [ constants.cachixKey ];
 
-      nixpkgs.config.allowUnfreePredicate =
-        pkg:
-        builtins.elem (lib.getName pkg) [
-          "stremio-linux-shell"
-        ];
-
       # filter never applies. `nclean` in home/scripts.nix prunes those instead.
       nix.gc = {
         automatic = true;
@@ -46,6 +31,8 @@
       };
 
       programs.nh.enable = true;
+
+      services.flatpak.enable = true;
 
       # noctalia's `recommendedServices` also provides NetworkManager on hp. This
       # line is the only one that reaches tv, which runs no noctalia.
@@ -85,6 +72,7 @@
       environment.systemPackages = with pkgs; [
         git
         opencode
+        flatpak
       ];
     };
 }

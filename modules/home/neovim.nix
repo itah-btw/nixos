@@ -16,6 +16,10 @@
         cp ${./../../nvim/noctalia-colors.lua} $out/after/plugin/local-noctalia.lua
         mv $out/lua/plugin-list.lua $out/lua/tony-plugin-list.lua
         cp ${./../../nvim/plugin-list.lua} $out/lua/plugin-list.lua
+        # noctalia's apply.sh only pkill-SIGUSR1's nvim when this grep finds the
+        # matugen pcall in init.lua; otherwise it appends into the read-only
+        # store symlink and the reload never fires.
+        printf '\nlocal ok, matugen = pcall(require, "matugen")\nif ok then matugen.setup() end\n' >> $out/init.lua
       '';
     in
     {
