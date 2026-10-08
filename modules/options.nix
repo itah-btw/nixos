@@ -1,7 +1,7 @@
 # "unknown flake output"; expected. A leading `_` does NOT silence that --
 { lib, ... }:
 let
-  # config.flake: see the nixos skill's traps 9 and 10 before moving it.
+  # config.flake: see the nixos skill's traps 2 and 3 before moving it.
   mkHost =
     {
       inputs,
@@ -15,7 +15,8 @@ let
       # Home Manager tracks its own release here, independent of the NixOS
       # `stateVersion` below; the two move separately.
       hmStateVersion ? "26.11",
-      extra ? { },
+      # Every host carries site overrides, so there is no default to fall back to.
+      extra,
     }:
     let
       constants = config.flake.constants;
@@ -45,7 +46,7 @@ let
           };
         })
       ]
-      ++ lib.optionals (extra != { }) [ extra ]
+      ++ [ extra ]
       ++ map (n: config.flake.nixosModules.${n}) wiring.nixos;
     };
 in
@@ -78,7 +79,7 @@ in
       tvRate = 60;
       mediaMount = "/mnt/media";
       mediaLabel = "hdd";
-      cursorTheme = "Bibata-Original-Classic";
+      cursorTheme = "Bibata-Modern-Amber";
       cursorSize = 24;
       sansFont = "Inter";
       monoFont = "JetBrainsMono Nerd Font";

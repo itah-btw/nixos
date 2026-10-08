@@ -39,7 +39,7 @@
       # Java AWT still needs this to map its own windows on Wayland.
       home.sessionVariables = {
         _JAVA_AWT_WM_NONREPARENTING = "1";
-        EDITOR = "nvim";
+        EDITOR = "vis";
         NH_FLAKE = constants.root;
         # Qt6 defaults to the xdgdesktopportal theme, which ignores the
         # configured icon theme; route it through GTK settings instead.

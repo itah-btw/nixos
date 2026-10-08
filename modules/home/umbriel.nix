@@ -8,6 +8,7 @@
     }:
     {
       home.packages = with pkgs; [
+        # Noctalia shells out to both by bare name (gsettings color-sync, dialogs).
         glib
         zenity
       ];
@@ -22,6 +23,12 @@
           shell.font_family = constants.sansFont;
           brightness = {
             minimum_brightness = 0.01;
+          };
+          widget.session = {
+            type = "custom_button";
+            glyph = "";
+            label = "👧🍵";
+            actions.left = "panel-toggle session";
           };
           bar.main = {
             end = [
@@ -55,7 +62,7 @@
           };
 
           appearance = {
-            corner_radius = 0;
+            border_width = 4;
             blur = {
               radius = 12;
               brightness = 0.95;
@@ -92,165 +99,165 @@
             };
           };
 
-          keybinds = {
+          keybinds =
+            let
+              # Binds repeat at the keyboard rate, so one-shot commands opt
+              # out; steppers keep repeat to hold-to-step (umbriel-repeat-trap).
+              nos = action: {
+                inherit action;
+                repeat = false;
+              };
+            in
+            {
 
-            "Mod+Return" = "spawn:foot";
-            "Mod" = "spawn:noctalia msg panel-toggle launcher";
-            "Mod+Q" = {
-              action = "window-close";
-              repeat = false;
+              "Mod+Return" = nos "spawn:foot";
+              "Mod" = nos "spawn:noctalia msg panel-toggle launcher";
+              "Mod+Q" = nos "window-close";
+              "Mod+Shift+Q" = nos "session-quit";
+              "Mod+Escape" = nos "spawn:noctalia msg panel-toggle session";
+              "Mod+Shift+Escape" = {
+                action = "shortcuts-inhibit-toggle";
+                allow_when_inhibited = true;
+                repeat = false;
+              };
+              "Mod+Slash" = nos "cheatsheet-toggle";
+
+              "Mod+E" = nos "spawn:foot yazi";
+              "Mod+B" = nos "spawn:librewolf";
+              "Mod+Shift+F23" = nos "spawn:foot -D ${config.home.homeDirectory}/Projects opencode";
+              "Mod+I" = nos "spawn:protonvpn-app";
+              "Mod+Shift+E" = nos "spawn:noctalia msg panel-toggle launcher /emo";
+
+              "Mod+Left" = "window-focus-left";
+              "Mod+Down" = "window-focus-down";
+              "Mod+Up" = "window-focus-up";
+              "Mod+Right" = "window-focus-right";
+              "Mod+H" = "window-focus-left";
+              "Mod+J" = "window-focus-down";
+              "Mod+K" = "window-focus-up";
+              "Mod+L" = "window-focus-right";
+              "Mod+F1" = "window-focus-next";
+              "Mod+Grave" = "window-focus-last";
+              "Mod+WheelUp" = "window-focus-left";
+              "Mod+WheelDown" = "window-focus-right";
+
+              "Mod+Shift+Left" = "column-move-left";
+              "Mod+Shift+Down" = "window-move-down";
+              "Mod+Shift+Up" = "window-move-up";
+              "Mod+Shift+Right" = "column-move-right";
+              "Mod+Shift+H" = "column-move-left";
+              "Mod+Shift+J" = "window-move-down";
+              "Mod+Shift+K" = "window-move-up";
+              "Mod+Shift+L" = "column-move-right";
+              "Mod+Bracketleft" = "window-consume-or-expel-left";
+              "Mod+Bracketright" = "window-consume-or-expel-right";
+              "Mod+Period" = "window-consume-right";
+              "Mod+R" = nos "window-cycle-primary-extent";
+              "Mod+Shift+R" = nos "window-cycle-primary-extent-back";
+              "Mod+Alt+R" = nos "window-cycle-secondary-extent";
+              "Mod+Alt+Shift+R" = nos "window-cycle-secondary-extent-back";
+              "Mod+Minus" = "window-modify-primary-extent:-0.1";
+              "Mod+Equal" = "window-modify-primary-extent:0.1";
+              "Mod+Shift+Minus" = "window-modify-secondary-extent:-0.1";
+              "Mod+Shift+Equal" = "window-modify-secondary-extent:0.1";
+              "Mod+Ctrl+T" = nos "workspace-set-layout:toggle";
+
+              "Mod+T" = nos "window-toggle-floating";
+              "Mod+Shift+T" = nos "window-focus-switch-floating";
+              "Mod+P" = nos "window-toggle-pinned";
+              "Mod+M" = nos "window-toggle-maximize-to-edges";
+              "Mod+F" = nos "window-toggle-maximize";
+              "Mod+Shift+F" = nos "window-toggle-fullscreen";
+              "Mod+Ctrl+F" = nos "window-toggle-maximize";
+
+              "Mod+O" = nos "overview-toggle";
+              "Mod+1" = "workspace-switch:1";
+              "Mod+2" = "workspace-switch:2";
+              "Mod+3" = "workspace-switch:3";
+              "Mod+4" = "workspace-switch:4";
+              "Mod+5" = "workspace-switch:5";
+              "Mod+6" = "workspace-switch:6";
+              "Mod+7" = "workspace-switch:7";
+              "Mod+8" = "workspace-switch:8";
+              "Mod+9" = "workspace-switch:9";
+              "Mod+Shift+1" = "window-move-to-workspace:1";
+              "Mod+Shift+2" = "window-move-to-workspace:2";
+              "Mod+Shift+3" = "window-move-to-workspace:3";
+              "Mod+Shift+4" = "window-move-to-workspace:4";
+              "Mod+Shift+5" = "window-move-to-workspace:5";
+              "Mod+Shift+6" = "window-move-to-workspace:6";
+              "Mod+Shift+7" = "window-move-to-workspace:7";
+              "Mod+Shift+8" = "window-move-to-workspace:8";
+              "Mod+Shift+9" = "window-move-to-workspace:9";
+              "Mod+Page_Up" = "workspace-previous";
+              "Mod+Page_Down" = "workspace-next";
+
+              "Mod+Shift+D" = nos "dpms-off";
+
+              "Mod+Ctrl+Left" = "output-focus-left";
+              "Mod+Ctrl+Down" = "output-focus-down";
+              "Mod+Ctrl+Up" = "output-focus-up";
+              "Mod+Ctrl+Right" = "output-focus-right";
+              "Mod+Ctrl+H" = "output-focus-left";
+              "Mod+Ctrl+J" = "output-focus-down";
+              "Mod+Ctrl+K" = "output-focus-up";
+              "Mod+Ctrl+L" = "output-focus-right";
+              "Mod+Ctrl+Tab" = "output-focus-next";
+              "Mod+Ctrl+Shift+Left" = "window-move-to-output-left";
+              "Mod+Ctrl+Shift+Down" = "window-move-to-output-down";
+              "Mod+Ctrl+Shift+Up" = "window-move-to-output-up";
+              "Mod+Ctrl+Shift+Right" = "window-move-to-output-right";
+              "Mod+Ctrl+Shift+H" = "window-move-to-output-left";
+              "Mod+Ctrl+Shift+J" = "window-move-to-output-down";
+              "Mod+Ctrl+Shift+K" = "window-move-to-output-up";
+              "Mod+Ctrl+Shift+L" = "window-move-to-output-right";
+              "Mod+Ctrl+Shift+Tab" = "window-move-to-output-next";
+              "Mod+Alt+Left" = "workspace-swap-active-output-left";
+              "Mod+Alt+Down" = "workspace-swap-active-output-down";
+              "Mod+Alt+Up" = "workspace-swap-active-output-up";
+              "Mod+Alt+Right" = "workspace-swap-active-output-right";
+              "Mod+Alt+H" = "workspace-swap-active-output-left";
+              "Mod+Alt+J" = "workspace-swap-active-output-down";
+              "Mod+Alt+K" = "workspace-swap-active-output-up";
+              "Mod+Space" = "scratchpad-toggle";
+              "Mod+Shift+Space" = "window-move-to-scratchpad";
+              "Mod+Ctrl+Space" = "window-restore-from-scratchpad";
+              "Mod+Tab" = "scratchpad-focus-next";
+
+              "Mod+S" = nos "spawn:noctalia msg panel-toggle control-center";
+              "Mod+Comma" = nos "spawn:noctalia msg settings-toggle";
+              "Mod+V" = nos "spawn:noctalia msg panel-toggle clipboard";
+              "Mod+W" = nos "spawn:noctalia msg panel-toggle wallpaper";
+              "Mod+Ctrl+W" = nos "spawn:noctalia msg wallpaper-next";
+              "Mod+Ctrl+Shift+W" = nos "spawn:noctalia msg wallpaper-previous";
+              "Mod+Shift+W" = nos "spawn:noctalia msg wallpaper-random";
+              "Mod+X" = nos "spawn:noctalia msg bar-toggle";
+              "Alt+Tab" = nos "spawn:noctalia msg window-switcher";
+              "Mod+Alt+L" = nos "spawn:noctalia msg session lock";
+              "Mod+N" = nos "spawn:noctalia msg notification-dnd-toggle";
+              "Mod+C" = nos "spawn:noctalia msg caffeine-toggle";
+              "Print" = nos "spawn:noctalia msg screenshot-region";
+              "Shift+Print" = nos "spawn:noctalia msg screenshot-fullscreen";
+              "Mod+Shift+A" = nos "spawn:noctalia msg screenshot-annotate";
+              "Mod+Ctrl+A" = nos "spawn:noctalia msg annotate";
+              "Mod+Shift+O" = nos "spawn:ocr-copy";
+
+              "XF86AudioRaiseVolume" = "spawn:noctalia msg volume-up";
+              "XF86AudioLowerVolume" = "spawn:noctalia msg volume-down";
+              "XF86AudioMute" = nos "spawn:noctalia msg volume-mute";
+              "XF86AudioMicMute" = nos "spawn:noctalia msg mic-mute";
+              "XF86AudioPlay" = nos "spawn:noctalia msg media toggle";
+              "XF86AudioNext" = nos "spawn:noctalia msg media next";
+              "XF86AudioPrev" = nos "spawn:noctalia msg media previous";
+              "XF86MonBrightnessUp" = {
+                action = "spawn:brightness-step up";
+                allow_when_locked = true;
+              };
+              "XF86MonBrightnessDown" = {
+                action = "spawn:brightness-step down";
+                allow_when_locked = true;
+              };
             };
-            "Mod+Shift+Q" = "session-quit";
-            "Mod+Escape" = "spawn:noctalia msg panel-toggle session";
-            "Mod+Shift+Escape" = {
-              action = "shortcuts-inhibit-toggle";
-              allow_when_inhibited = true;
-              repeat = false;
-            };
-            "Mod+Slash" = "cheatsheet-toggle";
-
-            "Mod+E" = "spawn:foot yazi";
-            "Mod+B" = "spawn:firefox";
-            "Mod+Shift+F23" = "spawn:foot -D ${config.home.homeDirectory}/Projects opencode";
-            "Mod+I" = "spawn:protonvpn-app";
-            "Mod+Shift+E" = "spawn:noctalia msg panel-toggle launcher /emo";
-
-            "Mod+Left" = "window-focus-left";
-            "Mod+Down" = "window-focus-down";
-            "Mod+Up" = "window-focus-up";
-            "Mod+Right" = "window-focus-right";
-            "Mod+H" = "window-focus-left";
-            "Mod+J" = "window-focus-down";
-            "Mod+K" = "window-focus-up";
-            "Mod+L" = "window-focus-right";
-            "Mod+F1" = "window-focus-next";
-            "Mod+Grave" = "window-focus-last";
-            "Mod+WheelUp" = "window-focus-left";
-            "Mod+WheelDown" = "window-focus-right";
-
-            "Mod+Shift+Left" = "column-move-left";
-            "Mod+Shift+Down" = "window-move-down";
-            "Mod+Shift+Up" = "window-move-up";
-            "Mod+Shift+Right" = "column-move-right";
-            "Mod+Shift+H" = "column-move-left";
-            "Mod+Shift+J" = "window-move-down";
-            "Mod+Shift+K" = "window-move-up";
-            "Mod+Shift+L" = "column-move-right";
-            "Mod+Bracketleft" = "window-consume-or-expel-left";
-            "Mod+Bracketright" = "window-consume-or-expel-right";
-            "Mod+Period" = "window-consume-right";
-            "Mod+R" = "window-cycle-primary-extent";
-            "Mod+Shift+R" = "window-cycle-primary-extent-back";
-            "Mod+Alt+R" = "window-cycle-secondary-extent";
-            "Mod+Alt+Shift+R" = "window-cycle-secondary-extent-back";
-            "Mod+Minus" = "window-modify-primary-extent:-0.1";
-            "Mod+Equal" = "window-modify-primary-extent:0.1";
-            "Mod+Shift+Minus" = "window-modify-secondary-extent:-0.1";
-            "Mod+Shift+Equal" = "window-modify-secondary-extent:0.1";
-            "Mod+Ctrl+T" = "workspace-set-layout:toggle";
-
-            "Mod+T" = "window-toggle-floating";
-            "Mod+Shift+T" = "window-focus-switch-floating";
-            "Mod+P" = "window-toggle-pinned";
-            "Mod+M" = "window-toggle-maximize-to-edges";
-            "Mod+F" = "window-toggle-maximize";
-            "Mod+Shift+F" = "window-toggle-fullscreen";
-            "Mod+Ctrl+F" = "window-toggle-maximize";
-
-            "Mod+O" = {
-              action = "overview-toggle";
-              repeat = false;
-            };
-            "Mod+1" = "workspace-switch:1";
-            "Mod+2" = "workspace-switch:2";
-            "Mod+3" = "workspace-switch:3";
-            "Mod+4" = "workspace-switch:4";
-            "Mod+5" = "workspace-switch:5";
-            "Mod+6" = "workspace-switch:6";
-            "Mod+7" = "workspace-switch:7";
-            "Mod+8" = "workspace-switch:8";
-            "Mod+9" = "workspace-switch:9";
-            "Mod+Shift+1" = "window-move-to-workspace:1";
-            "Mod+Shift+2" = "window-move-to-workspace:2";
-            "Mod+Shift+3" = "window-move-to-workspace:3";
-            "Mod+Shift+4" = "window-move-to-workspace:4";
-            "Mod+Shift+5" = "window-move-to-workspace:5";
-            "Mod+Shift+6" = "window-move-to-workspace:6";
-            "Mod+Shift+7" = "window-move-to-workspace:7";
-            "Mod+Shift+8" = "window-move-to-workspace:8";
-            "Mod+Shift+9" = "window-move-to-workspace:9";
-            "Mod+Page_Up" = "workspace-previous";
-            "Mod+Page_Down" = "workspace-next";
-
-            "Mod+Shift+D" = "dpms-off";
-
-            "Mod+Ctrl+Left" = "output-focus-left";
-            "Mod+Ctrl+Down" = "output-focus-down";
-            "Mod+Ctrl+Up" = "output-focus-up";
-            "Mod+Ctrl+Right" = "output-focus-right";
-            "Mod+Ctrl+H" = "output-focus-left";
-            "Mod+Ctrl+J" = "output-focus-down";
-            "Mod+Ctrl+K" = "output-focus-up";
-            "Mod+Ctrl+L" = "output-focus-right";
-            "Mod+Ctrl+Tab" = "output-focus-next";
-            "Mod+Ctrl+Shift+Left" = "window-move-to-output-left";
-            "Mod+Ctrl+Shift+Down" = "window-move-to-output-down";
-            "Mod+Ctrl+Shift+Up" = "window-move-to-output-up";
-            "Mod+Ctrl+Shift+Right" = "window-move-to-output-right";
-            "Mod+Ctrl+Shift+H" = "window-move-to-output-left";
-            "Mod+Ctrl+Shift+J" = "window-move-to-output-down";
-            "Mod+Ctrl+Shift+K" = "window-move-to-output-up";
-            "Mod+Ctrl+Shift+L" = "window-move-to-output-right";
-            "Mod+Ctrl+Shift+Tab" = "window-move-to-output-next";
-            "Mod+Alt+Left" = "workspace-swap-active-output-left";
-            "Mod+Alt+Down" = "workspace-swap-active-output-down";
-            "Mod+Alt+Up" = "workspace-swap-active-output-up";
-            "Mod+Alt+Right" = "workspace-swap-active-output-right";
-            "Mod+Alt+H" = "workspace-swap-active-output-left";
-            "Mod+Alt+J" = "workspace-swap-active-output-down";
-            "Mod+Alt+K" = "workspace-swap-active-output-up";
-            "Mod+Space" = "scratchpad-toggle";
-            "Mod+Shift+Space" = "window-move-to-scratchpad";
-            "Mod+Ctrl+Space" = "window-restore-from-scratchpad";
-            "Mod+Tab" = "scratchpad-focus-next";
-
-            "Mod+S" = "spawn:noctalia msg panel-toggle control-center";
-            "Mod+Comma" = "spawn:noctalia msg settings-toggle";
-            "Mod+V" = "spawn:noctalia msg panel-toggle clipboard";
-            "Mod+W" = "spawn:noctalia msg panel-toggle wallpaper";
-            "Mod+Ctrl+W" = "spawn:noctalia msg wallpaper-next";
-            "Mod+Ctrl+Shift+W" = "spawn:noctalia msg wallpaper-previous";
-            "Mod+Shift+W" = "spawn:noctalia msg wallpaper-random";
-            "Mod+X" = "spawn:noctalia msg bar-toggle";
-            "Alt+Tab" = {
-              action = "spawn:noctalia msg window-switcher";
-              repeat = false;
-            };
-            "Mod+Alt+L" = "spawn:noctalia msg session lock";
-            "Mod+N" = "spawn:noctalia msg notification-dnd-toggle";
-            "Mod+C" = "spawn:noctalia msg caffeine-toggle";
-            "Print" = "spawn:noctalia msg screenshot-region";
-            "Shift+Print" = "spawn:noctalia msg screenshot-fullscreen";
-            "Mod+Shift+A" = "spawn:noctalia msg screenshot-annotate";
-            "Mod+Ctrl+A" = "spawn:noctalia msg annotate";
-            "Mod+Shift+O" = "spawn:ocr-copy";
-
-            "XF86AudioRaiseVolume" = "spawn:noctalia msg volume-up";
-            "XF86AudioLowerVolume" = "spawn:noctalia msg volume-down";
-            "XF86AudioMute" = "spawn:noctalia msg volume-mute";
-            "XF86AudioMicMute" = "spawn:noctalia msg mic-mute";
-            "XF86AudioPlay" = "spawn:noctalia msg media toggle";
-            "XF86AudioNext" = "spawn:noctalia msg media next";
-            "XF86AudioPrev" = "spawn:noctalia msg media previous";
-            "XF86MonBrightnessUp" = {
-              action = "spawn:brightness-step up";
-              allow_when_locked = true;
-            };
-            "XF86MonBrightnessDown" = {
-              action = "spawn:brightness-step down";
-              allow_when_locked = true;
-            };
-          };
         };
       };
     };

@@ -38,6 +38,7 @@
         pkg:
         builtins.elem (lib.getName pkg) [
           "corefonts"
+          "intelephense"
           "vista-fonts"
           "vscode"
         ];

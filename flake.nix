@@ -25,11 +25,6 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
-    tony-nvim = {
-      url = "github:tonybanters/nvim";
-      flake = false;
-    };
-
     plasma-manager = {
       url = "github:nix-community/plasma-manager";
       inputs = {

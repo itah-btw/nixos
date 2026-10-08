@@ -12,8 +12,8 @@
       };
 
       home.activation.downloadsOnMedia = ''
-          media="${constants.mediaMount}"
-          if ${pkgs.util-linux}/bin/mountpoint -q "$media"; then
+        media="${constants.mediaMount}"
+        if ${pkgs.util-linux}/bin/mountpoint -q "$media"; then
           mkdir -p "$media/Downloads"
           if [ -d "$HOME/Downloads" ] && [ ! -L "$HOME/Downloads" ]; then
             rmdir "$HOME/Downloads" \

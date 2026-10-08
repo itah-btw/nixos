@@ -33,6 +33,7 @@ let
       inherit name;
       hostName = cfg.networking.hostName or null;
       speechd = cfg.services.speechd.enable or false;
+      orca = cfg.services.orca.enable or false;
       firewall = cfg.networking.firewall.enable or false;
       autoGc = cfg.nix.gc.automatic or false;
       xserver = cfg.services.xserver.enable or false;
@@ -50,6 +51,7 @@ let
       mediaMountOptions = cfg.fileSystems.${constants.mediaMount}.options or [ ];
       autologinUser = cfg.services.displayManager.sddm.settings.Autologin.User or null;
       sshPasswordAuth = cfg.services.openssh.settings.PasswordAuthentication or null;
+      sshKbdAuth = cfg.services.openssh.settings.KbdInteractiveAuthentication or null;
       noctaliaSettings = if hmNoctalia != null then hmNoctalia.settings else { };
       customPalettes = if hmNoctalia != null then (hmNoctalia.customPalettes or { }) else { };
       hasNoctalia = hmNoctalia != null && (hmNoctalia.enable or false);
@@ -167,6 +169,10 @@ let
       '';
     }
     {
+      name = "wiring-sorted";
+      cond = ".wiring.perHost | to_entries | all(.[]; (.value.nixos == (.value.nixos | sort)) and (.value.home == (.value.home | sort)))";
+    }
+    {
       name = "constants-intact";
       cond = "(.constants | sort) == ${builtins.toJSON expectedConstants}";
     }
@@ -193,7 +199,7 @@ let
     }
     {
       name = "no-tts";
-      cond = ".hosts | all(.[]; .speechd == false)";
+      cond = ".hosts | all(.[]; (.speechd == false and .orca == false))";
     }
     {
       name = "no-x-server";
@@ -250,7 +256,7 @@ let
       # Single-host on purpose: this encodes a decision about the tv box (autologin
       # into a session with no lock screen, reachable over ssh), not a general rule.
       cond = ''
-        def ok($h): ($h.autologinUser != null) and ($h.sshPasswordAuth == false);
+        def ok($h): ($h.autologinUser != null) and ($h.sshPasswordAuth == false) and ($h.sshKbdAuth == false);
         .hosts | if has("tv") then ok(.tv) else true end
       '';
     }
@@ -281,15 +287,25 @@ let
     }
     {
       name = "umbriel-repeat-trap";
+      # Binds repeat at the keyboard rate, so one-shot spawns must opt out;
+      # volume/brightness steppers are the exception and must keep repeating.
       cond = ''
         def noRepeat($host; $chord):
           ($host.umbrielKeybinds[$chord] // null) as $b
           | if $b == null then true
             else (($b | type) == "object" and $b.repeat == false)
             end;
-        .hosts | all(.[]; . as $host
-          | [ "Mod+Q", "Mod+O", "Mod+Shift+Escape", "Alt+Tab" ]
-          | all(.[]; noRepeat($host; .)))
+        def asBind: if type == "string" then {action: ., repeat: true} else {action: .action, repeat: (if has("repeat") then .repeat else true end)} end;
+        def steppers: ["spawn:noctalia msg volume-up", "spawn:noctalia msg volume-down", "spawn:brightness-step up", "spawn:brightness-step down"];
+        .hosts | all(.[];
+          . as $host
+          | (["Mod+Q", "Mod+O", "Mod+Shift+Escape", "Alt+Tab"] | all(.[]; noRepeat($host; .)))
+            and (($host.umbrielKeybinds // {}) | to_entries | all(.[];
+              (.value | asBind) as $b
+              | if (($b.action | startswith("spawn:")) | not) then true
+                elif (steppers | index($b.action)) != null then $b.repeat == true
+                else $b.repeat == false
+                end)))
       '';
     }
   ];
@@ -304,9 +320,11 @@ let
     hosts = lib.listToAttrs (map (n: lib.nameValuePair n (factsFor n)) (builtins.attrNames hosts));
   };
 
-  unusedFacts = lib.filter (k: !lib.any (r: lib.hasInfix ".${k}" r.cond) rules) (
-    builtins.attrNames facts
-  );
+  # A fact that only appears as a prefix of another fact's name (`.host` in
+  # `.hosts`) must not count as read.
+  unusedFacts = lib.filter (
+    k: !lib.any (r: builtins.match ".*\\.${k}($|[^A-Za-z0-9_].*)" r.cond != null) rules
+  ) (builtins.attrNames facts);
 
   blob =
     assert unusedFacts == [ ];

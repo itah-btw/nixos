@@ -23,7 +23,7 @@
       nix.settings.extra-substituters = [ constants.cachixSubstituter ];
       nix.settings.extra-trusted-public-keys = [ constants.cachixKey ];
 
-      # filter never applies. `nclean` in home/scripts.nix prunes those instead.
+      # gc frees store paths only; boot generations are pruned by `nclean` instead.
       nix.gc = {
         automatic = true;
         dates = "weekly";
@@ -32,13 +32,18 @@
 
       programs.nh.enable = true;
 
+      zramSwap = {
+        enable = true;
+        memoryPercent = 50;
+      };
+
       services.flatpak.enable = true;
 
       # noctalia's `recommendedServices` also provides NetworkManager on hp. This
       # line is the only one that reaches tv, which runs no noctalia.
       networking.networkmanager.enable = true;
-      # tv-system.nix force-disables networking.wireless, so the iwd backend is
-      # inert there.
+      # Only NetworkManager drives wifi here (wpa_supplicant stays off by
+      # default), so the iwd backend applies to both hosts.
       networking.networkmanager.wifi.backend = "iwd";
       services.avahi = {
         enable = true;
@@ -65,14 +70,12 @@
         ];
         shell = pkgs.fish;
       };
-      security.sudo.wheelNeedsPassword = true;
 
       programs.fish.enable = true;
 
       environment.systemPackages = with pkgs; [
         git
         opencode
-        flatpak
       ];
     };
 }

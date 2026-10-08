@@ -11,14 +11,7 @@
         display.separator = "  ";
         modules = [
           "break"
-          {
-            type = "title";
-            color = {
-              user = "#cba6f7";
-              at = "#cba6f7";
-              host = "#cba6f7";
-            };
-          }
+          "title"
           {
             type = "os";
             key = "os    ";

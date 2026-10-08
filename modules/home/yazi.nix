@@ -65,10 +65,10 @@
               orphan = true;
             }
           ];
-          firefox = [
+          librewolf = [
             {
-              run = "firefox %s";
-              desc = "Open in Firefox";
+              run = "librewolf %s";
+              desc = "Open in LibreWolf";
               for = "linux";
               orphan = true;
             }
@@ -94,7 +94,7 @@
           {
             mime = "{text/html,application/xhtml+xml}";
             use = [
-              "firefox"
+              "librewolf"
               "open"
             ];
           }

@@ -62,6 +62,8 @@
         })
         (pkgs.writeShellApplication {
           name = "ocr-copy";
+          # The wrapper sees only runtimeInputs on PATH, so tools used here
+          # must be listed even when home.packages already ships them.
           runtimeInputs = [
             pkgs.grim
             pkgs.slurp
@@ -103,6 +105,9 @@
             nix fmt
             nix run .#lint
             nix build .#checks.x86_64-linux.policy --no-link
+            # Shellcheck only runs when helpers are built as part of a toplevel.
+            nix build --no-link ${root}#nixosConfigurations.hp.config.system.build.toplevel > /dev/null
+            nix build --no-link ${root}#nixosConfigurations.tv.config.system.build.toplevel > /dev/null
             git add -A
             git commit -m "$*"
             git push

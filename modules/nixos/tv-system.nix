@@ -39,7 +39,6 @@
 
       hardware.graphics.extraPackages = [ pkgs.intel-vaapi-driver ];
 
-      services.pulseaudio.enable = false;
       security.rtkit.enable = true;
       services.pipewire = {
         enable = true;
@@ -48,16 +47,20 @@
         pulse.enable = true;
       };
 
-      services.orca.enable = lib.mkForce false;
-      services.speechd.enable = lib.mkForce false;
-
+      # plasma6.nix and graphical-desktop.nix turn these on with `mkDefault
+      # true` whenever the desktop is enabled, so plain `= false` overrides.
+      services.orca.enable = false;
+      services.speechd.enable = false;
       services.power-profiles-daemon.enable = false;
+      services.fwupd.enable = false;
+
       powerManagement.cpuFreqGovernor = "performance";
 
+      # plasma6 follows powerManagement at normal priority, so only mkForce
+      # wins regardless of import order.
       services.upower.enable = lib.mkForce false;
-      services.fwupd.enable = lib.mkForce false;
-      networking.wireless.enable = lib.mkForce false;
-      systemd.services.ModemManager.enable = false;
+      # NetworkManager pulls in a modem daemon this box cannot use.
+      networking.modemmanager.enable = false;
 
       systemd.sleep.settings.Sleep = {
         AllowHibernation = "no";
@@ -66,22 +69,16 @@
         AllowSuspendThenHibernate = "no";
       };
 
-      zramSwap = {
-        enable = true;
-        memoryPercent = 50;
-      };
-
       # ~100 MB of store a TV never reads.
       documentation.nixos.enable = false;
       documentation.man.enable = false;
-
-      programs.firefox.enable = true;
 
       environment.systemPackages = with pkgs; [
         smartmontools
         libva-utils
         mpv
         yt-dlp
+        librewolf
       ];
     };
 }

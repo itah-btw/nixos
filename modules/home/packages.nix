@@ -6,7 +6,7 @@
         xdg-terminal-exec
         pavucontrol
         playerctl
-        firefox
+        librewolf
         proton-authenticator
         proton-vpn
         localsend
@@ -56,6 +56,21 @@
         netbeans
         llama-cpp
         lutgen
+
+        nodejs
+        typescript
+        prettier
+        eslint
+
+        # vis-lspc resolves these by bare name on PATH; clangd and
+        # rust-analyzer are already covered by clang-tools / rustc above,
+        # the html/css/json servers by vscode-langservers-extracted below.
+        typescript-language-server
+        bash-language-server
+        lua-language-server
+        intelephense
+        nil
+        vscode-langservers-extracted
 
         mycli
       ]

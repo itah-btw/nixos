@@ -9,7 +9,6 @@ let
   wiring = {
     nixos = [
       "mariadb"
-      "performance"
       "session"
       "system"
       "web"
@@ -18,12 +17,12 @@ let
       "desktop"
       "fastfetch"
       "identity"
-      "neovim"
       "packages"
       "scripts"
       "shell"
       "tridactyl"
       "umbriel"
+      "vis"
       "yazi"
     ];
   };

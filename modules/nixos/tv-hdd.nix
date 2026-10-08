@@ -1,4 +1,4 @@
-_: {
+{
   flake.nixosModules.tv-hdd =
     { constants, pkgs, ... }:
     {
