@@ -11,23 +11,11 @@ let
   us = builtins.fromJSON "\"\\u001f\"";
   rs = builtins.fromJSON "\"\\u001e\"";
 
-  # Text after `marker`, up to the next double quote. null if marker is absent.
-  quotedAfter =
-    marker: text:
-    let
-      parts = lib.splitString marker text;
-    in
-    if builtins.length parts < 2 then
-      null
-    else
-      lib.head (lib.splitString "\"" (lib.head (lib.tail parts)));
-
   factsFor =
     name:
     let
       cfg = hosts.${name}.config;
       hm = cfg.home-manager.users.${constants.username} or null;
-      hmNoctalia = if hm != null then (hm.programs.noctalia or null) else null;
     in
     {
       inherit name;
@@ -37,14 +25,12 @@ let
       firewall = cfg.networking.firewall.enable or false;
       autoGc = cfg.nix.gc.automatic or false;
       xserver = cfg.services.xserver.enable or false;
+      oxwm = cfg.services.xserver.windowManager.oxwm.enable or false;
       displayManagers = {
-        noctalia-greeter = cfg.services.displayManager.noctalia-greeter.enable or false;
         sddm = cfg.services.displayManager.sddm.enable or false;
         gdm = cfg.services.displayManager.gdm.enable or false;
+        lightdm = cfg.services.xserver.displayManager.lightdm.enable or false;
       };
-      greetd = cfg.services.greetd.enable or false;
-      substituters = cfg.nix.settings.extra-substituters or [ ];
-      trustedKeys = cfg.nix.settings.extra-trusted-public-keys or [ ];
       mysqlBind = cfg.services.mysql.settings.mysqld.bind-address or null;
       mysqlEnabled = cfg.services.mysql.enable or false;
       mysqlWantedBy = cfg.systemd.services.mysql.wantedBy or [ ];
@@ -52,16 +38,10 @@ let
       autologinUser = cfg.services.displayManager.sddm.settings.Autologin.User or null;
       sshPasswordAuth = cfg.services.openssh.settings.PasswordAuthentication or null;
       sshKbdAuth = cfg.services.openssh.settings.KbdInteractiveAuthentication or null;
-      noctaliaSettings = if hmNoctalia != null then hmNoctalia.settings else { };
-      customPalettes = if hmNoctalia != null then (hmNoctalia.customPalettes or { }) else { };
-      hasNoctalia = hmNoctalia != null && (hmNoctalia.enable or false);
-      noctaliaSystemdSystem = cfg.programs.noctalia.systemd.enable or false;
-      noctaliaSystemdHome = if hm != null then (hm.programs.noctalia.systemd.enable or false) else false;
       starshipSettings = if hm != null then (hm.programs.starship.settings or { }) else { };
       starshipPresets = if hm != null then (hm.programs.starship.presets or [ ]) else [ ];
-      umbrielAutostart =
-        if hm != null then (hm.programs.umbriel.settings.general.autostart or null) else null;
-      umbrielKeybinds = if hm != null then (hm.programs.umbriel.settings.keybinds or { }) else { };
+      dconfSettings = if hm != null then (hm.dconf.settings or { }) else { };
+      dconfService = cfg.programs.dconf.enable or false;
     };
 
   names =
@@ -97,8 +77,6 @@ let
   };
 
   expectedConstants = builtins.sort builtins.lessThan [
-    "cachixKey"
-    "cachixSubstituter"
     "cursorSize"
     "cursorTheme"
     "generationKeep"
@@ -123,22 +101,6 @@ let
     "username"
     "wlanIface"
   ];
-
-  cache = {
-    substituter = constants.cachixSubstituter;
-    key = constants.cachixKey;
-  };
-
-  # nixConfig is a static flake attribute, so flake.nix cannot read flake.constants.
-  # This is the copy that has to stay honest.
-  flakeNix = {
-    substituter = quotedAfter "extra-substituters = [ \"" (builtins.readFile ../flake.nix);
-    key =
-      let
-        bare = quotedAfter "noctalia.cachix.org-1:" (builtins.readFile ../flake.nix);
-      in
-      if bare == null then null else "noctalia.cachix.org-1:${bare}";
-  };
 
   rules = [
     {
@@ -182,20 +144,18 @@ let
     }
     {
       name = "single-dm";
-      # Not just "exactly one": each host's DM is pinned, so swapping hp to gdm
-      # goes red instead of staying green.
+      # tv's DM is pinned to sddm; hp runs no DM at all (getty autologin on
+      # tty1 execs startx from the login shell), so any DM there — including
+      # nixpkgs' lightdm-by-default — goes red.
       cond = ''
         .hosts | to_entries | all(.[];
           (.key) as $host
           | (.value.displayManagers) as $d
           | ([ $d | to_entries[] | select(.value == true) | .key ]) as $on
-          | (if $host == "tv" then "sddm" else "noctalia-greeter" end) as $want
-          | ($on | length) == 1 and ($on[0]) == $want)
+          | (if $host == "tv" then "sddm" else null end) as $want
+          | if $want == null then ($on | length) == 0
+            else (($on | length) == 1 and ($on[0]) == $want) end)
       '';
-    }
-    {
-      name = "greeter-implies-greetd";
-      cond = ''.hosts | all(.[]; if .displayManagers."noctalia-greeter" then .greetd else true end)'';
     }
     {
       name = "no-tts";
@@ -203,7 +163,9 @@ let
     }
     {
       name = "no-x-server";
-      cond = ".hosts | all(.[]; .xserver == false)";
+      # hp runs oxwm on Xorg, so Xorg is allowed exactly there; every other
+      # host stays X-free.
+      cond = ".hosts | all(.[]; if .oxwm then true else .xserver == false end)";
     }
     {
       name = "firewall";
@@ -212,21 +174,6 @@ let
     {
       name = "auto-gc";
       cond = ".hosts | all(.[]; .autoGc == true)";
-    }
-    {
-      name = "binary-cache";
-      cond = ''
-        .cache as $c
-        | .hosts | all(.[];
-          ((.substituters | index($c.substituter)) != null
-          and (.trustedKeys | index($c.key)) != null))
-      '';
-    }
-    {
-      name = "flake-nix-config-agrees";
-      # flake.nix's nixConfig cannot read flake.constants; this is what stops the
-      # two copies of the cache URL and key from drifting apart.
-      cond = "(.flakeNix.substituter == .cache.substituter) and (.flakeNix.key == .cache.key)";
     }
     {
       name = "mariadb-loopback";
@@ -261,61 +208,19 @@ let
       '';
     }
     {
-      name = "noctalia-theming-runtime";
-      cond = ''
-        .hosts | all(.[];
-          if .hasNoctalia
-          then (((.noctaliaSettings | has("theme") or has("wallpaper") or has("backdrop")) | not)
-            and (.customPalettes == {}))
-          else true end)
-      '';
-    }
-    {
-      name = "noctalia-single-launcher";
-      # Umbriel starts Noctalia, systemd must not.
-      cond = ''
-        .hosts | all(.[];
-          ((.umbrielAutostart // []) | index("noctalia")) as $auto
-          | if $auto
-            then (.noctaliaSystemdSystem == false and .noctaliaSystemdHome == false)
-            else true end)
-      '';
-    }
-    {
       name = "starship-unmanaged";
       cond = ".hosts | all(.[]; (.starshipSettings == {}) and (.starshipPresets == []))";
     }
     {
-      name = "umbriel-repeat-trap";
-      # Binds repeat at the keyboard rate, so one-shot spawns must opt out;
-      # volume/brightness steppers are the exception and must keep repeating.
-      cond = ''
-        def noRepeat($host; $chord):
-          ($host.umbrielKeybinds[$chord] // null) as $b
-          | if $b == null then true
-            else (($b | type) == "object" and $b.repeat == false)
-            end;
-        def asBind: if type == "string" then {action: ., repeat: true} else {action: .action, repeat: (if has("repeat") then .repeat else true end)} end;
-        def steppers: ["spawn:noctalia msg volume-up", "spawn:noctalia msg volume-down", "spawn:brightness-step up", "spawn:brightness-step down"];
-        .hosts | all(.[];
-          . as $host
-          | (["Mod+Q", "Mod+O", "Mod+Shift+Escape", "Alt+Tab"] | all(.[]; noRepeat($host; .)))
-            and (($host.umbrielKeybinds // {}) | to_entries | all(.[];
-              (.value | asBind) as $b
-              | if (($b.action | startswith("spawn:")) | not) then true
-                elif (steppers | index($b.action)) != null then $b.repeat == true
-                else $b.repeat == false
-                end)))
-      '';
+      name = "dconf-service-present";
+      # HM's dconfSettings activation hard-fails when ca.desrt.dconf is not
+      # activatable, aborting the whole activation before any links land.
+      cond = ".hosts | all(.[]; if .dconfSettings == {} then true else .dconfService end)";
     }
   ];
 
   facts = {
-    inherit
-      wiring
-      cache
-      flakeNix
-      ;
+    inherit wiring;
     constants = builtins.attrNames constants;
     hosts = lib.listToAttrs (map (n: lib.nameValuePair n (factsFor n)) (builtins.attrNames hosts));
   };

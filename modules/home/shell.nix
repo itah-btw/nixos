@@ -1,21 +1,16 @@
 {
   flake.homeManagerModules.shell = {
-    programs.bash = {
-      enable = true;
-      initExtra = ''
-        if [ -z "''${FASTFETCH_GREETING:-}" ]; then
-          export FASTFETCH_GREETING=1
-          fastfetch
-        fi
-      '';
-    };
+    programs.bash.enable = true;
     programs.fish = {
       enable = true;
       interactiveShellInit = ''
         set -g fish_greeting
-        if not set -q FASTFETCH_GREETING
-          set -gx FASTFETCH_GREETING 1
-          fastfetch
+      '';
+      # Console login on tty1 execs straight into X (getty autologin is set
+      # in nixos/session.nix). Other ttys keep a plain shell.
+      loginShellInit = ''
+        if test -z "$DISPLAY"; and [ (tty) = /dev/tty1 ]
+          exec startx
         end
       '';
     };

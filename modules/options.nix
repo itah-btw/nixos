@@ -79,15 +79,12 @@ in
       tvRate = 60;
       mediaMount = "/mnt/media";
       mediaLabel = "hdd";
-      cursorTheme = "Bibata-Modern-Amber";
+      cursorTheme = "Adwaita";
       cursorSize = 24;
       sansFont = "Inter";
       monoFont = "JetBrainsMono Nerd Font";
       generationKeep = 5;
       sshKey = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIIaw6LDDl480KBPXmmDpcy0jlMWMZFHCw635SvaH4HA3 itah@hp-nixos";
-
-      cachixSubstituter = "https://noctalia.cachix.org";
-      cachixKey = "noctalia.cachix.org-1:pCOR47nnMEo5thcxNDtzWpOxNFQsBRglJzxWPp3dkU4=";
     };
     description = "Single source of truth for values shared across modules.";
   };

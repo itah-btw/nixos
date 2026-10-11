@@ -9,6 +9,9 @@
         p7zip
         zstd
         imagemagick
+        # Image preview backend for terminals without graphics (st):
+        # yazi auto-selects the X11 window-system protocol when this exists.
+        ueberzugpp
       ];
       plugins.compress = pkgs.yaziPlugins.compress;
       keymap.mgr.prepend_keymap = [
@@ -65,10 +68,10 @@
               orphan = true;
             }
           ];
-          librewolf = [
+          firefox = [
             {
-              run = "librewolf %s";
-              desc = "Open in LibreWolf";
+              run = "firefox %s";
+              desc = "Open in Firefox";
               for = "linux";
               orphan = true;
             }
@@ -81,10 +84,10 @@
               orphan = true;
             }
           ];
-          vis = [
+          nvim = [
             {
-              run = "vis %s";
-              desc = "Open in vis";
+              run = "nvim %s";
+              desc = "Open in Neovim";
               for = "linux";
               block = true;
             }
@@ -94,21 +97,21 @@
           {
             mime = "{text/html,application/xhtml+xml}";
             use = [
-              "librewolf"
+              "firefox"
               "open"
             ];
           }
           {
             mime = "text/*";
             use = [
-              "vis"
+              "nvim"
               "edit"
             ];
           }
           {
             mime = "application/{json,ndjson,javascript,wine-extension-ini}";
             use = [
-              "vis"
+              "nvim"
               "edit"
             ];
           }
@@ -159,7 +162,7 @@
     xdg.desktopEntries.yazi = {
       name = "Yazi File Manager";
       comment = "Open directory in the yazi terminal file manager";
-      exec = "foot --app-id=yazi yazi %f";
+      exec = "st -e yazi %f";
       icon = "yazi";
       terminal = false;
       mimeType = [ "inode/directory" ];
@@ -172,6 +175,5 @@
 
     home.file.".local/share/icons/hicolor/512x512/apps/yazi.png".source =
       "${config.programs.yazi.package}/share/pixmaps/yazi.png";
-
   };
 }

@@ -5,8 +5,7 @@
       [
         xdg-terminal-exec
         pavucontrol
-        playerctl
-        librewolf
+        firefox
         proton-authenticator
         proton-vpn
         localsend
@@ -16,7 +15,6 @@
         lazygit
         btop
         curl
-        wl-clipboard
 
         ripgrep
         fd
@@ -62,7 +60,7 @@
         prettier
         eslint
 
-        # vis-lspc resolves these by bare name on PATH; clangd and
+        # tony-nvim's lsp.lua resolves these by bare name on PATH; clangd and
         # rust-analyzer are already covered by clang-tools / rustc above,
         # the html/css/json servers by vscode-langservers-extracted below.
         typescript-language-server

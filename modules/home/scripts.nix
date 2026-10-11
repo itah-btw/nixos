@@ -5,6 +5,39 @@
       inherit (constants) root generationKeep;
       target = "${constants.username}@${constants.tvAddress}";
 
+      # Warns once per discharge cycle at 15% or below; the flag lives in the
+      # runtime dir so a reboot clears it. No battery sysfs, exits quietly.
+      batteryWatch = pkgs.writeShellApplication {
+        name = "battery-watch";
+        runtimeInputs = [
+          pkgs.coreutils
+          pkgs.libnotify
+        ];
+        text = ''
+          flag="''${XDG_RUNTIME_DIR:-/tmp}/battery-low-notified"
+          sysfs="''${BATTERY_SYSFS:-/sys/class/power_supply}"
+          cap=""
+          status=""
+          for d in "$sysfs"/BAT*; do
+            [ -r "$d/capacity" ] || continue
+            [ -r "$d/status" ] || continue
+            cap=$(cat "$d/capacity")
+            status=$(cat "$d/status")
+            break
+          done
+          [ -n "$cap" ] || exit 0
+          [ -n "$status" ] || exit 0
+          if [ "$status" = "Discharging" ] && [ "$cap" -le 15 ]; then
+            if [ ! -f "$flag" ]; then
+              # Never fail an unattended timer run over a missed popup.
+              notify-send -u critical "Battery low" "''${cap}% remaining, plug in" || true
+              touch "$flag"
+            fi
+          else
+            rm -f "$flag"
+          fi
+        '';
+      };
       aliases = {
         ls = "eza --icons";
         ll = "eza -l --icons --git";
@@ -32,42 +65,33 @@
       programs.bash.shellAliases = aliases;
       programs.fish.shellAliases = aliases;
 
+      systemd.user.services.battery-watch = {
+        Unit.Description = "Low-battery desktop notification";
+        Service = {
+          Type = "oneshot";
+          ExecStart = "${batteryWatch}/bin/battery-watch";
+        };
+      };
+
+      systemd.user.timers.battery-watch = {
+        Unit.Description = "Check battery level every few minutes";
+        Timer = {
+          OnBootSec = "2min";
+          OnUnitActiveSec = "2min";
+        };
+        Install.WantedBy = [ "timers.target" ];
+      };
+
       home.packages = [
-        (pkgs.writeShellApplication {
-          name = "brightness-step";
-          runtimeInputs = [ pkgs.noctalia ];
-          text = ''
-            pct=""
-            for dev in /sys/class/backlight/*; do
-              if [ -r "$dev/brightness" ] && [ -r "$dev/max_brightness" ]; then
-                read -r cur < "$dev/brightness"
-                read -r max < "$dev/max_brightness"
-                # Integer percent; max is never 0 on a real backlight.
-                if [ "$max" -gt 0 ] 2>/dev/null; then
-                  pct=$(( 100 * cur / max ))
-                  break
-                fi
-              fi
-            done
-            if [ "$1" = "up" ]; then
-              [ -n "$pct" ] || exec noctalia msg brightness-up
-              if [ "$pct" -lt 5 ]; then target=$(( pct + 1 )); else target=$(( pct + 5 )); fi
-            else
-              [ -n "$pct" ] || exec noctalia msg brightness-down
-              if [ "$pct" -le 5 ]; then target=$(( pct - 1 )); else target=$(( pct - 5 )); fi
-              [ "$target" -lt 1 ] && target=1
-            fi
-            noctalia msg brightness-set "$target"
-          '';
-        })
         (pkgs.writeShellApplication {
           name = "ocr-copy";
           # The wrapper sees only runtimeInputs on PATH, so tools used here
           # must be listed even when home.packages already ships them.
+          # X11 build: region select via slop-driven maim, out via xclip.
           runtimeInputs = [
-            pkgs.grim
-            pkgs.slurp
-            pkgs.wl-clipboard
+            pkgs.maim
+            pkgs.slop
+            pkgs.xclip
             (pkgs.tesseract.override {
               enableLanguages = [
                 "eng"
@@ -78,7 +102,7 @@
           text = ''
             tmp=$(mktemp --suffix .png)
             trap 'rm -f "$tmp"' EXIT
-            grim -g "$(slurp)" "$tmp" || exit 1
+            maim -s "$tmp" || exit 1
             text=$(tesseract "$tmp" - -l eng+ind 2>/dev/null) || {
               echo "ocr-copy: tesseract failed; clipboard untouched" >&2
               exit 1
@@ -87,7 +111,7 @@
               echo "ocr-copy: no text recognised; clipboard untouched" >&2
               exit 1
             fi
-            printf '%s' "$text" | wl-copy
+            printf '%s' "$text" | xclip -selection clipboard
           '';
         })
 

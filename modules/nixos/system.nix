@@ -20,9 +20,6 @@
       # Never set `trusted-users` here. It is `types.listOf`, so it appends to
       # nixpkgs' own `[ "root" ]`; setting it yields `trusted-users = root root`.
 
-      nix.settings.extra-substituters = [ constants.cachixSubstituter ];
-      nix.settings.extra-trusted-public-keys = [ constants.cachixKey ];
-
       # gc frees store paths only; boot generations are pruned by `nclean` instead.
       nix.gc = {
         automatic = true;
@@ -39,12 +36,9 @@
 
       services.flatpak.enable = true;
 
-      # noctalia's `recommendedServices` also provides NetworkManager on hp. This
-      # line is the only one that reaches tv, which runs no noctalia.
+      # NetworkManager lives here directly (it used to ride along with
+      # noctalia's `recommendedServices`, removed with that stack).
       networking.networkmanager.enable = true;
-      # Only NetworkManager drives wifi here (wpa_supplicant stays off by
-      # default), so the iwd backend applies to both hosts.
-      networking.networkmanager.wifi.backend = "iwd";
       services.avahi = {
         enable = true;
         nssmdns4 = true;

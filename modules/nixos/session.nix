@@ -7,32 +7,23 @@
       ...
     }:
     {
-      programs.umbriel.enable = true;
-
-      programs.noctalia = {
-        enable = true;
-        recommendedServices.enable = true;
-        systemd.enable = false;
-      };
-
-      services.displayManager.noctalia-greeter = {
-        enable = true;
-        passwordless-sync-users = [ constants.username ];
-        cursorTheme.package = pkgs.bibata-cursors;
-        settings = {
-          cursor = {
-            theme = constants.cursorTheme;
-            size = constants.cursorSize;
-          };
-          keyboard.layout = constants.layout;
-        };
-      };
+      # No display manager: getty autologs in on tty1 and the login shell
+      # execs startx there (see shell.nix). Other consoles get a plain
+      # logged-in shell.
+      services.getty.autologinUser = constants.username;
 
       services.fwupd.enable = true;
       security.rtkit.enable = true;
       services.printing.enable = true;
 
+      xdg.portal.enable = true;
       xdg.portal.extraPortals = [ pkgs.xdg-desktop-portal-gtk ];
+
+      # Provides the activatable ca.desrt.dconf user service. Load-bearing:
+      # HM's dconfSettings activation hard-fails without it, aborting the
+      # whole activation before any links land (noctalia used to pull this
+      # in transitively).
+      programs.dconf.enable = true;
 
       nixpkgs.config.allowUnfreePredicate =
         pkg:
@@ -65,6 +56,5 @@
       programs.seahorse.enable = true;
       services.fprintd.enable = true;
       security.pam.services.login.fprintAuth = false;
-      security.pam.services.greetd.fprintAuth = false;
     };
 }

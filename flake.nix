@@ -1,5 +1,5 @@
 {
-  description = "Two NixOS hosts (hp: Umbriel/Noctalia, tv: Plasma Bigscreen) + Home Manager; dendritic";
+  description = "Two NixOS hosts (hp: oxwm/X11, tv: Plasma Bigscreen) + Home Manager; dendritic";
 
   inputs = {
     nixpkgs.url = "github:nixos/nixpkgs/nixos-unstable";
@@ -11,19 +11,7 @@
 
     # `cachix` branch hits the pre-built binary cache. Do NOT add
     # `inputs.nixpkgs.follows` here: it breaks cachix.
-    noctalia = {
-      url = "github:noctalia-dev/noctalia/cachix";
-    };
-
-    umbriel = {
-      url = "github:noctalia-dev/umbriel";
-      inputs.nixpkgs.follows = "nixpkgs";
-    };
-
-    noctalia-greeter = {
-      url = "github:noctalia-dev/noctalia-greeter";
-      inputs.nixpkgs.follows = "nixpkgs";
-    };
+    # (noctalia inputs removed with the umbriel/noctalia stack)
 
     plasma-manager = {
       url = "github:nix-community/plasma-manager";
@@ -42,17 +30,24 @@
     # directory groups, it never namespaces. hosts/*.nix compose.
     flake-parts.url = "github:hercules-ci/flake-parts";
     import-tree.url = "github:denful/import-tree";
+
+    tony-nvim = {
+      url = "github:tonybanters/nvim/086d1b30e08b66de250c29792278a0a39b07aa99";
+      flake = false;
+    };
+
+    oxwm-config = {
+      url = "github:tonybanters/oxwm-config";
+      flake = false;
+    };
+
+    # Local dir, not a repo: wallpapers deploy into the store from here.
+    oxwm-wallpapers = {
+      url = "path:/home/itah/Projects/oxwm-themes";
+      flake = false;
+    };
   };
 
-  # Not readable from flake.constants: nixConfig is a static flake attribute, so
-  # it cannot reach the module system. `flake-nix-config-agrees` is what keeps
-  # this copy honest.
-  nixConfig = {
-    extra-substituters = [ "https://noctalia.cachix.org" ];
-    extra-trusted-public-keys = [
-      "noctalia.cachix.org-1:pCOR47nnMEo5thcxNDtzWpOxNFQsBRglJzxWPp3dkU4="
-    ];
-  };
-
+  # No nixConfig binary cache: the noctalia cachix went away with that stack.
   outputs = inputs: inputs.flake-parts.lib.mkFlake { inherit inputs; } (inputs.import-tree ./modules);
 }

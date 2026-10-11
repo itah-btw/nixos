@@ -9,20 +9,22 @@ let
   wiring = {
     nixos = [
       "mariadb"
+      "oxwm"
       "session"
       "system"
+      "virt"
       "web"
     ];
     home = [
       "desktop"
       "fastfetch"
       "identity"
+      "nvim"
+      "oxwm"
       "packages"
       "scripts"
       "shell"
       "tridactyl"
-      "umbriel"
-      "vis"
       "yazi"
     ];
   };
@@ -37,15 +39,8 @@ in
     stateVersion = "26.11";
     hardware = ../../hardware-configuration.nix;
 
-    nixosImports = [
-      inputs.umbriel.nixosModules.default
-      inputs.noctalia.nixosModules.default
-      inputs.noctalia-greeter.nixosModules.default
-    ];
-    hmImports = [
-      inputs.noctalia.homeModules.default
-      inputs.umbriel.homeModules.default
-    ];
+    nixosImports = [ ];
+    hmImports = [ ];
 
     extra = {
       networking.firewall.interfaces.${constants.wlanIface} = {

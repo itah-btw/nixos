@@ -78,7 +78,7 @@
         libva-utils
         mpv
         yt-dlp
-        librewolf
+        firefox
       ];
     };
 }
