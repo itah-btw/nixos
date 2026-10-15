@@ -444,6 +444,52 @@
         ''"white",''
       ];
 
+      # Recolor yazi's upstream default theme (theme-dark.toml) with the active
+      # oxwm palette: map the 17 named ANSI colors to palette slots. No custom
+      # flavors remain; `oxt` writes this as ~/.config/yazi/theme.toml.
+      yaziTheme =
+        p:
+        lib.replaceStrings
+          [
+            "\"lightred\""
+            "\"lightgreen\""
+            "\"lightyellow\""
+            "\"lightcyan\""
+            "\"lightblue\""
+            "\"lightmagenta\""
+            "\"darkgray\""
+            "\"reset\""
+            "\"black\""
+            "\"white\""
+            "\"red\""
+            "\"green\""
+            "\"yellow\""
+            "\"blue\""
+            "\"magenta\""
+            "\"cyan\""
+            "\"gray\""
+          ]
+          [
+            "\"${p.red}\""
+            "\"${p.green}\""
+            "\"${p.yellow}\""
+            "\"${p.cyan}\""
+            "\"${p.light_blue}\""
+            "\"${p.lavender}\""
+            "\"${p.grey}\""
+            "\"reset\""
+            "\"${p.bg}\""
+            "\"${p.fg}\""
+            "\"${p.red}\""
+            "\"${p.green}\""
+            "\"${p.yellow}\""
+            "\"${p.blue}\""
+            "\"${p.purple}\""
+            "\"${p.cyan}\""
+            "\"${p.grey}\""
+          ]
+          (builtins.readFile ./yazi-theme-dark.toml);
+
       mkThemedSt =
         name: t:
         pkgs.st.overrideAttrs (old: {
@@ -1048,6 +1094,7 @@
           printf '%s' ${lib.escapeShellArg (fzfFish t.palette)} > $out/oxwm-theme.fish
           printf '%s' ${lib.escapeShellArg (obsTheme t.palette)} > $out/obs.ovt
           printf '%s' ${lib.escapeShellArg (nvimBase16 t.palette t.st)} > $out/matugen.lua
+          printf '%s' ${lib.escapeShellArg (yaziTheme t.palette)} > $out/theme.toml
         ''
       ) themes;
 
@@ -1106,12 +1153,10 @@
           # re-requires matugen.lua live in any running nvim.
           cp "$src/matugen.lua" "$HOME/.config/nvim/lua/matugen.lua"
           pkill -SIGUSR1 nvim 2>/dev/null || true
-          # btop/bat/starship/fzf follow into per-app "oxwm" slots; yazi has one
-          # real flavor per palette, so only its selector follows.
-          # Drop the flavor dir from when oxt generated it; the flavors now
-          # come from programs.yazi.flavors instead.
-          rm -rf "$HOME/.config/yazi/flavors/oxwm.yazi"
-          printf '[flavor]\ndark = "%s"\nlight = "%s"\n' "$theme" "$theme" > "$HOME/.config/yazi/theme.toml"
+          # yazi now follows the active palette directly from $src/theme.toml:
+          # wipe any legacy flavor directories.
+          rm -rf "$HOME/.config/yazi/flavors"
+          cp "$src/theme.toml" "$HOME/.config/yazi/theme.toml"
           cp "$src/btop.theme" "$HOME/.config/btop/themes/oxwm.theme"
           sed -i 's/^color_theme = .*/color_theme = "oxwm"/' "$HOME/.config/btop/btop.conf" 2>/dev/null || true
           cp "$src/bat.tmTheme" "$HOME/.config/bat/themes/oxwm.tmTheme"
@@ -1413,16 +1458,12 @@
         if [ ! -f "$themeFile" ]; then
           echo "${defaultTheme}" > "$themeFile"
         fi
-        # yazi selects a flavor by the same name; the theme file is hand-
-        # editable, so an unknown value falls back instead of selecting none.
+        # yazi theme now follows oxwm: seed the default palette's recolored
+        # theme.toml; edits survive later switches.
         selector="$HOME/.config/yazi/theme.toml"
         if [ ! -f "$selector" ]; then
-          theme=$(cat "$themeFile")
-          case "$theme" in
-            ${lib.concatStringsSep "|" themeNames}) ;;
-            *) theme=${defaultTheme} ;;
-          esac
-          printf '[flavor]\ndark = "%s"\nlight = "%s"\n' "$theme" "$theme" > "$selector"
+          mkdir -p "$HOME/.config/yazi"
+          cp ${themeFiles.${defaultTheme}}/theme.toml "$selector"
         fi
       '';
 

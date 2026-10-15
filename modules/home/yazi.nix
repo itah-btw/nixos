@@ -5,13 +5,7 @@
       enableBashIntegration = true;
       enableFishIntegration = true;
       shellWrapperName = "y";
-      # Vendored upstream flavor templates, named after the oxwm palettes: `oxt`
-      # writes the same name into theme.toml, so renaming one breaks the switch.
-      flavors = {
-        tokyonight = ../../yazi-flavors/tokyonight.yazi;
-        gruvbox = ../../yazi-flavors/gruvbox.yazi;
-        catppuccin = ../../yazi-flavors/catppuccin.yazi;
-      };
+      # Theme comes from oxt: it copies a palette-recolor of yazi's default
       extraPackages = with pkgs; [
         p7zip
         zstd
