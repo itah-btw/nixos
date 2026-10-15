@@ -5,6 +5,13 @@
       enableBashIntegration = true;
       enableFishIntegration = true;
       shellWrapperName = "y";
+      # Vendored upstream flavor templates, named after the oxwm palettes: `oxt`
+      # writes the same name into theme.toml, so renaming one breaks the switch.
+      flavors = {
+        tokyonight = ../../yazi-flavors/tokyonight.yazi;
+        gruvbox = ../../yazi-flavors/gruvbox.yazi;
+        catppuccin = ../../yazi-flavors/catppuccin.yazi;
+      };
       extraPackages = with pkgs; [
         p7zip
         zstd
@@ -43,6 +50,7 @@
         }
       ];
       settings = {
+        # `open`/`edit` used below are yazi's builtin openers, not defined here.
         opener = {
           zathura = [
             {

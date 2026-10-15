@@ -26,6 +26,7 @@ let
       autoGc = cfg.nix.gc.automatic or false;
       xserver = cfg.services.xserver.enable or false;
       oxwm = cfg.services.xserver.windowManager.oxwm.enable or false;
+      pipewire = cfg.services.pipewire.enable or false;
       displayManagers = {
         sddm = cfg.services.displayManager.sddm.enable or false;
         gdm = cfg.services.displayManager.gdm.enable or false;
@@ -34,23 +35,19 @@ let
       mysqlBind = cfg.services.mysql.settings.mysqld.bind-address or null;
       mysqlEnabled = cfg.services.mysql.enable or false;
       mysqlWantedBy = cfg.systemd.services.mysql.wantedBy or [ ];
-      mediaMountOptions = cfg.fileSystems.${constants.mediaMount}.options or [ ];
-      autologinUser = cfg.services.displayManager.sddm.settings.Autologin.User or null;
-      sshPasswordAuth = cfg.services.openssh.settings.PasswordAuthentication or null;
-      sshKbdAuth = cfg.services.openssh.settings.KbdInteractiveAuthentication or null;
       starshipSettings = if hm != null then (hm.programs.starship.settings or { }) else { };
       starshipPresets = if hm != null then (hm.programs.starship.presets or [ ]) else [ ];
       dconfSettings = if hm != null then (hm.dconf.settings or { }) else { };
       dconfService = cfg.programs.dconf.enable or false;
     };
 
-  names =
-    xs:
-    builtins.sort builtins.lessThan (
-      lib.foldl' (acc: n: if lib.elem n acc then acc else acc ++ [ n ]) [ ] xs
-    );
+  names = xs: lib.sort lib.lessThan (lib.unique xs);
 
   wiring = {
+    rawLists = lib.concatMap (h: [
+      h.nixos
+      h.home
+    ]) (builtins.attrValues config.flake.hostModules);
     defined = names (
       builtins.attrNames config.flake.nixosModules ++ builtins.attrNames config.flake.homeManagerModules
     );
@@ -66,14 +63,6 @@ let
       nixos = names h.nixos;
       home = names h.home;
     }) config.flake.hostModules;
-    shared = names (
-      lib.filter (
-        n:
-        lib.length (
-          lib.filter (h: lib.elem n (h.nixos ++ h.home)) (builtins.attrValues config.flake.hostModules)
-        ) > 1
-      ) (lib.concatMap (h: h.nixos ++ h.home) (builtins.attrValues config.flake.hostModules))
-    );
   };
 
   expectedConstants = builtins.sort builtins.lessThan [
@@ -81,23 +70,14 @@ let
     "cursorTheme"
     "generationKeep"
     "httpPort"
-    "lanIface"
     "layout"
     "locale"
     "localsendPort"
     "mdnsPort"
-    "mediaLabel"
-    "mediaMount"
     "monoFont"
     "root"
     "sansFont"
-    "sshKey"
-    "sshPort"
     "timeZone"
-    "tvAddress"
-    "tvMode"
-    "tvOutput"
-    "tvRate"
     "username"
     "wlanIface"
   ];
@@ -119,20 +99,15 @@ let
       '';
     }
     {
-      name = "tv-prefix";
-      cond = ''
-        .wiring as $w
-        | def isTv: startswith("tv-");
-          def wired($h): $h.nixos + $h.home;
-          def unprefixedUnshared: (isTv | not) and (. as $n | $w.shared | index($n) == null);
-          def onTv: [ wired($w.perHost.tv)[] | select(unprefixedUnshared) ] | length;
-          def offTv: [ $w.perHost | to_entries[] | select(.key != "tv") | wired(.value)[] | select(isTv) ] | length;
-          onTv == 0 and offTv == 0
-      '';
-    }
-    {
       name = "wiring-sorted";
       cond = ".wiring.perHost | to_entries | all(.[]; (.value.nixos == (.value.nixos | sort)) and (.value.home == (.value.home | sort)))";
+    }
+    {
+      name = "wiring-distinct";
+      # `names` dedups silently, so modules-wired cannot see a doubled entry
+      # in one list (oxwm is legitimately in both lists at once); a duplicate
+      # still reorders list options and moves the store hash.
+      cond = ".wiring.rawLists | all(.[]; length == (unique | length))";
     }
     {
       name = "constants-intact";
@@ -144,17 +119,10 @@ let
     }
     {
       name = "single-dm";
-      # tv's DM is pinned to sddm; hp runs no DM at all (getty autologin on
-      # tty1 execs startx from the login shell), so any DM there — including
-      # nixpkgs' lightdm-by-default — goes red.
+      # hp runs no DM at all (getty autologin on tty1 execs startx from the
+      # login shell), so any DM — including nixpkgs' lightdm-by-default — goes red.
       cond = ''
-        .hosts | to_entries | all(.[];
-          (.key) as $host
-          | (.value.displayManagers) as $d
-          | ([ $d | to_entries[] | select(.value == true) | .key ]) as $on
-          | (if $host == "tv" then "sddm" else null end) as $want
-          | if $want == null then ($on | length) == 0
-            else (($on | length) == 1 and ($on[0]) == $want) end)
+        .hosts | all(.[]; ([.displayManagers | to_entries[] | select(.value == true)]) | length == 0)
       '';
     }
     {
@@ -166,6 +134,13 @@ let
       # hp runs oxwm on Xorg, so Xorg is allowed exactly there; every other
       # host stays X-free.
       cond = ".hosts | all(.[]; if .oxwm then true else .xserver == false end)";
+    }
+    {
+      name = "audio-present";
+      # Nothing declares the audio stack: it rides in on graphical-desktop.nix
+      # (xserver on) via mkDefault, so assert it rather than discovering its
+      # absence through silent keybinds.
+      cond = ".hosts | all(.[]; .pipewire == true)";
     }
     {
       name = "firewall";
@@ -186,25 +161,6 @@ let
       cond = ''
         .hosts | all(.[];
           if .mysqlEnabled then (.mysqlWantedBy | length) == 0 else true end)
-      '';
-    }
-    {
-      name = "media-mount-timeout";
-      # `nofail` alone still lets a slow spin-up cost systemd's 90s default.
-      cond = ''
-        .hosts | all(.[];
-          if (.mediaMountOptions | length) == 0 then true
-          else (.mediaMountOptions | map(select(startswith("x-systemd.device-timeout="))) | length) >= 1
-          end)
-      '';
-    }
-    {
-      name = "tv-appliance-posture";
-      # Single-host on purpose: this encodes a decision about the tv box (autologin
-      # into a session with no lock screen, reachable over ssh), not a general rule.
-      cond = ''
-        def ok($h): ($h.autologinUser != null) and ($h.sshPasswordAuth == false) and ($h.sshKbdAuth == false);
-        .hosts | if has("tv") then ok(.tv) else true end
       '';
     }
     {

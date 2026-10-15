@@ -18,7 +18,9 @@ let
     home = [
       "desktop"
       "fastfetch"
+      "firefox"
       "identity"
+      "mpv"
       "nvim"
       "oxwm"
       "packages"
@@ -38,9 +40,6 @@ in
     inherit wiring;
     stateVersion = "26.11";
     hardware = ../../hardware-configuration.nix;
-
-    nixosImports = [ ];
-    hmImports = [ ];
 
     extra = {
       networking.firewall.interfaces.${constants.wlanIface} = {

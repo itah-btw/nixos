@@ -10,8 +10,6 @@ let
       wiring,
       stateVersion,
       hardware,
-      nixosImports ? [ ],
-      hmImports ? [ ],
       # Home Manager tracks its own release here, independent of the NixOS
       # `stateVersion` below; the two move separately.
       hmStateVersion ? "26.11",
@@ -26,9 +24,6 @@ let
       specialArgs = { inherit inputs constants; };
       modules = [
         hardware
-      ]
-      ++ nixosImports
-      ++ [
         inputs.home-manager.nixosModules.home-manager
         (_: {
           networking.hostName = name;
@@ -41,7 +36,7 @@ let
             extraSpecialArgs = { inherit inputs constants; };
             users.${constants.username} = {
               home.stateVersion = hmStateVersion;
-              imports = hmImports ++ map (n: config.flake.homeManagerModules.${n}) wiring.home;
+              imports = map (n: config.flake.homeManagerModules.${n}) wiring.home;
             };
           };
         })
@@ -67,24 +62,15 @@ in
       layout = "us";
       timeZone = "Asia/Jakarta";
       locale = "en_US.UTF-8";
-      tvAddress = "192.168.0.62";
       wlanIface = "wlan0";
-      lanIface = "enp2s0";
       localsendPort = 53317;
       mdnsPort = 5353;
-      sshPort = 22;
       httpPort = 80;
-      tvOutput = "HDMI-A-1";
-      tvMode = "1920x1080@60";
-      tvRate = 60;
-      mediaMount = "/mnt/media";
-      mediaLabel = "hdd";
       cursorTheme = "Adwaita";
       cursorSize = 24;
       sansFont = "Inter";
       monoFont = "JetBrainsMono Nerd Font";
       generationKeep = 5;
-      sshKey = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIIaw6LDDl480KBPXmmDpcy0jlMWMZFHCw635SvaH4HA3 itah@hp-nixos";
     };
     description = "Single source of truth for values shared across modules.";
   };

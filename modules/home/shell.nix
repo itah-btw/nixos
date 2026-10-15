@@ -6,11 +6,12 @@
       interactiveShellInit = ''
         set -g fish_greeting
       '';
-      # Console login on tty1 execs straight into X (getty autologin is set
-      # in nixos/session.nix). Other ttys keep a plain shell.
+      # Console login on tty1 starts X (getty autologin is set in
+      # nixos/session.nix). No exec: a failed startx — or logging out of
+      # the WM — lands in a console shell instead of a respawn loop.
       loginShellInit = ''
         if test -z "$DISPLAY"; and [ (tty) = /dev/tty1 ]
-          exec startx
+          startx; or echo "startx failed; staying in console" >&2
         end
       '';
     };

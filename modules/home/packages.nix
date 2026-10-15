@@ -1,77 +1,92 @@
 {
+  # Bare tools live here; configured packages live with their config, and
+  # helpers keep their own runtimeInputs (wrappers see only those on PATH).
   flake.homeManagerModules.packages = { pkgs, ... }: {
-    home.packages =
-      with pkgs;
-      [
-        xdg-terminal-exec
-        pavucontrol
-        firefox
-        proton-authenticator
-        proton-vpn
-        localsend
+    home.packages = with pkgs; [
+      xdg-terminal-exec
+      proton-authenticator
+      proton-vpn
+      localsend
 
-        eza
-        bat
-        lazygit
-        btop
-        curl
+      bluetui
+      brightnessctl
+      clipmenu
+      feh
+      libnotify
+      maim
+      slop
+      wiremix
+      xclip
+      xdotool
 
-        ripgrep
-        fd
-        fzf
-        unzip
-        zip
+      khal
+      vdirsyncer
 
-        python3
-        gcc
-        cmake
-        ninja
-        gersemi
-        clang-tools
-        bear
-        lldb
-        valgrind
-        cppcheck
-        android-tools
-        payload-dumper-go
+      eza
+      bat
+      lazygit
+      btop
+      curl
 
-        # nixpkgs builds these from one `rustPackages` set, so rustc/rustfmt/
-        # clippy already share a version without pulling in rust-overlay.
-        rustc
-        cargo
-        rust-analyzer
-        rustfmt
-        clippy
+      ripgrep
+      fd
+      fzf
+      jq
+      unzip
+      zip
 
-        mpv
-        imv
-        zathura
-        obs-studio
-        libreoffice
+      python3
+      gcc
+      mold
+      cmake
+      ninja
+      gersemi
+      clang-tools
+      bear
+      lldb
+      valgrind
+      cppcheck
+      shellcheck
+      android-tools
+      payload-dumper-go
 
-        vscode
-        php
-        netbeans
-        llama-cpp
-        lutgen
+      # nixpkgs builds these from one `rustPackages` set, so rustc/rustfmt/
+      # clippy already share a version without pulling in rust-overlay.
+      rustc
+      cargo
+      rust-analyzer
+      rustfmt
+      clippy
 
-        nodejs
-        typescript
-        prettier
-        eslint
+      imv
+      zathura
+      obs-studio
+      libreoffice
+      yt-dlp
 
-        # tony-nvim's lsp.lua resolves these by bare name on PATH; clangd and
-        # rust-analyzer are already covered by clang-tools / rustc above,
-        # the html/css/json servers by vscode-langservers-extracted below.
-        typescript-language-server
-        bash-language-server
-        lua-language-server
-        intelephense
-        nil
-        vscode-langservers-extracted
+      vscode
+      php
+      netbeans
+      llama-cpp
+      lutgen
 
-        mycli
-      ]
-      ++ [ pkgs.phpPackages.php-cs-fixer ];
+      nodejs
+      typescript
+      prettier
+      eslint
+
+      # tony-nvim's lsp.lua resolves these by bare name on PATH; clangd comes
+      # with clang-tools above (rust-analyzer has its own entry below),
+      # the html/css/json servers with vscode-langservers-extracted below.
+      typescript-language-server
+      bash-language-server
+      lua-language-server
+      intelephense
+      nil
+      vscode-langservers-extracted
+
+      mycli
+      phpPackages.php-cs-fixer
+    ];
   };
 }

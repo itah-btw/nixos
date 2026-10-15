@@ -16,8 +16,13 @@
       security.rtkit.enable = true;
       services.printing.enable = true;
 
+      hardware.bluetooth.enable = true;
+
       xdg.portal.enable = true;
       xdg.portal.extraPortals = [ pkgs.xdg-desktop-portal-gtk ];
+      # No desktop sets XDG_CURRENT_DESKTOP here, so name the backend
+      # explicitly instead of relying on portal fallback order.
+      xdg.portal.config.common.default = [ "gtk" ];
 
       # Provides the activatable ca.desrt.dconf user service. Load-bearing:
       # HM's dconfSettings activation hard-fails without it, aborting the

@@ -17,21 +17,32 @@
       };
 
       # Sandboxes see neither HM's files store nor host dconf, so symlinked
-      # themes dangle and GTK falls back to Adwaita. Repoint the links at the
-      # exposed package path, seed each app's dconf, pin the cursor env.
+      # themes dangle and GTK falls back to Adwaita. Seed each installed
+      # app's dconf; the global override below covers filesystem/env.
+      # Re-runs only when the theme, size, or installed-app set changes.
       home.activation.flatpakCursorTheme = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
-        ln -sfn ${pkgs.adwaita-icon-theme}/share/icons/${constants.cursorTheme} ${config.home.homeDirectory}/.icons/${constants.cursorTheme}
-        ln -sfn ${pkgs.adwaita-icon-theme}/share/icons/${constants.cursorTheme} ${config.home.homeDirectory}/.local/share/icons/${constants.cursorTheme}
-        ${pkgs.flatpak}/bin/flatpak override --user \
-          --filesystem=xdg-data/icons:ro \
-          '--filesystem=~/.icons:ro' \
-          --filesystem=${pkgs.adwaita-icon-theme}:ro \
-          --env=XCURSOR_THEME=${constants.cursorTheme} \
-          --env=XCURSOR_SIZE=${toString constants.cursorSize}
+        want="${constants.cursorTheme}-${toString constants.cursorSize}"
+        apps=$(${pkgs.flatpak}/bin/flatpak list --app --user --columns=application 2>/dev/null | sort || true)
+        current="$want
+        $apps"
+        stamp="$HOME/.cache/flatpak-cursor-applied"
+        if [ -f "$stamp" ] && [ "$(cat "$stamp")" = "$current" ]; then exit 0; fi
         for app in $(${pkgs.flatpak}/bin/flatpak list --app --user --columns=application 2>/dev/null || true); do
           ${pkgs.flatpak}/bin/flatpak run --command=gsettings "$app" set org.gnome.desktop.interface cursor-theme '${constants.cursorTheme}' || true
           ${pkgs.flatpak}/bin/flatpak run --command=gsettings "$app" set org.gnome.desktop.interface cursor-size ${toString constants.cursorSize} || true
         done
+        printf '%s' "$current" > "$stamp"
+      '';
+
+      # Declarative form of `flatpak override --user`: re-rendered whenever
+      # the theme, size, or adwaita store path changes, never stale. Paths
+      # are absolute because flatpak expands ~ when writing its own file.
+      home.file.".local/share/flatpak/overrides/global".text = ''
+        [Context]
+        filesystems=xdg-data/icons:ro;${config.home.homeDirectory}/.icons:ro;${pkgs.adwaita-icon-theme}:ro;
+        [Environment]
+        XCURSOR_THEME=${constants.cursorTheme}
+        XCURSOR_SIZE=${toString constants.cursorSize}
       '';
 
       gtk.enable = true;
@@ -55,7 +66,7 @@
         };
       };
 
-      # Java AWT still needs this to map its own windows on Wayland.
+      # oxwm never reparents client windows, which Java AWT needs this to cope with.
       home.sessionVariables = {
         _JAVA_AWT_WM_NONREPARENTING = "1";
         EDITOR = "nvim";
@@ -72,7 +83,6 @@
         enable = true;
         pictures = "${config.home.homeDirectory}/Pictures";
       };
-      home.file."Pictures/Wallpapers/.keep".text = "";
 
       # st is the only terminal: yazi's desktop entry and xdg-terminal-exec
       # both resolve through here.

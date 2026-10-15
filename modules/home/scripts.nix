@@ -3,7 +3,6 @@
     { constants, pkgs, ... }:
     let
       inherit (constants) root generationKeep;
-      target = "${constants.username}@${constants.tvAddress}";
 
       # Warns once per discharge cycle at 15% or below; the flag lives in the
       # runtime dir so a reboot clears it. No battery sysfs, exits quietly.
@@ -48,6 +47,7 @@
         nsu = "nh os switch --update --accept-flake-config ${root}#hp";
         dry = "nh os build --accept-flake-config ${root}#hp";
         ntest = "nh os test --accept-flake-config ${root}#hp";
+        nboot = "nh os boot --accept-flake-config ${root}#hp";
         rollback = "nh os rollback";
 
         # age timer in nixos/system.nix can never remove one. Keep matches boot's limit.
@@ -131,27 +131,9 @@
             nix build .#checks.x86_64-linux.policy --no-link
             # Shellcheck only runs when helpers are built as part of a toplevel.
             nix build --no-link ${root}#nixosConfigurations.hp.config.system.build.toplevel > /dev/null
-            nix build --no-link ${root}#nixosConfigurations.tv.config.system.build.toplevel > /dev/null
             git add -A
             git commit -m "$*"
             git push
-          '';
-        })
-
-        (pkgs.writeShellApplication {
-          name = "deploy-tv";
-          runtimeInputs = [
-            pkgs.nix
-            pkgs.openssh
-          ];
-          text = ''
-            toplevel=$(nix build --print-out-paths --no-link ${root}#nixosConfigurations.tv.config.system.build.toplevel) || exit 1
-            nix copy --to "ssh://${target}" "$toplevel" || exit 1
-            read -r -p "Switch the TV now (interrupts playback)? [y/N] " c
-            case "$c" in y | Y) ;; *) echo "copied; re-run deploy-tv to switch"; exit 0 ;; esac
-            # Nix never marks a store path setuid, so the wrapper (not sw/bin).
-            s=/run/wrappers/bin/sudo
-            ssh -t "${target}" "$s nix-env -p /nix/var/nix/profiles/system --set $toplevel && $s $toplevel/bin/switch-to-configuration switch"
           '';
         })
       ];

@@ -9,64 +9,180 @@
     }:
     let
       repo = inputs."oxwm-config";
-      wallpapers = inputs."oxwm-wallpapers";
 
-      # Single source of truth for theme colors. The Lua palettes and the
-      # rofi configs below are both generated from this; add a theme here
-      # and extend theme_names in the loader to wire a new one through.
-      palettes = {
+      # Single source of truth for themes: the palette every renderer uses,
+      # the st ANSI ramp, the wallpaper link, and the oxt name aliases.
+      # Adding a theme is one entry here; dispatch tables below generate
+      # themselves from it (theme_names, wallpaper map, wrapper arms, oxt).
+      themes = {
         tokyonight = {
-          fg = "#bbbbbb";
-          red = "#f7768e";
-          bg = "#1a1b26";
-          cyan = "#0db9d7";
-          green = "#9ece6a";
-          lavender = "#a9b1d6";
-          light_blue = "#7aa2f7";
-          grey = "#bbbbbb";
-          blue = "#6dade3";
-          purple = "#ad8ee6";
-          yellow = "#e0af68";
-          orange = "#ff9e64";
-          sep = "#444b6a";
+          aliases = [
+            "tok"
+            "t"
+          ];
+          wallpaper = {
+            file = "tokyonight.jpg";
+            src = "tokyonight/wallhaven-yqeoyx.jpg";
+          };
+          palette = {
+            fg = "#bbbbbb";
+            red = "#f7768e";
+            bg = "#1a1b26";
+            cyan = "#0db9d7";
+            green = "#9ece6a";
+            lavender = "#a9b1d6";
+            light_blue = "#7aa2f7";
+            grey = "#bbbbbb";
+            blue = "#6dade3";
+            purple = "#ad8ee6";
+            yellow = "#e0af68";
+            orange = "#ff9e64";
+            sep = "#444b6a";
+            accent = "#6dade3";
+          };
+          st = {
+            fg = "#c0caf5";
+            bg = "#1a1b26";
+            cursor = "#c0caf5";
+            colors = [
+              "#15161e"
+              "#f7768e"
+              "#9ece6a"
+              "#e0af68"
+              "#7aa2f7"
+              "#bb9af7"
+              "#7dcfff"
+              "#a9b1d6"
+              "#414868"
+              "#f7768e"
+              "#9ece6a"
+              "#e0af68"
+              "#7aa2f7"
+              "#bb9af7"
+              "#7dcfff"
+              "#c0caf5"
+            ];
+          };
         };
         gruvbox = {
-          fg = "#ebdbb2";
-          red = "#fb4934";
-          bg = "#282828";
-          cyan = "#8ec07c";
-          green = "#b8bb26";
-          lavender = "#d3869b";
-          light_blue = "#83a598";
-          grey = "#928374";
-          blue = "#83a598";
-          purple = "#d3869b";
-          yellow = "#fabd2f";
-          orange = "#fe8019";
-          sep = "#504945";
+          aliases = [
+            "gruv"
+            "g"
+          ];
+          wallpaper = {
+            file = "gruvbox.png";
+            src = "gruvbox/The_Backwater.png";
+          };
+          palette = {
+            fg = "#ebdbb2";
+            red = "#fb4934";
+            bg = "#282828";
+            cyan = "#8ec07c";
+            green = "#b8bb26";
+            lavender = "#d3869b";
+            light_blue = "#83a598";
+            grey = "#928374";
+            blue = "#83a598";
+            purple = "#d3869b";
+            yellow = "#fabd2f";
+            orange = "#fe8019";
+            sep = "#504945";
+            accent = "#fe8019";
+          };
+          st = {
+            fg = "#ebdbb2";
+            bg = "#282828";
+            cursor = "#ebdbb2";
+            colors = [
+              "#282828"
+              "#cc241d"
+              "#98971a"
+              "#d79921"
+              "#458588"
+              "#b16286"
+              "#689d6a"
+              "#a89984"
+              "#928374"
+              "#fb4934"
+              "#b8bb26"
+              "#fabd2f"
+              "#83a598"
+              "#d3869b"
+              "#8ec07c"
+              "#ebdbb2"
+            ];
+          };
         };
         catppuccin = {
-          fg = "#cdd6f4";
-          red = "#f38ba8";
-          bg = "#1e1e2e";
-          cyan = "#94e2d5";
-          green = "#a6e3a1";
-          lavender = "#bac2de";
-          light_blue = "#89b4fa";
-          grey = "#6c7086";
-          blue = "#89b4fa";
-          purple = "#cba6f7";
-          yellow = "#f9e2af";
-          orange = "#fab387";
-          sep = "#313244";
+          aliases = [
+            "cat"
+            "c"
+          ];
+          wallpaper = {
+            file = "catppuccin.jpg";
+            src = "catppuccin/wallhaven-9o2g8k-catppuccin-mocha.jpg";
+          };
+          palette = {
+            fg = "#cdd6f4";
+            red = "#f38ba8";
+            bg = "#1e1e2e";
+            cyan = "#94e2d5";
+            green = "#a6e3a1";
+            lavender = "#bac2de";
+            light_blue = "#89b4fa";
+            grey = "#6c7086";
+            blue = "#89b4fa";
+            purple = "#cba6f7";
+            yellow = "#f9e2af";
+            orange = "#fab387";
+            sep = "#313244";
+            accent = "#cba6f7";
+          };
+          st = {
+            fg = "#cdd6f4";
+            bg = "#1e1e2e";
+            cursor = "#f5e0dc";
+            colors = [
+              "#45475a"
+              "#f38ba8"
+              "#a6e3a1"
+              "#f9e2af"
+              "#89b4fa"
+              "#cba6f7"
+              "#94e2d5"
+              "#bac2de"
+              "#585b70"
+              "#f38ba8"
+              "#a6e3a1"
+              "#f9e2af"
+              "#89b4fa"
+              "#cba6f7"
+              "#94e2d5"
+              "#a5adcb"
+            ];
+          };
         };
       };
+
+      palettes = lib.mapAttrs (_: t: t.palette) themes;
+      themeNames = builtins.attrNames themes;
+      defaultTheme = "tokyonight";
 
       luaPalette =
         p:
         "return {\n"
         + lib.concatStringsSep "\n" (lib.mapAttrsToList (k: v: "    ${k} = \"${v}\";") p)
         + "\n}\n";
+
+      # Generated into the border's per-theme lookup, so each palette names its
+      # accent once instead of in a hand-kept Lua table.
+      paletteAccents = lib.concatStringsSep ", " (
+        lib.mapAttrsToList (name: p: "${name} = \"${p.accent}\"") palettes
+      );
+
+      # oxwm only positions floating windows, never sizes them, so -g on the
+      # spawned st is the only lever on how big a bar-click popup opens.
+      popupGeom = "110x32";
 
       # The bar, generated so every block carries its own color, the clock
       # sits last (rightmost), and wifi/bluetooth open floating TUIs on click.
@@ -77,7 +193,7 @@
                 interval = 5,
                 color = colors.purple,
                 underline = true,
-                click = { command = "st -e btop", floating = true },
+                click = { command = "st -g ${popupGeom} -e btop", floating = true },
             }),
             oxwm.bar.block.static({
                 text = "│",
@@ -91,7 +207,7 @@
                 interval = 5,
                 color = colors.orange,
                 underline = true,
-                click = { command = "st -e btop", floating = true },
+                click = { command = "st -g ${popupGeom} -e btop", floating = true },
             }),
             oxwm.bar.block.static({
                 text = "│",
@@ -105,7 +221,7 @@
                 interval = 30,
                 color = colors.red,
                 underline = true,
-                click = { command = "st -e btop", floating = true },
+                click = { command = "st -g ${popupGeom} -e btop", floating = true },
             }),
             oxwm.bar.block.static({
                 text = "│",
@@ -119,7 +235,7 @@
                 interval = 10,
                 color = colors.yellow,
                 underline = true,
-                click = { command = "st -e nmtui", floating = true },
+                click = { command = "st -g ${popupGeom} -e nmtui", floating = true },
             }),
             oxwm.bar.block.static({
                 text = "│",
@@ -133,7 +249,7 @@
                 interval = 10,
                 color = colors.light_blue,
                 underline = true,
-                click = { command = "st -e bluetui", floating = true },
+                click = { command = "st -g ${popupGeom} -e bluetui", floating = true },
             }),
             oxwm.bar.block.static({
                 text = "│",
@@ -163,33 +279,55 @@
                 interval = 30,
                 color = colors.cyan,
                 underline = true,
-                click = { command = "st -e ikhal", floating = true },
+                click = { command = "st -g ${popupGeom} -e ikhal", floating = true },
             }),
         };
       '';
 
-      themeLoader = ''
-        local theme_names = { tokyonight = true, gruvbox = true, catppuccin = true }
-        local theme = "tokyonight"
-        local theme_file = io.open(os.getenv("HOME") .. "/.config/oxwm/theme", "r")
-        if theme_file then
-          local wanted = (theme_file:read("*l") or ""):match("^%s*(.-)%s*$")
-          theme_file:close()
-          if theme_names[wanted] then theme = wanted end
-        end
-        local colors = require("colors." .. theme);'';
+      themeLoader =
+        let
+          known = lib.concatStringsSep ", " (map (n: "${n} = true") themeNames);
+        in
+        ''
+          local theme_names = { ${known} }
+          local theme = "${defaultTheme}"
+          local theme_file = io.open(os.getenv("HOME") .. "/.config/oxwm/theme", "r")
+          if theme_file then
+            local wanted = (theme_file:read("*l") or ""):match("^%s*(.-)%s*$")
+            theme_file:close()
+            if theme_names[wanted] then theme = wanted end
+          end
+          local colors = require("colors." .. theme);'';
 
-      wallpaperBlock = ''
-        local hp_wallpapers = {
-          tokyonight = os.getenv("HOME") .. "/.config/oxwm/wallpapers/tokyonight.jpg",
-          gruvbox = os.getenv("HOME") .. "/.config/oxwm/wallpapers/gruvbox.png",
-          catppuccin = os.getenv("HOME") .. "/.config/oxwm/wallpapers/catppuccin.jpg",
-        }
-        oxwm.autostart("feh --bg-fill " .. hp_wallpapers[theme])'';
+      wallpaperBlock =
+        let
+          entries = lib.mapAttrsToList (
+            n: t: ''${n} = os.getenv("HOME") .. "/.config/oxwm/wallpapers/${t.wallpaper.file}",''
+          ) themes;
+        in
+        ''
+          local hp_wallpapers = {
+            ${lib.concatStringsSep "\n  " entries}
+          }
+          oxwm.autostart("feh --bg-fill " .. hp_wallpapers[theme])'';
 
       firefoxBind = ''oxwm.key.bind({ modkey }, "B", oxwm.spawn({ "sh", "-c", "firefox" }))'';
 
-      screenshotCmd = "mkdir -p ~/Pictures/Screenshots && f=~/Pictures/Screenshots/$(date +%Y%m%d-%H%M%S).png && maim -s $f && xclip -selection clipboard -t image/png < $f && notify-send \"Screenshot saved\" \"$f\"";
+      # One shape for the three file captures: file + clipboard +
+      # notification. The quick region shot skips the file.
+      mkShot =
+        suffix: capture:
+        ''mkdir -p ~/Pictures/Screenshots && f=~/Pictures/Screenshots/$(date +%Y%m%d-%H%M%S)${suffix}.png && ${capture} "$f" && xclip -selection clipboard -t image/png < "$f" && notify-send "Screenshot saved" "$f"'';
+      screenshotCmd = mkShot "" "maim -s";
+      screenshotFullCmd = mkShot "-full" "maim";
+      screenshotWindowCmd = mkShot "-window" "maim -i $(xdotool getactivewindow)";
+      screenshotQuickCmd = "maim -s | xclip -selection clipboard -t image/png";
+
+      dunstctl = "${pkgs.dunst}/bin/dunstctl";
+      wifiToggle = ''st=$(nmcli -t -f WIFI g | grep -q enabled && echo off || echo on); nmcli radio wifi "$st"; notify-send -h string:x-dunst-stack-tag:osd "Wifi" "$st"'';
+      btToggle = ''st=$(bluetoothctl show 2>/dev/null | grep -qi 'Powered: yes' && echo off || echo on); bluetoothctl power "$st"; notify-send -h string:x-dunst-stack-tag:osd "Bluetooth" "$st"'';
+      dndToggle = ''if ${dunstctl} is-paused | grep -q true; then ${dunstctl} set-paused false; st=off; else ${dunstctl} set-paused true; st=on; fi; notify-send -h string:x-dunst-stack-tag:osd "DND" "$st"'';
+      notifRecall = "${dunstctl} history-pop";
 
       # Line surgery on the vendored config: every anchor below must match
       # exactly one line, asserted so upstream edits fail loudly instead of
@@ -218,10 +356,20 @@
         (repl "oxwm.border.set_width(0)" "oxwm.border.set_width(2)")
         (repl "oxwm.bar.set_scheme_occupied(colors.blue, colors.bg, colors.cyan)" "oxwm.bar.set_scheme_occupied(colors.orange, colors.bg, colors.orange)")
         (repl "oxwm.border.set_focused_color(colors.purple)" ''
-          local focus_colors = { tokyonight = colors.blue, gruvbox = colors.orange, catppuccin = colors.purple }
-          oxwm.border.set_focused_color(focus_colors[theme] or colors.purple)'')
+          local focus_colors = { ${paletteAccents} }
+          oxwm.border.set_focused_color(focus_colors[theme] or colors.accent)'')
         (repl ''local bar_font = "JetBrainsMono Nerd Font Propo:style=Bold:size=12"'' ''local bar_font = "JetBrainsMono Nerd Font Propo:style=Bold:size=10"'')
-        (repl ''oxwm.key.bind({ modkey }, "S", oxwm.spawn({ "sh", "-c", "maim -s | xclip -selection clipboard -t image/png" }))'' ''oxwm.key.bind({ modkey }, "S", oxwm.spawn({ "sh", "-c", [[${screenshotCmd}]] }))'')
+        (repl ''oxwm.key.bind({ modkey }, "S", oxwm.spawn({ "sh", "-c", "maim -s | xclip -selection clipboard -t image/png" }))'' ''
+          oxwm.key.bind({ modkey }, "S", oxwm.spawn({ "sh", "-c", [[${screenshotQuickCmd}]] }))
+          -- Screenshots to file: region, active window, full screen
+          oxwm.key.bind({ modkey }, "Print", oxwm.spawn({ "sh", "-c", [[${screenshotCmd}]] }))
+          oxwm.key.bind({ modkey, "Shift" }, "Print", oxwm.spawn({ "sh", "-c", [[${screenshotWindowCmd}]] }))
+          oxwm.key.bind({ modkey, "Control" }, "Print", oxwm.spawn({ "sh", "-c", [[${screenshotFullCmd}]] }))
+          -- Radios and notifications
+          oxwm.key.bind({ modkey, "Shift" }, "W", oxwm.spawn({ "sh", "-c", [[${wifiToggle}]] }))
+          oxwm.key.bind({ modkey, "Shift" }, "U", oxwm.spawn({ "sh", "-c", [[${btToggle}]] }))
+          oxwm.key.bind({ modkey, "Shift" }, "D", oxwm.spawn({ "sh", "-c", [[${dndToggle}]] }))
+          oxwm.key.bind({ modkey, "Shift" }, "N", oxwm.spawn({ "sh", "-c", [[${notifRecall}]] }))'')
         (repl ''oxwm.key.bind({ modkey }, "D", oxwm.spawn({ "sh", "-c", "rofi -show drun" }))'' ''
           oxwm.key.bind({ modkey }, "D", oxwm.spawn({ "sh", "-c", "dmenu_run -l 10" }))
           -- Launch browser
@@ -296,82 +444,18 @@
         ''"white",''
       ];
 
-      stThemes = {
-        tokyonight = {
-          fg = "#c0caf5";
-          bg = "#1a1b26";
-          cursor = "#c0caf5";
-          colors = [
-            "#15161e"
-            "#f7768e"
-            "#9ece6a"
-            "#e0af68"
-            "#7aa2f7"
-            "#bb9af7"
-            "#7dcfff"
-            "#a9b1d6"
-            "#414868"
-            "#f7768e"
-            "#9ece6a"
-            "#e0af68"
-            "#7aa2f7"
-            "#bb9af7"
-            "#7dcfff"
-            "#c0caf5"
-          ];
-        };
-        gruvbox = {
-          fg = "#ebdbb2";
-          bg = "#282828";
-          cursor = "#ebdbb2";
-          colors = [
-            "#282828"
-            "#cc241d"
-            "#98971a"
-            "#d79921"
-            "#458588"
-            "#b16286"
-            "#689d6a"
-            "#a89984"
-            "#928374"
-            "#fb4934"
-            "#b8bb26"
-            "#fabd2f"
-            "#83a598"
-            "#d3869b"
-            "#8ec07c"
-            "#ebdbb2"
-          ];
-        };
-        catppuccin = {
-          fg = "#cdd6f4";
-          bg = "#1e1e2e";
-          cursor = "#f5e0dc";
-          colors = [
-            "#45475a"
-            "#f38ba8"
-            "#a6e3a1"
-            "#f9e2af"
-            "#89b4fa"
-            "#cba6f7"
-            "#94e2d5"
-            "#bac2de"
-            "#585b70"
-            "#f38ba8"
-            "#a6e3a1"
-            "#f9e2af"
-            "#89b4fa"
-            "#cba6f7"
-            "#94e2d5"
-            "#a5adcb"
-          ];
-        };
-      };
-
       mkThemedSt =
         name: t:
         pkgs.st.overrideAttrs (old: {
           pname = "st-${name}";
+          # Vanilla st has no scrollback buffer at all: any output longer
+          # than the window is unrecoverable. Shift+PageUp/PageDown scroll.
+          patches = (old.patches or [ ]) ++ [
+            (pkgs.fetchpatch {
+              url = "https://st.suckless.org/patches/scrollback/st-scrollback-0.9.2.diff";
+              hash = "sha256-jbY7+D3wbLoSzbAuV4y0mvx4nHJrTIX2bpWzclYrrHo=";
+            })
+          ];
           postPatch = (old.postPatch or "") + ''
             sed -i ${
               lib.concatMapStringsSep " " (pair: "-e 's|${pair.fst}|\"${pair.snd}\",|'") (
@@ -394,43 +478,28 @@
           '';
         });
 
-      # oxwm spawns "st" by bare name; this dispatches to the themed build
-      # matching the active theme file, same source of truth as the palette.
-      stLauncher = pkgs.writeShellScriptBin "st" ''
-        theme=$(cat "$HOME/.config/oxwm/theme" 2>/dev/null || echo tokyonight)
-        theme="''${theme//[[:space:]]/}"
-        case "$theme" in
-          gruvbox) exec st-gruvbox "$@" ;;
-          catppuccin) exec st-catppuccin "$@" ;;
-          *) exec st-tokyonight "$@" ;;
-        esac
-      '';
-
-      # Same dispatch for notifications: one dunstrc per theme, picked by
-      # the active theme file. dunst is autostarted by oxwm and re-reads
-      # nothing on its own, so oxwm-theme restarts it on every switch.
       dunstCfg = p: ''
         [global]
-            monitor = 0
-            follow = mouse
-              width = 320
-              height = (0, 120)
-              origin = top-right
-              offset = (12, 44)
-            font = ${constants.monoFont} 10
+          monitor = 0
+          follow = mouse
+            width = 320
+            height = (0, 120)
+            origin = top-right
+            offset = (12, 44)
+          font = ${constants.monoFont} 10
             background = "${p.bg}"
             foreground = "${p.fg}"
             frame_color = "${p.blue}"
             frame_width = 2
-              corner_radius = 0
-            gap_size = 8
-            padding = 12
-            markup = full
-            format = "<b>%s</b>\n%b"
-            alignment = left
-            stack_duplicates = true
-            show_age_threshold = 60
-            idle_threshold = 120
+            corner_radius = 0
+          gap_size = 8
+          padding = 12
+          markup = full
+          format = "<b>%s</b>\n%b"
+          alignment = left
+          stack_duplicates = true
+          show_age_threshold = 60
+          idle_threshold = 120
         [urgency_low]
             background = "${p.bg}"
             foreground = "${p.grey}"
@@ -446,40 +515,45 @@
             timeout = 0
       '';
 
-      dunstLauncher = pkgs.writeShellScriptBin "dunst" ''
-        theme=$(cat "$HOME/.config/oxwm/theme" 2>/dev/null || echo tokyonight)
-        case "$theme" in
-          gruvbox) exec ${pkgs.dunst}/bin/dunst -config "$HOME/.config/oxwm/dunstrc-gruvbox" ;;
-          catppuccin) exec ${pkgs.dunst}/bin/dunst -config "$HOME/.config/oxwm/dunstrc-catppuccin" ;;
-          *) exec ${pkgs.dunst}/bin/dunst -config "$HOME/.config/oxwm/dunstrc-tokyonight" ;;
-        esac
-      '';
-      # Theme flags shared by both dmenu wrappers below.
+      # Theme flags shared by the dmenu wrappers below.
       dmenuFlags =
         t:
         ''-nb "${t.bg}" -nf "${t.fg}" -sb "${t.blue}" -sf "${t.bg}" -fn "${constants.monoFont}:size=10"'';
 
+      # One dispatch shape for every bare-name wrapper oxwm spawns: read the
+      # theme file, run that theme's command, fall back to the default.
+      themeDispatch =
+        name: forTheme:
+        pkgs.writeShellScriptBin name ''
+          theme=$(cat "$HOME/.config/oxwm/theme" 2>/dev/null || echo ${defaultTheme})
+          theme="''${theme//[[:space:]]/}"
+          case "$theme" in
+          ${lib.concatStringsSep "\n" (lib.mapAttrsToList (n: _: "${n}) ${forTheme n} ;;") themes)}
+            *) ${forTheme defaultTheme} ;;
+          esac
+        '';
+
+      # oxwm spawns "st" by bare name; this dispatches to the themed build
+      # matching the active theme file, same source of truth as the palette.
+      stLauncher = themeDispatch "st" (t: ''exec st-${t} "$@"'');
+
+      # Same dispatch for notifications: one dunstrc per theme. dunst is
+      # autostarted by oxwm and re-reads nothing on its own, so oxt restarts
+      # it on every switch.
+      dunstLauncher = themeDispatch "dunst" (
+        t: ''exec ${pkgs.dunst}/bin/dunst -config "$HOME/.config/oxwm/dunstrc-${t}"''
+      );
+
       # Upstream binds Mod+D to `dmenu_run -l 10`; this wrapper only adds
       # theme colors (dmenu_run itself builds the executable list).
-      dmenuRun = pkgs.writeShellScriptBin "dmenu_run" ''
-        theme=$(cat "$HOME/.config/oxwm/theme" 2>/dev/null || echo tokyonight)
-        case "$theme" in
-          gruvbox) exec ${pkgs.dmenu}/bin/dmenu_run ${dmenuFlags palettes.gruvbox} "$@" ;;
-          catppuccin) exec ${pkgs.dmenu}/bin/dmenu_run ${dmenuFlags palettes.catppuccin} "$@" ;;
-          *) exec ${pkgs.dmenu}/bin/dmenu_run ${dmenuFlags palettes.tokyonight} "$@" ;;
-        esac
-      '';
-
-      # Same theming for piped custom menus (power, session): plain dmenu
+      # dmenu-themed is for piped custom menus (power, session): plain dmenu
       # reads stdin, so unlike dmenu_run it shows exactly what it is given.
-      dmenuThemed = pkgs.writeShellScriptBin "dmenu-themed" ''
-        theme=$(cat "$HOME/.config/oxwm/theme" 2>/dev/null || echo tokyonight)
-        case "$theme" in
-          gruvbox) exec ${pkgs.dmenu}/bin/dmenu ${dmenuFlags palettes.gruvbox} "$@" ;;
-          catppuccin) exec ${pkgs.dmenu}/bin/dmenu ${dmenuFlags palettes.catppuccin} "$@" ;;
-          *) exec ${pkgs.dmenu}/bin/dmenu ${dmenuFlags palettes.tokyonight} "$@" ;;
-        esac
-      '';
+      dmenuRun = themeDispatch "dmenu_run" (
+        t: ''exec ${pkgs.dmenu}/bin/dmenu_run ${dmenuFlags palettes.${t}} "$@"''
+      );
+      dmenuThemed = themeDispatch "dmenu-themed" (
+        t: ''exec ${pkgs.dmenu}/bin/dmenu ${dmenuFlags palettes.${t}} "$@"''
+      );
 
       # matugen.lua, rendered from the active oxwm palette: base16 for nvim
       # plus the lualine theme the loader applies. `oxt` rewrites it on every
@@ -547,115 +621,6 @@
       # Live per-app themes, all rendered by `oxt` from the active palette
       # into an "oxwm" slot each app selects statically. Single source of
       # truth stays `palettes`; these mappings are approximations.
-      hexToDec =
-        hex:
-        let
-          digits = {
-            "0" = 0;
-            "1" = 1;
-            "2" = 2;
-            "3" = 3;
-            "4" = 4;
-            "5" = 5;
-            "6" = 6;
-            "7" = 7;
-            "8" = 8;
-            "9" = 9;
-            a = 10;
-            b = 11;
-            c = 12;
-            d = 13;
-            e = 14;
-            f = 15;
-          };
-        in
-        lib.foldl' (acc: c: acc * 16 + digits.${c}) 0 (
-          lib.stringToCharacters (lib.toLower (lib.removePrefix "#" hex))
-        );
-
-      yaziFlavor = p: ''
-        # Generated by oxt - do not edit. Follows the active oxwm palette.
-        [mgr]
-        cwd = { fg = '${p.fg}' }
-        find_keyword = { fg = '${p.red}', bold = true, italic = true, underline = true }
-        find_position = { fg = '${p.red}', bold = true, italic = true }
-        marker_copied = { fg = '${p.bg}', bg = '${p.green}' }
-        marker_cut = { fg = '${p.bg}', bg = '${p.yellow}' }
-        marker_marked = { fg = '${p.bg}', bg = '${p.red}' }
-        marker_selected = { fg = '${p.bg}', bg = '${p.blue}' }
-        count_copied = { fg = '${p.fg}', bg = '${p.green}' }
-        count_cut = { fg = '${p.fg}', bg = '${p.yellow}' }
-        count_selected = { fg = '${p.bg}', bg = '${p.blue}' }
-        border_style = { fg = '${p.orange}' }
-        [status]
-        overall = { fg = '${p.orange}' }
-        sep_left = { open = "", close = "" }
-        sep_right = { open = "", close = "" }
-        progress_label = { bold = true }
-        progress_normal = { fg = '${p.orange}', bg = '${p.bg}' }
-        progress_error = { fg = '${p.red}', bg = '${p.bg}' }
-        perm_type = { fg = '${p.green}' }
-        perm_write = { fg = '${p.blue}' }
-        perm_exec = { fg = '${p.red}' }
-        perm_read = { fg = '${p.grey}' }
-        perm_sep = { fg = '${p.orange}' }
-        [mode]
-        normal_main = { bg = '${p.orange}', fg = '${p.bg}', bold = true }
-        normal_alt = { bg = '${p.sep}', fg = '${p.fg}' }
-        select_main = { bg = '${p.green}', fg = '${p.bg}', bold = true }
-        select_alt = { bg = '${p.sep}', fg = '${p.fg}' }
-        unset_main = { bg = '${p.blue}', fg = '${p.bg}', bold = true }
-        unset_alt = { bg = '${p.sep}', fg = '${p.fg}' }
-        [input]
-        border = { fg = '${p.orange}' }
-        title = {}
-        value = { fg = '${p.fg}' }
-        selected = { reversed = true }
-        [tabs]
-        active = { fg = '${p.bg}', bold = true, bg = '${p.orange}' }
-        inactive = { fg = '${p.green}', bg = '${p.bg}' }
-        sep_inner = { open = "", close = "" }
-        [cmp]
-        border = { fg = '${p.orange}', bg = '${p.bg}' }
-        [tasks]
-        border = { fg = '${p.orange}' }
-        title = {}
-        hovered = { fg = '${p.blue}', underline = true }
-        [which]
-        cols = 3
-        mask = { bg = '${p.bg}' }
-        cand = { fg = '${p.orange}' }
-        rest = { fg = '${p.bg}' }
-        desc = { fg = '${p.fg}' }
-        separator = " ▶ "
-        separator_style = { fg = '${p.fg}' }
-        [spot]
-        border = { fg = '${p.orange}' }
-        title = { fg = '${p.orange}' }
-        tbl_col = { fg = '${p.fg}' }
-        tbl_cell = { fg = '${p.fg}', bg = '${p.bg}' }
-        [help]
-        on = { fg = '${p.fg}' }
-        run = { fg = '${p.fg}' }
-        hovered = { reversed = true, bold = true }
-        footer = { fg = '${p.bg}', bg = '${p.green}' }
-        [notify]
-        title_info = { fg = '${p.blue}' }
-        title_warn = { fg = '${p.yellow}' }
-        title_error = { fg = '${p.red}' }
-        [filetype]
-        rules = [
-          { mime = "image/*", fg = '${p.orange}' },
-          { mime = "{audio,video}/*", fg = '${p.light_blue}' },
-          { mime = "application/{zip,rar,7z*,tar,gzip,xz,zstd,bzip*,lzma,compress,archive,cpio,arj,xar,ms-cab*}", fg = '${p.green}' },
-          { mime = "application/{pdf,doc,rtf}", fg = '${p.blue}' },
-          { mime = "*", is = "orphan", fg = '${p.bg}', bg = '${p.red}' },
-          { mime = "application/*exec*", fg = '${p.red}' },
-          { mime = "*/", fg = '${p.orange}' },
-          { url = "*", fg = '${p.fg}' },
-        ]
-      '';
-
       btopTheme = p: ''
         # Generated by oxt - do not edit. Follows the active oxwm palette.
         theme[main_bg]="${p.bg}"
@@ -989,102 +954,133 @@
         </oor:component-data>
       '';
 
-      loPkgDesc = "oxwm application colors for LibreOffice, generated from the active oxwm palette.\n";
+      loPkgDesc = "oxwm application colors for LibreOffice, generated from the oxwm palettes.\n";
 
-      loThemeColors =
-        p:
+      loScheme =
+        name: p:
         let
-          d = hexToDec;
+          dec = h: toString (lib.fromHexString (lib.removePrefix "#" h));
         in
         ''
-          <?xml version="1.0" encoding="UTF-8"?>
-          <oor:component-data xmlns:oor="http://openoffice.org/2001/registry" xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" oor:name="UI" oor:package="org.openoffice.Office">
-            <node oor:name="ColorScheme">
-              <node oor:name="ColorSchemes">
-                <node oor:name="oxwm" oor:op="fuse">
-                  <node oor:name="AppBackground"><prop oor:name="Color" oor:op="fuse"><value>${toString (d p.bg)}</value></prop></node>
-                  <node oor:name="DocColor"><prop oor:name="Color" oor:op="fuse"><value>${toString (d p.bg)}</value></prop></node>
-                  <node oor:name="FontColor"><prop oor:name="Color" oor:op="fuse"><value>${toString (d p.fg)}</value></prop></node>
-                  <node oor:name="DocBoundaries"><prop oor:name="Color" oor:op="fuse"><value>${toString (d p.sep)}</value></prop></node>
-                  <node oor:name="WindowColor"><prop oor:name="Color" oor:op="fuse"><value>${toString (d p.bg)}</value></prop></node>
-                  <node oor:name="WindowTextColor"><prop oor:name="Color" oor:op="fuse"><value>${toString (d p.fg)}</value></prop></node>
-                  <node oor:name="BaseColor"><prop oor:name="Color" oor:op="fuse"><value>${toString (d p.bg)}</value></prop></node>
-                  <node oor:name="ButtonColor"><prop oor:name="Color" oor:op="fuse"><value>${toString (d p.sep)}</value></prop></node>
-                  <node oor:name="ButtonTextColor"><prop oor:name="Color" oor:op="fuse"><value>${toString (d p.fg)}</value></prop></node>
-                  <node oor:name="AccentColor"><prop oor:name="Color" oor:op="fuse"><value>${toString (d p.orange)}</value></prop></node>
-                  <node oor:name="DisabledColor"><prop oor:name="Color" oor:op="fuse"><value>${toString (d p.sep)}</value></prop></node>
-                  <node oor:name="DisabledTextColor"><prop oor:name="Color" oor:op="fuse"><value>${toString (d p.grey)}</value></prop></node>
+          <node oor:name="${name}" oor:op="fuse">
+                  <node oor:name="AppBackground"><prop oor:name="Color" oor:op="fuse"><value>${toString (dec p.bg)}</value></prop></node>
+                  <node oor:name="DocColor"><prop oor:name="Color" oor:op="fuse"><value>${toString (dec p.bg)}</value></prop></node>
+                  <node oor:name="FontColor"><prop oor:name="Color" oor:op="fuse"><value>${toString (dec p.fg)}</value></prop></node>
+                  <node oor:name="DocBoundaries"><prop oor:name="Color" oor:op="fuse"><value>${toString (dec p.sep)}</value></prop></node>
+                  <node oor:name="WindowColor"><prop oor:name="Color" oor:op="fuse"><value>${toString (dec p.bg)}</value></prop></node>
+                  <node oor:name="WindowTextColor"><prop oor:name="Color" oor:op="fuse"><value>${toString (dec p.fg)}</value></prop></node>
+                  <node oor:name="BaseColor"><prop oor:name="Color" oor:op="fuse"><value>${toString (dec p.bg)}</value></prop></node>
+                  <node oor:name="ButtonColor"><prop oor:name="Color" oor:op="fuse"><value>${toString (dec p.sep)}</value></prop></node>
+                  <node oor:name="ButtonTextColor"><prop oor:name="Color" oor:op="fuse"><value>${toString (dec p.fg)}</value></prop></node>
+                  <node oor:name="AccentColor"><prop oor:name="Color" oor:op="fuse"><value>${toString (dec p.orange)}</value></prop></node>
+                  <node oor:name="DisabledColor"><prop oor:name="Color" oor:op="fuse"><value>${toString (dec p.sep)}</value></prop></node>
+                  <node oor:name="DisabledTextColor"><prop oor:name="Color" oor:op="fuse"><value>${toString (dec p.grey)}</value></prop></node>
                   <node oor:name="ShadowColor"><prop oor:name="Color" oor:op="fuse"><value>0</value></prop></node>
                   <node oor:name="Shadow"><prop oor:name="Color" oor:op="fuse"><value xsi:nil="false" /></prop><prop oor:name="IsVisible" oor:op="fuse"><value>false</value></prop></node>
-                  <node oor:name="SeparatorColor"><prop oor:name="Color" oor:op="fuse"><value>${toString (d p.sep)}</value></prop></node>
-                  <node oor:name="FaceColor"><prop oor:name="Color" oor:op="fuse"><value>${toString (d p.sep)}</value></prop></node>
-                  <node oor:name="ActiveColor"><prop oor:name="Color" oor:op="fuse"><value>${toString (d p.orange)}</value></prop></node>
-                  <node oor:name="ActiveTextColor"><prop oor:name="Color" oor:op="fuse"><value>${toString (d p.bg)}</value></prop></node>
-                  <node oor:name="ActiveBorderColor"><prop oor:name="Color" oor:op="fuse"><value>${toString (d p.orange)}</value></prop></node>
-                  <node oor:name="FieldColor"><prop oor:name="Color" oor:op="fuse"><value>${toString (d p.sep)}</value></prop></node>
-                  <node oor:name="MenuBarColor"><prop oor:name="Color" oor:op="fuse"><value>${toString (d p.sep)}</value></prop></node>
-                  <node oor:name="MenuBarTextColor"><prop oor:name="Color" oor:op="fuse"><value>${toString (d p.fg)}</value></prop></node>
-                  <node oor:name="MenuBarHighlightColor"><prop oor:name="Color" oor:op="fuse"><value>${toString (d p.orange)}</value></prop></node>
-                  <node oor:name="MenuBarHighlightTextColor"><prop oor:name="Color" oor:op="fuse"><value>${toString (d p.bg)}</value></prop></node>
-                  <node oor:name="MenuColor"><prop oor:name="Color" oor:op="fuse"><value>${toString (d p.sep)}</value></prop></node>
-                  <node oor:name="MenuTextColor"><prop oor:name="Color" oor:op="fuse"><value>${toString (d p.fg)}</value></prop></node>
-                  <node oor:name="MenuHighlightColor"><prop oor:name="Color" oor:op="fuse"><value>${toString (d p.orange)}</value></prop></node>
-                  <node oor:name="MenuHighlightTextColor"><prop oor:name="Color" oor:op="fuse"><value>${toString (d p.bg)}</value></prop></node>
-                  <node oor:name="MenuBorderColor"><prop oor:name="Color" oor:op="fuse"><value>${toString (d p.sep)}</value></prop></node>
-                  <node oor:name="InactiveColor"><prop oor:name="Color" oor:op="fuse"><value>${toString (d p.sep)}</value></prop></node>
-                  <node oor:name="InactiveTextColor"><prop oor:name="Color" oor:op="fuse"><value>${toString (d p.grey)}</value></prop></node>
-                  <node oor:name="InactiveBorderColor"><prop oor:name="Color" oor:op="fuse"><value>${toString (d p.sep)}</value></prop></node>
-                  <node oor:name="BASICEditor"><prop oor:name="Color" oor:op="fuse"><value>${toString (d p.bg)}</value></prop></node>
-                  <node oor:name="BASICError"><prop oor:name="Color" oor:op="fuse"><value>${toString (d p.red)}</value></prop></node>
-                  <node oor:name="BASICIdentifier"><prop oor:name="Color" oor:op="fuse"><value>${toString (d p.fg)}</value></prop></node>
-                  <node oor:name="BASICKeyword"><prop oor:name="Color" oor:op="fuse"><value>${toString (d p.purple)}</value></prop></node>
-                  <node oor:name="BASICNumber"><prop oor:name="Color" oor:op="fuse"><value>${toString (d p.orange)}</value></prop></node>
-                  <node oor:name="BASICOperator"><prop oor:name="Color" oor:op="fuse"><value>${toString (d p.yellow)}</value></prop></node>
-                  <node oor:name="BASICString"><prop oor:name="Color" oor:op="fuse"><value>${toString (d p.green)}</value></prop></node>
-                  <node oor:name="BASICComment"><prop oor:name="Color" oor:op="fuse"><value>${toString (d p.grey)}</value></prop></node>
-                  <node oor:name="WriterIdxShadings"><prop oor:name="Color" oor:op="fuse"><value>${toString (d p.sep)}</value></prop><prop oor:name="IsVisible" oor:op="fuse"><value>true</value></prop></node>
-                  <node oor:name="WriterFieldShadings"><prop oor:name="Color" oor:op="fuse"><value>${toString (d p.sep)}</value></prop><prop oor:name="IsVisible" oor:op="fuse"><value>true</value></prop></node>
-                  <node oor:name="CalcGrid"><prop oor:name="Color" oor:op="fuse"><value>${toString (d p.sep)}</value></prop></node>
-                </node>
-              </node>
-            </node>
-          </oor:component-data>
+                  <node oor:name="SeparatorColor"><prop oor:name="Color" oor:op="fuse"><value>${toString (dec p.sep)}</value></prop></node>
+                  <node oor:name="FaceColor"><prop oor:name="Color" oor:op="fuse"><value>${toString (dec p.sep)}</value></prop></node>
+                  <node oor:name="ActiveColor"><prop oor:name="Color" oor:op="fuse"><value>${toString (dec p.orange)}</value></prop></node>
+                  <node oor:name="ActiveTextColor"><prop oor:name="Color" oor:op="fuse"><value>${toString (dec p.bg)}</value></prop></node>
+                  <node oor:name="ActiveBorderColor"><prop oor:name="Color" oor:op="fuse"><value>${toString (dec p.orange)}</value></prop></node>
+                  <node oor:name="FieldColor"><prop oor:name="Color" oor:op="fuse"><value>${toString (dec p.sep)}</value></prop></node>
+                  <node oor:name="MenuBarColor"><prop oor:name="Color" oor:op="fuse"><value>${toString (dec p.sep)}</value></prop></node>
+                  <node oor:name="MenuBarTextColor"><prop oor:name="Color" oor:op="fuse"><value>${toString (dec p.fg)}</value></prop></node>
+                  <node oor:name="MenuBarHighlightColor"><prop oor:name="Color" oor:op="fuse"><value>${toString (dec p.orange)}</value></prop></node>
+                  <node oor:name="MenuBarHighlightTextColor"><prop oor:name="Color" oor:op="fuse"><value>${toString (dec p.bg)}</value></prop></node>
+                  <node oor:name="MenuColor"><prop oor:name="Color" oor:op="fuse"><value>${toString (dec p.sep)}</value></prop></node>
+                  <node oor:name="MenuTextColor"><prop oor:name="Color" oor:op="fuse"><value>${toString (dec p.fg)}</value></prop></node>
+                  <node oor:name="MenuHighlightColor"><prop oor:name="Color" oor:op="fuse"><value>${toString (dec p.orange)}</value></prop></node>
+                  <node oor:name="MenuHighlightTextColor"><prop oor:name="Color" oor:op="fuse"><value>${toString (dec p.bg)}</value></prop></node>
+                  <node oor:name="MenuBorderColor"><prop oor:name="Color" oor:op="fuse"><value>${toString (dec p.sep)}</value></prop></node>
+                  <node oor:name="InactiveColor"><prop oor:name="Color" oor:op="fuse"><value>${toString (dec p.sep)}</value></prop></node>
+                  <node oor:name="InactiveTextColor"><prop oor:name="Color" oor:op="fuse"><value>${toString (dec p.grey)}</value></prop></node>
+                  <node oor:name="InactiveBorderColor"><prop oor:name="Color" oor:op="fuse"><value>${toString (dec p.sep)}</value></prop></node>
+                  <node oor:name="BASICEditor"><prop oor:name="Color" oor:op="fuse"><value>${toString (dec p.bg)}</value></prop></node>
+                  <node oor:name="BASICError"><prop oor:name="Color" oor:op="fuse"><value>${toString (dec p.red)}</value></prop></node>
+                  <node oor:name="BASICIdentifier"><prop oor:name="Color" oor:op="fuse"><value>${toString (dec p.fg)}</value></prop></node>
+                  <node oor:name="BASICKeyword"><prop oor:name="Color" oor:op="fuse"><value>${toString (dec p.purple)}</value></prop></node>
+                  <node oor:name="BASICNumber"><prop oor:name="Color" oor:op="fuse"><value>${toString (dec p.orange)}</value></prop></node>
+                  <node oor:name="BASICOperator"><prop oor:name="Color" oor:op="fuse"><value>${toString (dec p.yellow)}</value></prop></node>
+                  <node oor:name="BASICString"><prop oor:name="Color" oor:op="fuse"><value>${toString (dec p.green)}</value></prop></node>
+                  <node oor:name="BASICComment"><prop oor:name="Color" oor:op="fuse"><value>${toString (dec p.grey)}</value></prop></node>
+                  <node oor:name="WriterIdxShadings"><prop oor:name="Color" oor:op="fuse"><value>${toString (dec p.sep)}</value></prop><prop oor:name="IsVisible" oor:op="fuse"><value>true</value></prop></node>
+                  <node oor:name="WriterFieldShadings"><prop oor:name="Color" oor:op="fuse"><value>${toString (dec p.sep)}</value></prop><prop oor:name="IsVisible" oor:op="fuse"><value>true</value></prop></node>
+                  <node oor:name="CalcGrid"><prop oor:name="Color" oor:op="fuse"><value>${toString (dec p.sep)}</value></prop></node>
+                  </node>
         '';
 
-      loOxt =
-        p:
-        pkgs.runCommand "oxwm-libreoffice-theme.oxt" { nativeBuildInputs = [ pkgs.zip ]; } ''
-          work=$(mktemp -d)
-          mkdir -p "$work/oxwm/META-INF"
-          printf '%s' ${lib.escapeShellArg loManifest} > "$work/oxwm/META-INF/manifest.xml"
-          printf '%s' ${lib.escapeShellArg loDescription} > "$work/oxwm/description.xml"
-          printf '%s' ${lib.escapeShellArg loPaths} > "$work/oxwm/Paths.xcu"
-          printf '%s' ${lib.escapeShellArg loPkgDesc} > "$work/oxwm/pkg-description.en"
-          printf '%s' ${lib.escapeShellArg (loThemeColors p)} > "$work/oxwm/Theme_Colors.xcu"
-          ( cd "$work/oxwm" && zip -qr "$out" . )
-        '';
+      # One extension carries every palette so the LO Appearance list can offer
+      # all three; `oxt` only changes which one is selected.
+      loThemeColors = builtins.concatStringsSep "\n" [
+        "<?xml version=\"1.0\" encoding=\"UTF-8\"?>"
+        "<oor:component-data xmlns:oor=\"http://openoffice.org/2001/registry\" xmlns:xs=\"http://www.w3.org/2001/XMLSchema\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" oor:name=\"UI\" oor:package=\"org.openoffice.Office\">"
+        "<node oor:name=\"ColorScheme\">"
+        "<node oor:name=\"ColorSchemes\">"
+        (loScheme "tokyonight" palettes.tokyonight)
+        (loScheme "gruvbox" palettes.gruvbox)
+        (loScheme "catppuccin" palettes.catppuccin)
+        "</node>"
+        "</node>"
+        "</oor:component-data>"
+      ];
 
-      # One-word theme switching: writes the theme file, sets that theme's
+      loOxt = pkgs.runCommand "oxwm-libreoffice-theme.oxt" { nativeBuildInputs = [ pkgs.zip ]; } ''
+        work=$(mktemp -d)
+        mkdir -p "$work/oxwm/META-INF"
+        printf '%s' ${lib.escapeShellArg loManifest} > "$work/oxwm/META-INF/manifest.xml"
+        printf '%s' ${lib.escapeShellArg loDescription} > "$work/oxwm/description.xml"
+        printf '%s' ${lib.escapeShellArg loPaths} > "$work/oxwm/Paths.xcu"
+        printf '%s' ${lib.escapeShellArg loPkgDesc} > "$work/oxwm/pkg-description.en"
+        printf '%s' ${lib.escapeShellArg loThemeColors} > "$work/oxwm/Theme_Colors.xcu"
+        ( cd "$work/oxwm" && zip -qr "$out" . )
+      '';
+
+      # Every file `oxt` installs, rendered once per theme at build time.
+      # Switching then copies files instead of re-rendering, so a broken
+      # template fails the build rather than a live switch.
+      themeFiles = lib.mapAttrs (
+        name: t:
+        pkgs.runCommand "oxwm-theme-${name}" { } ''
+          mkdir -p $out
+          printf '%s' ${lib.escapeShellArg (btopTheme t.palette)} > $out/btop.theme
+          printf '%s' ${lib.escapeShellArg (batTmTheme t.palette)} > $out/bat.tmTheme
+          printf '%s' ${lib.escapeShellArg (starshipToml t.palette t.st)} > $out/starship.toml
+          printf '%s' ${lib.escapeShellArg (fzfFish t.palette)} > $out/oxwm-theme.fish
+          printf '%s' ${lib.escapeShellArg (obsTheme t.palette)} > $out/obs.ovt
+          printf '%s' ${lib.escapeShellArg (nvimBase16 t.palette t.st)} > $out/matugen.lua
+        ''
+      ) themes;
+
+      # One-word theme switching: writes the theme file, then installs the
+      # pre-rendered files for that theme (see themeFiles above).
       oxwmThemeCmd = pkgs.writeShellApplication {
         name = "oxt";
         runtimeInputs = [
           pkgs.bat
           pkgs.feh
+          pkgs.jq
           pkgs.libreoffice
           pkgs.xdotool
           pkgs.procps
-          pkgs.python3
         ];
         text = ''
           case "''${1:-}" in
-            tokyonight|tok|t) theme=tokyonight ;;
-            gruvbox|gruv|g) theme=gruvbox ;;
-            catppuccin|cat|c) theme=catppuccin ;;
+          ${lib.concatStringsSep "\n" (
+            lib.mapAttrsToList (n: t: "${n}|${lib.concatStringsSep "|" t.aliases}) theme=${n} ;;") themes
+          )}
             *)
-              echo "pakai: oxt {tokyonight|gruvbox|catppuccin} (t|g|c)" >&2
+              echo "pakai: oxt {${
+                lib.concatStringsSep "|" (
+                  lib.mapAttrsToList (n: t: "${n}(${lib.concatStringsSep "," t.aliases})") themes
+                )
+              }}" >&2
               exit 2
               ;;
           esac
+          declare -A theme_dir=(
+          ${lib.concatStringsSep "\n" (lib.mapAttrsToList (n: d: "[${n}]=${d}") themeFiles)}
+          )
+          src="''${theme_dir[$theme]}"
           echo "$theme" > "$HOME/.config/oxwm/theme"
           if ! feh --bg-fill "$HOME"/.config/oxwm/wallpapers/"$theme".* 2>/dev/null; then
             echo "wallpaper gagal dipasang (X tidak aktif?)" >&2
@@ -1099,91 +1095,38 @@
             sleep 0.5
             (dunst >/dev/null 2>&1 &)
           fi
-          case "$theme" in
-            gruvbox) opencode_theme=gruvbox ;;
-            catppuccin) opencode_theme=catppuccin ;;
-            *) opencode_theme=tokyonight ;;
-          esac
           tui_json="$HOME/.config/opencode/tui.json"
           if [ -f "$tui_json" ]; then
-            python3 - "$tui_json" "$opencode_theme" <<'EOF' 2>/dev/null || true
-          import json, sys
-          path, theme = sys.argv[1], sys.argv[2]
-          with open(path) as f:
-              data = json.load(f)
-          data["theme"] = theme
-          with open(path, "w") as f:
-              json.dump(data, f, indent=2)
-          EOF
+            jq --arg theme "$theme" '.theme = $theme' "$tui_json" > "$tui_json.tmp" \
+              && mv "$tui_json.tmp" "$tui_json" || true
           fi
-          # nvim follows the same switch: render base16 from this palette,
-          # live-reload any running nvim via the loader's SIGUSR1 handler.
-          case "$theme" in
-            gruvbox) matugen=${lib.escapeShellArg (nvimBase16 palettes.gruvbox stThemes.gruvbox)} ;;
-            catppuccin) matugen=${lib.escapeShellArg (nvimBase16 palettes.catppuccin stThemes.catppuccin)} ;;
-            *) matugen=${lib.escapeShellArg (nvimBase16 palettes.tokyonight stThemes.tokyonight)} ;;
-          esac
-          mkdir -p "$HOME/.config/nvim/lua"
-          printf '%s' "$matugen" > "$HOME/.config/nvim/lua/matugen.lua"
+          mkdir -p "$HOME/.config/nvim/lua" "$HOME/.config/btop/themes" "$HOME/.config/bat/themes" \
+            "$HOME/.config/fish/conf.d" "$HOME/.config/obs-studio/themes"
+          # nvim follows the same switch; the loader's SIGUSR1 handler
+          # re-requires matugen.lua live in any running nvim.
+          cp "$src/matugen.lua" "$HOME/.config/nvim/lua/matugen.lua"
           pkill -SIGUSR1 nvim 2>/dev/null || true
-          # yazi/btop/bat/starship/fzf follow into per-app "oxwm" slots.
-          case "$theme" in
-            gruvbox) pal=gruvbox ;;
-            catppuccin) pal=catppuccin ;;
-            *) pal=tokyonight ;;
-          esac
-          case "$pal" in
-            gruvbox)
-              yazi=${lib.escapeShellArg (yaziFlavor palettes.gruvbox)}
-              btop=${lib.escapeShellArg (btopTheme palettes.gruvbox)}
-              bat=${lib.escapeShellArg (batTmTheme palettes.gruvbox)}
-              starship=${lib.escapeShellArg (starshipToml palettes.gruvbox stThemes.gruvbox)}
-              fzf=${lib.escapeShellArg (fzfFish palettes.gruvbox)}
-              ;;
-            catppuccin)
-              yazi=${lib.escapeShellArg (yaziFlavor palettes.catppuccin)}
-              btop=${lib.escapeShellArg (btopTheme palettes.catppuccin)}
-              bat=${lib.escapeShellArg (batTmTheme palettes.catppuccin)}
-              starship=${lib.escapeShellArg (starshipToml palettes.catppuccin stThemes.catppuccin)}
-              fzf=${lib.escapeShellArg (fzfFish palettes.catppuccin)}
-              ;;
-            *)
-              yazi=${lib.escapeShellArg (yaziFlavor palettes.tokyonight)}
-              btop=${lib.escapeShellArg (btopTheme palettes.tokyonight)}
-              bat=${lib.escapeShellArg (batTmTheme palettes.tokyonight)}
-              starship=${lib.escapeShellArg (starshipToml palettes.tokyonight stThemes.tokyonight)}
-              fzf=${lib.escapeShellArg (fzfFish palettes.tokyonight)}
-              ;;
-          esac
-          mkdir -p "$HOME/.config/yazi/flavors/oxwm.yazi" "$HOME/.config/btop/themes" "$HOME/.config/bat/themes"
-          printf '%s' "$yazi" > "$HOME/.config/yazi/flavors/oxwm.yazi/flavor.toml"
-          printf '[flavor]\ndark = "oxwm"\nlight = "oxwm"\n' > "$HOME/.config/yazi/theme.toml"
-          printf '%s' "$btop" > "$HOME/.config/btop/themes/oxwm.theme"
+          # btop/bat/starship/fzf follow into per-app "oxwm" slots; yazi has one
+          # real flavor per palette, so only its selector follows.
+          # Drop the flavor dir from when oxt generated it; the flavors now
+          # come from programs.yazi.flavors instead.
+          rm -rf "$HOME/.config/yazi/flavors/oxwm.yazi"
+          printf '[flavor]\ndark = "%s"\nlight = "%s"\n' "$theme" "$theme" > "$HOME/.config/yazi/theme.toml"
+          cp "$src/btop.theme" "$HOME/.config/btop/themes/oxwm.theme"
           sed -i 's/^color_theme = .*/color_theme = "oxwm"/' "$HOME/.config/btop/btop.conf" 2>/dev/null || true
-          printf '%s' "$bat" > "$HOME/.config/bat/themes/oxwm.tmTheme"
+          cp "$src/bat.tmTheme" "$HOME/.config/bat/themes/oxwm.tmTheme"
           bat cache --build >/dev/null 2>&1 || true
-          printf '%s' "$starship" > "$HOME/.config/starship.toml"
-          mkdir -p "$HOME/.config/fish/conf.d"
-          printf '%s' "$fzf" > "$HOME/.config/fish/conf.d/oxwm-theme.fish"
+          cp "$src/starship.toml" "$HOME/.config/starship.toml"
+          cp "$src/oxwm-theme.fish" "$HOME/.config/fish/conf.d/oxwm-theme.fish"
           # OBS follows via a generated Yami variant; takes effect on restart.
-          case "$pal" in
-            gruvbox) obs=${lib.escapeShellArg (obsTheme palettes.gruvbox)} ;;
-            catppuccin) obs=${lib.escapeShellArg (obsTheme palettes.catppuccin)} ;;
-            *) obs=${lib.escapeShellArg (obsTheme palettes.tokyonight)} ;;
-          esac
-          mkdir -p "$HOME/.config/obs-studio/themes"
-          printf '%s' "$obs" > "$HOME/.config/obs-studio/themes/oxwm.ovt"
+          cp "$src/obs.ovt" "$HOME/.config/obs-studio/themes/oxwm.ovt"
           sed -i 's/^Theme=.*/Theme=com.obsproject.oxwm/' "$HOME/.config/obs-studio/user.ini" 2>/dev/null || true
           # LibreOffice follows via a generated theme extension plus scheme
           # selection. unopkg and the registry edit both require LO closed.
           if pgrep -x soffice.bin >/dev/null 2>&1; then
             echo "tutup LibreOffice dulu, lalu oxt $theme lagi untuk temanya" >&2
           else
-            case "$pal" in
-              gruvbox) looxt=${loOxt palettes.gruvbox} ;;
-              catppuccin) looxt=${loOxt palettes.catppuccin} ;;
-              *) looxt=${loOxt palettes.tokyonight} ;;
-            esac
+            looxt=${loOxt}
             unopkg remove dev.oxwm.libreoffice.theme >/dev/null 2>&1 || true
             if unopkg add "$looxt" >/dev/null 2>&1; then
               # Select the scheme by editing the user registry in place with
@@ -1194,13 +1137,13 @@
               if [ -f "$reg" ]; then
                 grep -q 'xmlns:xs=' "$reg" || sed -i 's|<oor:items xmlns:oor=|<oor:items xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:oor=|' "$reg"
                 if grep -q 'CurrentColorScheme' "$reg"; then
-                  sed -i '/CurrentColorScheme/s|<value>[^<]*</value>|<value>oxwm</value>|' "$reg"
+                  sed -i "/CurrentColorScheme/s|<value>[^<]*</value>|<value>$theme</value>|" "$reg"
                 else
-                  sed -i 's|</oor:items>|<item oor:path="/org.openoffice.Office.UI/ColorScheme"><prop oor:name="CurrentColorScheme" oor:op="fuse"><value>oxwm</value></prop></item>\n</oor:items>|' "$reg"
+                  sed -i "s|</oor:items>|<item oor:path=\"/org.openoffice.Office.UI/ColorScheme\"><prop oor:name=\"CurrentColorScheme\" oor:op=\"fuse\"><value>$theme</value></prop></item>\\n</oor:items>|" "$reg"
                 fi
               else
                 mkdir -p "$(dirname "$reg")"
-                printf '%s\n' '<?xml version="1.0" encoding="UTF-8"?>' '<oor:items xmlns:oor="http://openoffice.org/2001/registry" xmlns:xs="http://www.w3.org/2001/XMLSchema">' '<item oor:path="/org.openoffice.Office.UI/ColorScheme"><prop oor:name="CurrentColorScheme" oor:op="fuse"><value>oxwm</value></prop></item>' '</oor:items>' > "$reg"
+                  printf '%s\n' '<?xml version="1.0" encoding="UTF-8"?>' '<oor:items xmlns:oor="http://openoffice.org/2001/registry" xmlns:xs="http://www.w3.org/2001/XMLSchema">' "<item oor:path=\"/org.openoffice.Office.UI/ColorScheme\"><prop oor:name=\"CurrentColorScheme\" oor:op=\"fuse\"><value>$theme</value></prop></item>" '</oor:items>' > "$reg"
               fi
             else
               echo "unopkg gagal; pasang skema LO manual" >&2
@@ -1273,19 +1216,26 @@
 
           # Static selector for the bat theme oxt renders (themes/oxwm.tmTheme).
           "bat/config".text = "--theme=\"oxwm\"\n";
-
-          "oxwm/colors/tokyonight.lua".text = luaPalette palettes.tokyonight;
-          "oxwm/colors/gruvbox.lua".text = luaPalette palettes.gruvbox;
-          "oxwm/colors/catppuccin.lua".text = luaPalette palettes.catppuccin;
-
-          "oxwm/dunstrc-tokyonight".text = dunstCfg palettes.tokyonight;
-          "oxwm/dunstrc-gruvbox".text = dunstCfg palettes.gruvbox;
-          "oxwm/dunstrc-catppuccin".text = dunstCfg palettes.catppuccin;
-
-          "oxwm/wallpapers/tokyonight.jpg".source = "${wallpapers}/tokyonight/wallhaven-yqeoyx.jpg";
-          "oxwm/wallpapers/gruvbox.png".source = "${wallpapers}/gruvbox/The_Backwater.png";
-          "oxwm/wallpapers/catppuccin.jpg".source =
-            "${wallpapers}/catppuccin/wallhaven-9o2g8k-catppuccin-mocha.jpg";
+        }
+        // lib.listToAttrs (
+          lib.mapAttrsToList (
+            n: t: lib.nameValuePair "oxwm/colors/${n}.lua" { text = luaPalette t.palette; }
+          ) themes
+        )
+        // lib.listToAttrs (
+          lib.mapAttrsToList (
+            n: t: lib.nameValuePair "oxwm/dunstrc-${n}" { text = dunstCfg t.palette; }
+          ) themes
+        )
+        // lib.listToAttrs (
+          lib.mapAttrsToList (
+            _: t:
+            lib.nameValuePair "oxwm/wallpapers/${t.wallpaper.file}" {
+              source = ../../wallpapers + "/${t.wallpaper.src}";
+            }
+          ) themes
+        )
+        // {
 
           "khal/config".text = ''
             [calendars]
@@ -1446,16 +1396,33 @@
         executable = true;
         text = ''
           #!/bin/sh
-          ${pkgs.xorg.setxkbmap}/bin/setxkbmap ${constants.layout} 2>/dev/null || true
+          ${pkgs.setxkbmap}/bin/setxkbmap ${constants.layout} 2>/dev/null || true
+          # startx provides no session bus or user-manager env of its own;
+          # without these, D-Bus-activated apps and user services start blind.
+          systemctl --user import-environment DISPLAY XAUTHORITY 2>/dev/null || true
+          if command -v dbus-update-activation-environment >/dev/null 2>&1; then
+            dbus-update-activation-environment DISPLAY XAUTHORITY 2>/dev/null || true
+          fi
           exec oxwm
         '';
       };
 
       # Seeded once; later edits survive switches because of the guard.
-      home.activation.seedOxwmTheme = lib.hm.dag.entryAfter [ "linkGeneration" ] ''
+      home.activation.seedThemes = lib.hm.dag.entryAfter [ "linkGeneration" ] ''
         themeFile="$HOME/.config/oxwm/theme"
         if [ ! -f "$themeFile" ]; then
-          echo "tokyonight" > "$themeFile"
+          echo "${defaultTheme}" > "$themeFile"
+        fi
+        # yazi selects a flavor by the same name; the theme file is hand-
+        # editable, so an unknown value falls back instead of selecting none.
+        selector="$HOME/.config/yazi/theme.toml"
+        if [ ! -f "$selector" ]; then
+          theme=$(cat "$themeFile")
+          case "$theme" in
+            ${lib.concatStringsSep "|" themeNames}) ;;
+            *) theme=${defaultTheme} ;;
+          esac
+          printf '[flavor]\ndark = "%s"\nlight = "%s"\n' "$theme" "$theme" > "$selector"
         fi
       '';
 
@@ -1549,31 +1516,14 @@
         Install.WantedBy = [ "default.target" ];
       };
 
-      # oxwm spawns these by bare name. st/rofi resolve through the themed
-      # dispatchers above; maim -s execs slop the same way, so the selector
-      # has to be on PATH too, not just in maim's closure.
-      home.packages = [
-        (mkThemedSt "tokyonight" stThemes.tokyonight)
-        (mkThemedSt "gruvbox" stThemes.gruvbox)
-        (mkThemedSt "catppuccin" stThemes.catppuccin)
+      # Only artifacts built from module data live here (themed st builds
+      # and dispatchers); every bare tool is in home/packages.nix.
+      home.packages = lib.mapAttrsToList (n: t: mkThemedSt n t.st) themes ++ [
         stLauncher
         dmenuRun
         dmenuThemed
         dunstLauncher
         oxwmThemeCmd
-        pkgs.bluetui
-        pkgs.libnotify
-      ]
-      ++ (with pkgs; [
-        brightnessctl
-        khal
-        clipmenu
-        maim
-        slop
-        vdirsyncer
-        wiremix
-        xclip
-        feh
-      ]);
+      ];
     };
 }

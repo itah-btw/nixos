@@ -36,6 +36,23 @@
 
       services.flatpak.enable = true;
 
+      # iHD backend for the NPU-era iGPU. mpv's hwdec=auto (home/mpv.nix)
+      # silently falls back to software without this.
+      hardware.graphics.extraPackages = with pkgs; [
+        intel-media-driver
+        vpl-gpu-rt
+      ];
+      environment.sessionVariables.LIBVA_DRIVER_NAME = "iHD";
+
+      # The bar and keybinds shell out to powerprofilesctl, which only
+      # exists with the daemon running.
+      services.power-profiles-daemon.enable = true;
+      services.thermald.enable = true;
+
+      # yazi and udisksctl have no mount backend without this; no DE
+      # pulls it in on a WM-only box.
+      services.udisks2.enable = true;
+
       # NetworkManager lives here directly (it used to ride along with
       # noctalia's `recommendedServices`, removed with that stack).
       networking.networkmanager.enable = true;

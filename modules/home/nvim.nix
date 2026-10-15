@@ -1,8 +1,9 @@
 {
   flake.homeManagerModules.nvim =
-    { inputs, ... }:
+    { inputs, pkgs, ... }:
     {
       programs.neovim.enable = true;
+      programs.neovim.plugins = [ pkgs.vimPlugins.base16-nvim ];
 
       # Whole upstream repo is the config; manage.lua git-clones its
       # plugins on first launch, so that run needs network + git.
@@ -24,18 +25,11 @@
         })
       '';
 
-      # Same clone-and-rtp shape as manage.lua. matugen.lua is rendered by
-      # `oxt` from the active oxwm palette (base16 + lualine); absent until
-      # the first switch, in which case the upstream default theme stands.
+      # base16-nvim rides on the runtimepath via programs.neovim.plugins.
+      # matugen.lua is rendered by `oxt` from the active oxwm palette
+      # (base16 + lualine); absent until the first switch, in which case
+      # the upstream default theme stands.
       xdg.configFile."nvim/after/plugin/oxwm-base16.lua".text = ''
-        local plug_dir = vim.fn.stdpath("data") .. "/plugins"
-        local path = plug_dir .. "/base16-nvim"
-        if not vim.uv.fs_stat(path) then
-          vim.fn.mkdir(plug_dir, "p")
-          vim.fn.system({ "git", "clone", "--depth=1", "https://github.com/RRethy/base16-nvim", path })
-        end
-        vim.opt.rtp:prepend(path)
-        package.path = package.path .. ";" .. path .. "/lua/?.lua;" .. path .. "/lua/?/init.lua"
         local ok, matugen = pcall(require, "matugen")
         if ok then matugen.setup() end
         -- one-liners.lua pins lualine to tokyonight and sorts after this

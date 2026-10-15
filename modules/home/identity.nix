@@ -12,6 +12,10 @@
         init.defaultBranch = "main";
         pull.rebase = true;
         push.autoSetupRemote = true;
+        fetch.prune = true;
+        merge.conflictStyle = "zdiff3";
+        rerere.enabled = true;
+        commit.verbose = true;
       };
     };
   };
