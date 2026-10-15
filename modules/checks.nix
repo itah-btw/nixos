@@ -1,4 +1,3 @@
-# Policy guards, run by `nix build .#checks.x86_64-linux.policy`. One jq predicate
 {
   config,
   lib,

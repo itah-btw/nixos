@@ -445,8 +445,8 @@
       ];
 
       # Recolor yazi's upstream default theme (theme-dark.toml) with the active
-      # oxwm palette: map the 17 named ANSI colors to palette slots. No custom
-      # flavors remain; `oxt` writes this as ~/.config/yazi/theme.toml.
+      # oxwm palette: map the 17 named ANSI colors to palette slots. `oxt`
+      # writes this as ~/.config/yazi/theme.toml.
       yaziTheme =
         p:
         lib.replaceStrings
@@ -561,7 +561,6 @@
             timeout = 0
       '';
 
-      # Theme flags shared by the dmenu wrappers below.
       dmenuFlags =
         t:
         ''-nb "${t.bg}" -nf "${t.fg}" -sb "${t.blue}" -sf "${t.bg}" -fn "${constants.monoFont}:size=10"'';
@@ -959,10 +958,10 @@
         }
       '';
 
-      # LibreOffice theme extension, same shape noctalia shipped: static
-      # packaging files plus a generated color scheme. `oxt` installs the
-      # .oxt with unopkg (constant extension id, so reinstalls overwrite),
-      # then selects the scheme in the user registry.
+      # LibreOffice theme extension: static packaging files plus a generated
+      # color scheme. `oxt` installs the .oxt with unopkg (constant extension
+      # id, so reinstalls overwrite), then selects the scheme in the user
+      # registry.
       loDescription = ''
         <?xml version="1.0" encoding="UTF-8"?>
         <description xmlns="http://openoffice.org/extensions/description/2006"
@@ -1153,8 +1152,7 @@
           # re-requires matugen.lua live in any running nvim.
           cp "$src/matugen.lua" "$HOME/.config/nvim/lua/matugen.lua"
           pkill -SIGUSR1 nvim 2>/dev/null || true
-          # yazi now follows the active palette directly from $src/theme.toml:
-          # wipe any legacy flavor directories.
+          # yazi reads $src/theme.toml directly; wipe legacy flavor dirs.
           rm -rf "$HOME/.config/yazi/flavors"
           cp "$src/theme.toml" "$HOME/.config/yazi/theme.toml"
           cp "$src/btop.theme" "$HOME/.config/btop/themes/oxwm.theme"
@@ -1458,8 +1456,8 @@
         if [ ! -f "$themeFile" ]; then
           echo "${defaultTheme}" > "$themeFile"
         fi
-        # yazi theme now follows oxwm: seed the default palette's recolored
-        # theme.toml; edits survive later switches.
+        # Seed the default palette's recolored yazi theme.toml; edits survive
+        # later switches.
         selector="$HOME/.config/yazi/theme.toml"
         if [ ! -f "$selector" ]; then
           mkdir -p "$HOME/.config/yazi"

@@ -5,7 +5,6 @@
       enableBashIntegration = true;
       enableFishIntegration = true;
       shellWrapperName = "y";
-      # Theme comes from oxt: it copies a palette-recolor of yazi's default
       extraPackages = with pkgs; [
         p7zip
         zstd

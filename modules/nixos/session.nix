@@ -26,8 +26,7 @@
 
       # Provides the activatable ca.desrt.dconf user service. Load-bearing:
       # HM's dconfSettings activation hard-fails without it, aborting the
-      # whole activation before any links land (noctalia used to pull this
-      # in transitively).
+      # whole activation before any links land.
       programs.dconf.enable = true;
 
       nixpkgs.config.allowUnfreePredicate =

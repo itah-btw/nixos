@@ -53,8 +53,6 @@
       # pulls it in on a WM-only box.
       services.udisks2.enable = true;
 
-      # NetworkManager lives here directly (it used to ride along with
-      # noctalia's `recommendedServices`, removed with that stack).
       networking.networkmanager.enable = true;
       services.avahi = {
         enable = true;
