@@ -26,12 +26,13 @@
         current="$want
         $apps"
         stamp="$HOME/.cache/flatpak-cursor-applied"
-        if [ -f "$stamp" ] && [ "$(cat "$stamp")" = "$current" ]; then exit 0; fi
-        for app in $(${pkgs.flatpak}/bin/flatpak list --app --user --columns=application 2>/dev/null || true); do
-          ${pkgs.flatpak}/bin/flatpak run --command=gsettings "$app" set org.gnome.desktop.interface cursor-theme '${constants.cursorTheme}' || true
-          ${pkgs.flatpak}/bin/flatpak run --command=gsettings "$app" set org.gnome.desktop.interface cursor-size ${toString constants.cursorSize} || true
-        done
-        printf '%s' "$current" > "$stamp"
+        if [ ! -f "$stamp" ] || [ "$(cat "$stamp")" != "$current" ]; then
+          for app in $(${pkgs.flatpak}/bin/flatpak list --app --user --columns=application 2>/dev/null || true); do
+            ${pkgs.flatpak}/bin/flatpak run --command=gsettings "$app" set org.gnome.desktop.interface cursor-theme '${constants.cursorTheme}' || true
+            ${pkgs.flatpak}/bin/flatpak run --command=gsettings "$app" set org.gnome.desktop.interface cursor-size ${toString constants.cursorSize} || true
+          done
+          printf '%s' "$current" > "$stamp"
+        fi
       '';
 
       # Declarative form of `flatpak override --user`: re-rendered whenever
