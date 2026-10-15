@@ -362,9 +362,9 @@
         (repl ''oxwm.key.bind({ modkey }, "S", oxwm.spawn({ "sh", "-c", "maim -s | xclip -selection clipboard -t image/png" }))'' ''
           oxwm.key.bind({ modkey }, "S", oxwm.spawn({ "sh", "-c", [[${screenshotQuickCmd}]] }))
           -- Screenshots to file: region, active window, full screen
-          oxwm.key.bind({ modkey }, "Print", oxwm.spawn({ "sh", "-c", [[${screenshotCmd}]] }))
-          oxwm.key.bind({ modkey, "Shift" }, "Print", oxwm.spawn({ "sh", "-c", [[${screenshotWindowCmd}]] }))
-          oxwm.key.bind({ modkey, "Control" }, "Print", oxwm.spawn({ "sh", "-c", [[${screenshotFullCmd}]] }))
+          oxwm.key.bind({}, "Print", oxwm.spawn({ "sh", "-c", [[${screenshotCmd}]] }))
+          oxwm.key.bind({ "Shift" }, "Print", oxwm.spawn({ "sh", "-c", [[${screenshotWindowCmd}]] }))
+          oxwm.key.bind({ "Control" }, "Print", oxwm.spawn({ "sh", "-c", [[${screenshotFullCmd}]] }))
           -- Radios and notifications
           oxwm.key.bind({ modkey, "Shift" }, "W", oxwm.spawn({ "sh", "-c", [[${wifiToggle}]] }))
           oxwm.key.bind({ modkey, "Shift" }, "U", oxwm.spawn({ "sh", "-c", [[${btToggle}]] }))
