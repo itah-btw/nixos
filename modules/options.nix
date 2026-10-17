@@ -1,5 +1,6 @@
 { lib, ... }:
 let
+  mkField = type: default: lib.mkOption { inherit type default; };
   # config.flake: see the nixos skill's traps 2 and 3 before moving it.
   mkHost =
     {
@@ -46,30 +47,27 @@ in
 {
   config._module.args.mkHost = mkHost;
 
-  # read `config.flake.*` from inside a module. checks.nix guards the key set.
+  # Single source of truth for values shared across modules. Typed per field
+  # so a rename or wrong-typed override fails at eval, not at use site.
   options.flake.constants = lib.mkOption {
-    type = lib.types.attrsOf (
-      lib.types.oneOf [
-        lib.types.str
-        lib.types.int
-        lib.types.bool
-      ]
-    );
-    default = {
-      username = "itah";
-      root = "/etc/nixos";
-      layout = "us";
-      timeZone = "Asia/Jakarta";
-      locale = "en_US.UTF-8";
-      wlanIface = "wlan0";
-      localsendPort = 53317;
-      mdnsPort = 5353;
-      cursorTheme = "Adwaita";
-      cursorSize = 24;
-      sansFont = "Inter";
-      monoFont = "JetBrainsMono Nerd Font";
-      generationKeep = 5;
+    type = lib.types.submodule {
+      options = {
+        username = mkField lib.types.str "itah";
+        root = mkField lib.types.str "/etc/nixos";
+        layout = mkField lib.types.str "us";
+        timeZone = mkField lib.types.str "Asia/Jakarta";
+        locale = mkField lib.types.str "en_US.UTF-8";
+        wlanIface = mkField lib.types.str "wlan0";
+        localsendPort = mkField lib.types.port 53317;
+        mdnsPort = mkField lib.types.port 5353;
+        cursorTheme = mkField lib.types.str "Adwaita";
+        cursorSize = mkField lib.types.ints.unsigned 24;
+        sansFont = mkField lib.types.str "Inter";
+        monoFont = mkField lib.types.str "JetBrainsMono Nerd Font";
+        generationKeep = mkField lib.types.ints.positive 5;
+      };
     };
+    default = { };
     description = "Single source of truth for values shared across modules.";
   };
 

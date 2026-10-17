@@ -212,7 +212,11 @@
           Super+M               toggle mic mute
           Super+Shift+P         power profile (saver/balanced/performance)
           Super+Escape          power menu
-          XF86 keys             volume and brightness (+/- 5%)
+          XF86AudioRaiseVolume  volume up 5%
+          XF86AudioLowerVolume  volume down 5%
+          XF86AudioMute         toggle mute
+          XF86MonBrightnessUp   brightness up 5%
+          XF86MonBrightnessDown brightness down 5%
 
         Layout / focus
           Super+C               tiling layout

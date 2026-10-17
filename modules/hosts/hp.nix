@@ -8,8 +8,11 @@ let
   constants = config.flake.constants;
   wiring = {
     nixos = [
+      "boot"
       "fonts"
       "mariadb"
+      "network"
+      "nix"
       "oxwm"
       "session"
       "system"

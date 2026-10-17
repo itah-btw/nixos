@@ -13,26 +13,8 @@
       root = lib.removeSuffix "/." (toString ./..);
       # deadnix's --exclude does not prune a directory walk, so the file list is
       # built here instead and generated files are filtered out of it.
-      nixFiles =
-        let
-          go =
-            dir:
-            lib.concatLists (
-              lib.mapAttrsToList (
-                name: type:
-                let
-                  path = "${dir}/${name}";
-                in
-                if type == "directory" then
-                  go path
-                else if lib.hasSuffix ".nix" name then
-                  [ path ]
-                else
-                  [ ]
-              ) (builtins.readDir dir)
-            );
-        in
-        go root;
+      # result/ is a symlink; listFilesRecursive does not follow it.
+      nixFiles = lib.filter (p: lib.hasSuffix ".nix" p) (lib.filesystem.listFilesRecursive root);
       isGenerated = p: lib.hasPrefix "hardware-configuration" (baseNameOf p);
       generated = lib.filter isGenerated nixFiles;
       lintable = lib.filter (p: !isGenerated p) nixFiles;

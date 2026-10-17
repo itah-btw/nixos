@@ -66,22 +66,6 @@ let
     }) config.flake.hostModules;
   };
 
-  expectedConstants = builtins.sort builtins.lessThan [
-    "cursorSize"
-    "cursorTheme"
-    "generationKeep"
-    "layout"
-    "locale"
-    "localsendPort"
-    "mdnsPort"
-    "monoFont"
-    "root"
-    "sansFont"
-    "timeZone"
-    "username"
-    "wlanIface"
-  ];
-
   rules = [
     {
       name = "modules-wired";
@@ -118,10 +102,6 @@ let
       # in one list (oxwm is legitimately in both lists at once); a duplicate
       # still reorders list options and moves the store hash.
       cond = ".wiring.rawLists | all(.[]; length == (unique | length))";
-    }
-    {
-      name = "constants-intact";
-      cond = "(.constants | sort) == ${builtins.toJSON expectedConstants}";
     }
     {
       name = "host-identity";
@@ -196,7 +176,6 @@ let
 
   facts = {
     inherit wiring;
-    constants = builtins.attrNames constants;
     hosts = lib.listToAttrs (map (n: lib.nameValuePair n (factsFor n)) (builtins.attrNames hosts));
   };
 
@@ -216,7 +195,8 @@ in
     let
       # The rendered config.lua is exact-match surgery on a vendored file: the
       # repl anchors assert uniqueness, not validity. --validate and luacheck
-      # cover the two halves; the CLI arg trap is traps.md 19.
+      # cover the two halves; docBinds tripwire covers doc↔config drift. CLI
+      # arg trap is traps.md 19.
       oxwmHosts = lib.filterAttrs (
         _: h:
         let
@@ -235,12 +215,150 @@ in
             } > "$work/colors/${n}.lua"
           '') hm.oxwm.themes;
           oxwmPkg = h.config.services.xserver.windowManager.oxwm.package;
+          keybindsTxt = hm.xdg.configFile."oxwm/keybinds.txt".text;
+          # doc label (field 1 of a keybinds.txt line) ↔ lua bind fragment.
+          # Catches doc↔config drift on the binds owned by this repo's repl blocks;
+          # range/chord docs (Super+1..9, "then T") are not single lines and stay out.
+          # [ lua fragment, doc label ]
+          docBinds = [
+            [
+              ''{ modkey }, "D"''
+              "Super+D"
+            ]
+            [
+              ''{ modkey }, "B"''
+              "Super+B"
+            ]
+            [
+              ''{ modkey }, "E"''
+              "Super+E"
+            ]
+            [
+              ''{ modkey }, "V"''
+              "Super+V"
+            ]
+            [
+              ''{ modkey }, "W"''
+              "Super+W"
+            ]
+            [
+              ''{ modkey }, "U"''
+              "Super+U"
+            ]
+            [
+              ''{ modkey }, "Y"''
+              "Super+Y"
+            ]
+            [
+              ''{ modkey }, "O"''
+              "Super+O"
+            ]
+            [
+              ''{ modkey }, "S"''
+              "Super+S"
+            ]
+            [
+              ''{ modkey }, "M"''
+              "Super+M"
+            ]
+            [
+              ''{ modkey }, "Escape"''
+              "Super+Escape"
+            ]
+            [
+              ''{ modkey, "Shift" }, "V"''
+              "Super+Shift+V"
+            ]
+            [
+              ''{ modkey, "Shift" }, "B"''
+              "Super+Shift+B"
+            ]
+            [
+              ''{ modkey, "Shift" }, "O"''
+              "Super+Shift+O"
+            ]
+            [
+              ''{ modkey, "Shift" }, "Q"''
+              "Super+Shift+Q"
+            ]
+            [
+              ''{ modkey, "Shift" }, "P"''
+              "Super+Shift+P"
+            ]
+            [
+              ''{ modkey, "Shift" }, "W"''
+              "Super+Shift+W"
+            ]
+            [
+              ''{ modkey, "Shift" }, "U"''
+              "Super+Shift+U"
+            ]
+            [
+              ''{ modkey, "Shift" }, "D"''
+              "Super+Shift+D"
+            ]
+            [
+              ''{ modkey, "Shift" }, "N"''
+              "Super+Shift+N"
+            ]
+            [
+              ''{ modkey, "Shift" }, "Slash"''
+              "Super+Shift+/"
+            ]
+            [
+              ''{}, "Print"''
+              "Print"
+            ]
+            [
+              ''{ "Shift" }, "Print"''
+              "Shift+Print"
+            ]
+            [
+              ''{ "Control" }, "Print"''
+              "Ctrl+Print"
+            ]
+            [
+              ''{}, "XF86AudioRaiseVolume"''
+              "XF86AudioRaiseVolume"
+            ]
+            [
+              ''{}, "XF86AudioLowerVolume"''
+              "XF86AudioLowerVolume"
+            ]
+            [
+              ''{}, "XF86AudioMute"''
+              "XF86AudioMute"
+            ]
+            [
+              ''{}, "XF86MonBrightnessUp"''
+              "XF86MonBrightnessUp"
+            ]
+            [
+              ''{}, "XF86MonBrightnessDown"''
+              "XF86MonBrightnessDown"
+            ]
+          ];
+          docBindChecks = lib.concatMapStringsSep "\n" (
+            pair:
+            let
+              lua = builtins.elemAt pair 0;
+              label = builtins.elemAt pair 1;
+            in
+            ''
+              awk '{print $1}' "$work/keybinds.txt" | grep -qxF ${lib.escapeShellArg label} \
+                || { echo "FAIL ${name}: doc missing ${label}"; exit 1; }
+              grep -qF ${lib.escapeShellArg "oxwm.key.bind(${lua}"} "$work/config.lua" \
+                || { echo "FAIL ${name}: config missing ${lua}"; exit 1; }
+            ''
+          ) docBinds;
         in
         ''
           work="$TMPDIR/${name}"
           mkdir -p "$work/colors"
           cp ${cfgLua} "$work/config.lua"
+          printf '%s\n' ${lib.escapeShellArg keybindsTxt} > "$work/keybinds.txt"
           ${lib.concatStringsSep "\n" colorFiles}
+          ${docBindChecks}
           (cd "$work" && env -u DISPLAY ${oxwmPkg}/bin/oxwm --validate config.lua)
           (cd "$work" && luacheck config.lua --globals oxwm --no-max-line-length)
         '';
