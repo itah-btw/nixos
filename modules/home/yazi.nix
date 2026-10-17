@@ -13,7 +13,15 @@
         # yazi auto-selects the X11 window-system protocol when this exists.
         ueberzugpp
       ];
-      plugins.compress = pkgs.yaziPlugins.compress;
+      # 0.6 calls the removed `fs.unique_name`, crashing on yazi >= 26.5.6; pin post-0.6 upstream.
+      plugins.compress = pkgs.yaziPlugins.compress.overrideAttrs (_: {
+        src = pkgs.fetchFromGitHub {
+          owner = "KKV9";
+          repo = "compress.yazi";
+          rev = "80e5268ec74c7ac17d4d739e13a9958cba4c70d3";
+          hash = "sha256-9cdA8D/TtwHcLqrtoyIixA0YJmTs+c8FSNrjxp8CYI0=";
+        };
+      });
       keymap.mgr.prepend_keymap = [
         {
           on = [

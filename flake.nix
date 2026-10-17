@@ -14,7 +14,8 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
-    # directory groups, it never namespaces. hosts/*.nix compose.
+    # import-tree groups modules/ by directory only; modules declare their
+    # own outputs and hosts/*.nix compose them.
     flake-parts.url = "github:hercules-ci/flake-parts";
     import-tree.url = "github:denful/import-tree";
 
@@ -24,7 +25,7 @@
     };
 
     oxwm-config = {
-      url = "github:tonybanters/oxwm-config";
+      url = "github:tonybanters/oxwm-config/7b5ec200f12946bfdd3d8ab249834a935d9f7ddb";
       flake = false;
     };
   };

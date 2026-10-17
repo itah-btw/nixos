@@ -56,7 +56,6 @@
         runtimeInputs = [
           pkgs.deadnix
           pkgs.statix
-          pkgs.gnugrep
         ];
         text = ''
           status=0
@@ -67,11 +66,11 @@
           check() {
             deadnix --fail "$@" || status=1
             # statix takes a single target, so it is walked one file at a time.
+            # --config pins the W20 ignore (statix.toml) regardless of cwd.
             for f in "$@"; do
-              out=$(statix check --format errfmt "$f" 2>&1 || true)
-              kept=$(printf '%s\n' "$out" | grep -v ':W:20:' || true)
-              if [ -n "$kept" ]; then
-                printf '%s\n' "$kept"
+              out=$(statix check --config ${root} --format errfmt "$f" 2>&1 || true)
+              if [ -n "$out" ]; then
+                printf '%s\n' "$out"
                 status=1
               fi
             done

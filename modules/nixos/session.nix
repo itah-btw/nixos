@@ -2,7 +2,6 @@
   flake.nixosModules.session =
     {
       constants,
-      lib,
       pkgs,
       ...
     }:
@@ -28,29 +27,6 @@
       # HM's dconfSettings activation hard-fails without it, aborting the
       # whole activation before any links land.
       programs.dconf.enable = true;
-
-      nixpkgs.config.allowUnfreePredicate =
-        pkg:
-        builtins.elem (lib.getName pkg) [
-          "corefonts"
-          "intelephense"
-          "vista-fonts"
-          "vscode"
-        ];
-
-      fonts.packages = with pkgs; [
-        nerd-fonts.jetbrains-mono
-        noto-fonts
-        noto-fonts-color-emoji
-        liberation_ttf
-        inter
-        corefonts
-        vista-fonts
-      ];
-      fonts.fontconfig.defaultFonts = {
-        sansSerif = [ constants.sansFont ];
-        monospace = [ constants.monoFont ];
-      };
 
       # Not a restatement: graphical-desktop.nix turns speechd on with
       # `mkDefault true` whenever a display manager is enabled.

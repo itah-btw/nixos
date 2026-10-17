@@ -38,27 +38,23 @@
         '';
       };
       aliases = {
-        ls = "eza --icons";
-        ll = "eza -l --icons --git";
-        la = "eza -la --icons --git";
         cat = "bat";
-
-        rb = "nh os switch --accept-flake-config ${root}#hp";
-        nsu = "nh os switch --update --accept-flake-config ${root}#hp";
-        dry = "nh os build --accept-flake-config ${root}#hp";
-        ntest = "nh os test --accept-flake-config ${root}#hp";
-        nboot = "nh os boot --accept-flake-config ${root}#hp";
-        rollback = "nh os rollback";
-
-        # age timer in nixos/system.nix can never remove one. Keep matches boot's limit.
-        nclean = "nh clean all --keep ${toString generationKeep}";
-
-        # mariadb.nix clears wantedBy, so it never starts on its own.
-        mdb-up = "sudo systemctl start mysql";
-        mdb-down = "sudo systemctl stop mysql";
-
-        optimize = "sudo nix-store --optimise";
         doctor = "nix config check";
+        dry = "nh os build ${root}#hp";
+        la = "eza -la --icons --git";
+        ll = "eza -l --icons --git";
+        ls = "eza --icons";
+        # mariadb.nix clears wantedBy, so it never starts on its own.
+        mdb-down = "sudo systemctl stop mysql";
+        mdb-up = "sudo systemctl start mysql";
+        nboot = "nh os boot ${root}#hp";
+        # Same keep count as systemd-boot's configurationLimit.
+        nclean = "nh clean all --keep ${toString generationKeep}";
+        nsu = "nh os switch --update ${root}#hp";
+        ntest = "nh os test ${root}#hp";
+        optimize = "sudo nix-store --optimise";
+        rb = "nh os switch ${root}#hp";
+        rollback = "nh os rollback";
       };
     in
     {
@@ -125,10 +121,10 @@
             set -euo pipefail
             [ "$#" -ge 1 ] || { echo "usage: push <msg>" >&2; exit 1; }
             cd ${root}
-            # Gate before `git add`, so a red policy cannot leave a commit behind.
+            # Gate before `git add`, so a red check cannot leave a commit behind.
             nix fmt
             nix run .#lint
-            nix build .#checks.x86_64-linux.policy --no-link
+            nix build .#checks.x86_64-linux.policy .#checks.x86_64-linux.oxwm-config --no-link
             # Shellcheck only runs when helpers are built as part of a toplevel.
             nix build --no-link ${root}#nixosConfigurations.hp.config.system.build.toplevel > /dev/null
             git add -A

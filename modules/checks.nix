@@ -34,6 +34,8 @@ let
       mysqlBind = cfg.services.mysql.settings.mysqld.bind-address or null;
       mysqlEnabled = cfg.services.mysql.enable or false;
       mysqlWantedBy = cfg.systemd.services.mysql.wantedBy or [ ];
+      httpdEnabled = cfg.services.httpd.enable or false;
+      httpdListen = cfg.services.httpd.virtualHosts.localhost.listenAddresses or null;
       starshipSettings = if hm != null then (hm.programs.starship.settings or { }) else { };
       starshipPresets = if hm != null then (hm.programs.starship.presets or [ ]) else [ ];
       dconfSettings = if hm != null then (hm.dconf.settings or { }) else { };
@@ -68,7 +70,6 @@ let
     "cursorSize"
     "cursorTheme"
     "generationKeep"
-    "httpPort"
     "layout"
     "locale"
     "localsendPort"
@@ -95,6 +96,16 @@ let
             | ([ $w.dual[] | select(. as $d | ($e.value.nixos | index($d)) != null) ]) as $a
             | ([ $w.dual[] | select(. as $d | ($e.value.home | index($d)) != null) ]) as $b
             | ($a - $b) == [] and ($b - $a) == [])
+      '';
+    }
+    {
+      name = "oxwm-themes-wired";
+      # oxwm's bare-name spawns (st, dmenu_run, dunst) only resolve through
+      # the dispatcher wrappers oxwm-themes installs; without it the session
+      # comes up with no terminal and no menus.
+      cond = ''
+        .wiring.perHost | to_entries | all(.[];
+          (.value.home | index("oxwm")) == null or (.value.home | index("oxwm-themes")) != null)
       '';
     }
     {
@@ -163,6 +174,15 @@ let
       '';
     }
     {
+      name = "httpd-loopback";
+      # listenAddresses defaults to ["*"] and hosts/hp.nix opens port 80 on
+      # wlan, which would put a user-writable PHP docroot on the LAN.
+      cond = ''
+        .hosts | all(.[];
+          if .httpdEnabled then .httpdListen == ["127.0.0.1"] else true end)
+      '';
+    }
+    {
       name = "starship-unmanaged";
       cond = ".hosts | all(.[]; (.starshipSettings == {}) and (.starshipPresets == []))";
     }
@@ -193,6 +213,38 @@ in
 {
   perSystem =
     { pkgs, ... }:
+    let
+      # The rendered config.lua is exact-match surgery on a vendored file: the
+      # repl anchors assert uniqueness, not validity. --validate and luacheck
+      # cover the two halves; the CLI arg trap is traps.md 19.
+      oxwmHosts = lib.filterAttrs (
+        _: h:
+        let
+          hm = h.config.home-manager.users.${constants.username} or null;
+        in
+        hm != null && hm ? oxwm
+      ) hosts;
+      oxwmValidate =
+        name: h:
+        let
+          hm = h.config.home-manager.users.${constants.username};
+          cfgLua = hm.xdg.configFile."oxwm/config.lua".source;
+          colorFiles = lib.mapAttrsToList (n: _: ''
+            printf '%s' ${
+              lib.escapeShellArg hm.xdg.configFile."oxwm/colors/${n}.lua".text
+            } > "$work/colors/${n}.lua"
+          '') hm.oxwm.themes;
+          oxwmPkg = h.config.services.xserver.windowManager.oxwm.package;
+        in
+        ''
+          work="$TMPDIR/${name}"
+          mkdir -p "$work/colors"
+          cp ${cfgLua} "$work/config.lua"
+          ${lib.concatStringsSep "\n" colorFiles}
+          (cd "$work" && env -u DISPLAY ${oxwmPkg}/bin/oxwm --validate config.lua)
+          (cd "$work" && luacheck config.lua --globals oxwm --no-max-line-length)
+        '';
+    in
     {
       checks = {
         policy =
@@ -226,6 +278,17 @@ in
                 echo "flake-policy: FAILED" >&2
                 exit 1
               fi
+              touch "$out"
+            '';
+
+        oxwm-config =
+          pkgs.runCommand "oxwm-config-validate"
+            {
+              nativeBuildInputs = [ pkgs.luaPackages.luacheck ];
+            }
+            ''
+              set -e
+              ${lib.concatStringsSep "\n" (lib.mapAttrsToList oxwmValidate oxwmHosts)}
               touch "$out"
             '';
       };

@@ -15,8 +15,6 @@
         "nix-command"
         "flakes"
       ];
-      nix.settings.auto-optimise-store = true;
-
       # Never set `trusted-users` here. It is `types.listOf`, so it appends to
       # nixpkgs' own `[ "root" ]`; setting it yields `trusted-users = root root`.
 
@@ -27,12 +25,21 @@
         options = "--delete-older-than 14d";
       };
 
+      # Hardlink dedup on the unit's own schedule; no dates line = upstream default.
+      nix.optimise.automatic = true;
+
+      # Global pkgs (home-manager useGlobalPkgs), so this list covers the HM
+      # packages (vscode, intelephense) and fonts.nix's corefonts too.
+      nixpkgs.config.allowUnfreePackages = [
+        "corefonts"
+        "intelephense"
+        "vista-fonts"
+        "vscode"
+      ];
+
       programs.nh.enable = true;
 
-      zramSwap = {
-        enable = true;
-        memoryPercent = 50;
-      };
+      zramSwap.enable = true;
 
       services.flatpak.enable = true;
 
@@ -62,6 +69,8 @@
 
       time.timeZone = constants.timeZone;
       i18n.defaultLocale = constants.locale;
+      # tty layout follows the same constant .xinitrc feeds to setxkbmap.
+      console.keyMap = constants.layout;
       users.users.${constants.username} = {
         isNormalUser = true;
         description = constants.username;

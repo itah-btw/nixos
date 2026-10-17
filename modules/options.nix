@@ -1,4 +1,3 @@
-# "unknown flake output"; expected. A leading `_` does NOT silence that --
 { lib, ... }:
 let
   # config.flake: see the nixos skill's traps 2 and 3 before moving it.
@@ -32,7 +31,6 @@ let
           home-manager = {
             useGlobalPkgs = true;
             useUserPackages = true;
-            backupFileExtension = "hm-backup";
             extraSpecialArgs = { inherit inputs constants; };
             users.${constants.username} = {
               home.stateVersion = hmStateVersion;
@@ -54,6 +52,7 @@ in
       lib.types.oneOf [
         lib.types.str
         lib.types.int
+        lib.types.bool
       ]
     );
     default = {
@@ -65,7 +64,6 @@ in
       wlanIface = "wlan0";
       localsendPort = 53317;
       mdnsPort = 5353;
-      httpPort = 80;
       cursorTheme = "Adwaita";
       cursorSize = 24;
       sansFont = "Inter";

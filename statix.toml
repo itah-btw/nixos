@@ -1,0 +1,3 @@
+# W20 repeated_keys is the house style: e.g. `services.xserver.*` one path
+# per line. formatter.nix points `statix check --config` here.
+disabled = ["repeated_keys"]

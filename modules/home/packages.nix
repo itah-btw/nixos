@@ -3,90 +3,81 @@
   # helpers keep their own runtimeInputs (wrappers see only those on PATH).
   flake.homeManagerModules.packages = { pkgs, ... }: {
     home.packages = with pkgs; [
-      xdg-terminal-exec
-      proton-authenticator
-      proton-vpn
-      localsend
+      android-tools
 
+      # tony-nvim's lsp.lua resolves these by bare name on PATH; clangd comes
+      # with clang-tools, the html/css/json servers with vscode-langservers-extracted.
+      bash-language-server
+      bat
+      bear
       bluetui
       brightnessctl
-      clipmenu
-      feh
-      libnotify
-      maim
-      slop
-      wiremix
-      xclip
-      xdotool
-
-      khal
-      vdirsyncer
-
-      eza
-      bat
-      lazygit
       btop
-      curl
-
-      ripgrep
-      fd
-      fzf
-      jq
-      unzip
-      zip
-
-      python3
-      gcc
-      mold
-      cmake
-      ninja
-      gersemi
-      clang-tools
-      bear
-      lldb
-      valgrind
-      cppcheck
-      shellcheck
-      android-tools
-      payload-dumper-go
 
       # nixpkgs builds these from one `rustPackages` set, so rustc/rustfmt/
       # clippy already share a version without pulling in rust-overlay.
-      rustc
       cargo
-      rust-analyzer
-      rustfmt
+      clang-tools
+      clipmenu
       clippy
-
-      imv
-      zathura
-      obs-studio
-      libreoffice
-      yt-dlp
-
-      vscode
-      php
-      netbeans
-      llama-cpp
-      lutgen
-
-      nodejs
-      typescript
-      prettier
+      cmake
+      cppcheck
+      curl
       eslint
-
-      # tony-nvim's lsp.lua resolves these by bare name on PATH; clangd comes
-      # with clang-tools above (rust-analyzer has its own entry below),
-      # the html/css/json servers with vscode-langservers-extracted below.
-      typescript-language-server
-      bash-language-server
-      lua-language-server
+      eza
+      fastfetch
+      fd
+      feh
+      fzf
+      gcc
+      gersemi
+      imv
       intelephense
-      nil
-      vscode-langservers-extracted
-
+      jq
+      khal
+      lazygit
+      libnotify
+      libreoffice
+      llama-cpp
+      lldb
+      localsend
+      lua-language-server
+      lutgen
+      maim
+      mold
       mycli
+      netbeans
+      nil
+      ninja
+      nodejs
+      obs-studio
+      payload-dumper-go
+      php
       phpPackages.php-cs-fixer
+      prettier
+      proton-authenticator
+      proton-vpn
+      python3
+      ripgrep
+      rust-analyzer
+      rustc
+      rustfmt
+      shellcheck
+      slop
+      typescript
+      typescript-language-server
+      unzip
+      valgrind
+      vdirsyncer
+      vscode
+      vscode-langservers-extracted
+      wiremix
+      xclip
+      xdg-terminal-exec
+      xdotool
+      yt-dlp
+      zathura
+      zip
     ];
   };
 }

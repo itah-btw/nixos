@@ -8,6 +8,7 @@ let
   constants = config.flake.constants;
   wiring = {
     nixos = [
+      "fonts"
       "mariadb"
       "oxwm"
       "session"
@@ -16,13 +17,15 @@ let
       "web"
     ];
     home = [
+      "calendar"
+      "clipboard"
       "desktop"
-      "fastfetch"
       "firefox"
       "identity"
       "mpv"
       "nvim"
       "oxwm"
+      "oxwm-themes"
       "packages"
       "scripts"
       "shell"
@@ -45,7 +48,6 @@ in
       networking.firewall.interfaces.${constants.wlanIface} = {
         allowedTCPPorts = [
           constants.localsendPort
-          constants.httpPort
         ];
         allowedUDPPorts = [
           constants.mdnsPort
