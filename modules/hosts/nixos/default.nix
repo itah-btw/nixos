@@ -17,6 +17,7 @@ in
         fprintd
         localsend
         ocr
+        dev
         secrets
         homeManagerBase
         home
