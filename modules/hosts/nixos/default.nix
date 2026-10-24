@@ -15,6 +15,7 @@ in
         desktop
         firefox
         fprintd
+        localsend
         homeManagerBase
         home
       ] ++ [ (modulesPath + "/installer/scan/not-detected.nix") ];

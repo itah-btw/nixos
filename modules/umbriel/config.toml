@@ -50,6 +50,11 @@ saturation = 1.1
 
 [input.keyboard]
 numlock_toggle = true
+repeat_rate = 35
+repeat_delay = 200
+
+[input.touchpad]
+natural_scroll = true
 
 # ==============================================================================
 # Keybinds
