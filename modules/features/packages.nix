@@ -11,6 +11,7 @@
       wev
       polkit_gnome
       proton-authenticator
+      proton-vpn
       yazi
       ffmpeg
       p7zip
@@ -22,8 +23,8 @@
       zoxide
       imagemagick
       resvg
-      obs-studio
       libreoffice
+      obs-studio
       vscode
       fastfetch
       btop
