@@ -8,6 +8,8 @@
         rebuild = "sudo nixos-rebuild switch --flake ~/nixos#nixos";
         gc = "sudo nix-collect-garbage -d";
         editpkgs = "vis ~/nixos/modules/features/packages.nix";
+        ff = "fastfetch";
+        neofetch = "fastfetch";
       };
       initExtra = ''
         # yazi wrapper: change cwd to the last visited directory on exit
