@@ -61,6 +61,10 @@
     pulse.enable = true;
   };
 
+  # graphical-desktop enables speechd by default; disable it (and the
+  # espeak-ng / mbrola text-to-speech stack) since it is not used.
+  services.speechd.enable = false;
+
   environment.systemPackages = with pkgs; [
     git
     kitty
