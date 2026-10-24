@@ -7,11 +7,11 @@ description: Work on this machine's NixOS flake configuration (Umbriel + Noctali
 
 ## Repository layout
 
-- Config lives at `~/nixos` (flake). Entry point: `flake.nix` → `nixosConfigurations.nixos`.
-- `configuration.nix` — system config (no comments, keep it that way).
-- `umbriel/config.toml` — Umbriel compositor config, managed by home-manager (`xdg.configFile`), so it is a read-only store symlink. Edit in the repo, then rebuild.
+- Config lives at `~/nixos` (flake). Dendritic: `flake.nix` → flake-parts + import-tree over `modules/`.
+- `modules/` — every `.nix` is a flake-parts module. Features in `modules/features/`, host in `modules/hosts/nixos/`, infra in `modules/infrastructure/`.
+- `modules/hosts/nixos/default.nix` — host definition composing features via `config.flake.modules.nixos`.
+- `modules/umbriel/config.toml` — Umbriel compositor config, managed by home-manager (`xdg.configFile`), read-only store symlink.
 - `flake.lock` pins nixpkgs to a specific revision.
-- `hardware-configuration.nix` — generated; rarely edit by hand.
 
 ## Identity
 
@@ -54,11 +54,10 @@ sudo nix-collect-garbage -d
 
 - **Files must be git-tracked.** A flake in a git repo only sees tracked files. After creating a new file, `git add` it before rebuilding, or the build fails with "file not found". Untracked edits to already-tracked files are still picked up.
 - **Commit before/after switching** so the tree stays clean and reproducible.
-- **Relative imports resolve to the real file location**, not the symlink path. `configuration.nix` is symlinked from `/etc/nixos`; `./hardware-configuration.nix` resolves to `~/nixos/`, so both files must live together there.
-- **Home-manager is integrated as a NixOS module.** Do not also run `home-manager switch` for the same user — it conflicts over `/etc/profiles/per-user/itah`.
+- **Home-manager is integrated as a NixOS module** via `modules/infrastructure/home-manager.nix`. Do not also run `home-manager switch` for the same user — it conflicts over `/etc/profiles/per-user/itah`.
 - **Do not change `system.stateVersion`.**
-- **No comments in `configuration.nix`** — keep it clean.
-- **Portal config is forced** via `lib.mkForce [ pkgs.xdg-desktop-portal-umbriel ]`; if Flatpak is added later, re-add `pkgs.xdg-desktop-portal-gtk`.
+- **Portal config is forced** via `lib.mkForce [ pkgs.xdg-desktop-portal-umbriel ]` in `modules/features/desktop.nix`; if Flatpak is added later, re-add `pkgs.xdg-desktop-portal-gtk`.
+- Each `.nix` file under `modules/` is a flake-parts module; feature files contribute `flake.modules.nixos.<name>` / `flake.modules.homeManager.<name>`.
 
 ## Keybinds (Umbriel)
 
@@ -88,4 +87,4 @@ Noctalia writes its theme to `~/.config/umbriel/noctalia.toml` at runtime, inclu
 
 - System-wide: `environment.systemPackages`.
 - Per-user: `home-manager.users.itah.home.packages`.
-- New service: add to `configuration.nix`, dry-build, commit, switch.
+- New service: add a feature module under `modules/features/`, compose it in `modules/hosts/nixos/default.nix`, dry-build, commit, switch.
