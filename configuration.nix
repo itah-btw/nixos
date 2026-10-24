@@ -2,7 +2,7 @@
 # your system. Help is available in the configuration.nix(5) man page, on
 # https://search.nixos.org/options and in the NixOS manual (`nixos-help`).
 
-{ config, pkgs, ... }:
+{ config, lib, pkgs, ... }:
 
 {
   imports =
@@ -68,6 +68,14 @@
   # project. The module registers the session, sets up the portal for
   # screen sharing, and pulls in the graphics bits.
   programs.umbriel.enable = true;
+
+  # `programs.umbriel` also pulls in xdg-desktop-portal-gtk as a fallback for
+  # the interfaces Umbriel does not implement (FileChooser, Settings,
+  # Notification, ...). That fallback costs ~920 MiB (gtk4, gnome-desktop,
+  # gst-plugins-bad) and nothing here uses it, so force the portal list down
+  # to just Umbriel's backend. Re-add `pkgs.xdg-desktop-portal-gtk` if you
+  # start using Flatpak apps (they need the FileChooser portal).
+  xdg.portal.extraPortals = lib.mkForce [ pkgs.xdg-desktop-portal-umbriel ];
 
   programs.noctalia = {
     enable = true;
