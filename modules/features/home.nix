@@ -4,7 +4,7 @@ let
 in
 {
   flake.modules.nixos.home = { ... }: {
-    home-manager.users.itah.imports = with homeModules; [ shell kitty umbriel ];
+    home-manager.users.itah.imports = with homeModules; [ shell kitty yazi umbriel ];
   };
 
   flake.modules.homeManager.umbriel = { ... }: {
