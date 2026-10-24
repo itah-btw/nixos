@@ -8,7 +8,6 @@
   boot.loader.systemd-boot.enable = true;
   boot.loader.efi.canTouchEfiVariables = true;
 
-  # Use the newest kernel available in nixpkgs instead of the LTS default.
   boot.kernelPackages = pkgs.linuxPackages_latest;
 
   networking.hostName = "nixos";
@@ -22,7 +21,6 @@
     variant = "";
   };
 
-  # Define a user account. Don't forget to set a password with ‘passwd’.
   users.users."itah" = {
     isNormalUser = true;
     description = "itah";
@@ -64,8 +62,6 @@
     pulse.enable = true;
   };
 
-  # graphical-desktop enables speechd by default; disable it (and the
-  # espeak-ng / mbrola text-to-speech stack) since it is not used.
   services.speechd.enable = false;
 
   environment.systemPackages = with pkgs; [
@@ -76,8 +72,5 @@
     opencode
   ];
 
-  # This option defines the first version of NixOS you have installed on this
-  # particular machine, and is used to maintain compatibility with application
-  # data (e.g. databases) created on older NixOS versions. Do not change it.
   system.stateVersion = "26.11";
 }
