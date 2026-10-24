@@ -9,6 +9,7 @@
       opencode
       wl-clipboard
       wev
+      polkit_gnome
       proton-authenticator
       yazi
       ffmpeg
