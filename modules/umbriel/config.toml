@@ -83,6 +83,33 @@ natural_scroll = true
 "Mod+Shift+L" = { action = "spawn:noctalia msg session lock", repeat = false }
 "Mod+Shift+F23" = { action = "spawn:kitty -e opencode /home/itah/Projects", repeat = false }
 "Mod+Shift+XF86Assistant" = { action = "spawn:kitty -e opencode /home/itah/Projects", repeat = false }
+
+# Wallpaper
+"Mod+Shift+W" = { action = "spawn:noctalia msg wallpaper-next", repeat = false }
+"Mod+Ctrl+W" = { action = "spawn:noctalia msg wallpaper-previous", repeat = false }
+"Mod+Alt+W" = { action = "spawn:noctalia msg wallpaper-random", repeat = false }
+"Mod+Alt+P" = { action = "spawn:noctalia msg panel-toggle wallpaper", repeat = false }
+
+# Wallhaven (plugin)
+"Mod+Alt+H" = { action = "spawn:noctalia msg panel-toggle noctalia/wallhaven:browser", repeat = false }
+
+# Clipboard
+"Mod+V" = { action = "spawn:noctalia msg panel-toggle clipboard", repeat = false }
+"Mod+Shift+V" = { action = "spawn:noctalia msg clipboard-clear", repeat = false }
+
+# Notifications
+"Mod+N" = { action = "spawn:noctalia msg notification-dnd-toggle", repeat = false }
+"Mod+Shift+N" = { action = "spawn:noctalia msg notification-clear-active", repeat = false }
+
+# Network / bluetooth
+"Mod+I" = { action = "spawn:noctalia msg wifi-toggle", repeat = false }
+"Mod+Shift+B" = { action = "spawn:noctalia msg bluetooth-toggle", repeat = false }
+
+# Power profile
+"Mod+Shift+P" = { action = "spawn:noctalia msg power-cycle", repeat = false }
+
+# Session menu
+"Mod+X" = { action = "spawn:noctalia msg panel-toggle session", repeat = false }
 "XF86Assistant" = { action = "spawn:kitty -e opencode /home/itah/Projects", repeat = false }
 "Mod+Q" = { action = "window-close", repeat = false }
 "Mod+Shift+Q" = { action = "window-close", repeat = false }
