@@ -7,6 +7,7 @@
       vis
       wget
       opencode
+      wl-clipboard
     ];
   };
 }
