@@ -82,7 +82,7 @@ natural_scroll = true
 "Mod+Shift+F23" = { action = "spawn:kitty -e opencode /home/itah/Projects", repeat = false }
 "XF86Assistant" = { action = "spawn:kitty -e opencode /home/itah/Projects", repeat = false }
 "Mod+Q" = { action = "window-close", repeat = false }
-"Mod+Shift+Q" = { action = "window-kill", repeat = false }
+"Mod+Shift+Q" = { action = "window-close", repeat = false }
 "Mod+Escape" = "session-quit"
 "Mod+Shift+Escape" = { action = "shortcuts-inhibit-toggle", allow_when_inhibited = true, repeat = false }
 "Mod+Slash" = { action = "cheatsheet-toggle", repeat = false }
@@ -93,7 +93,6 @@ natural_scroll = true
 "XF86AudioMute" = { action = "spawn:noctalia msg volume-mute", allow_when_locked = true, repeat = false }
 # Some laptops (ThinkPads, etc.) send XF86AudioMicMute or XF86MicrophoneMute.
 "XF86AudioMicMute" = { action = "spawn:noctalia msg mic-mute", allow_when_locked = true, repeat = false }
-"XF86MicrophoneMute" = { action = "spawn:noctalia msg mic-mute", allow_when_locked = true, repeat = false }
 "XF86AudioPlay" = { action = "spawn:noctalia msg media toggle", allow_when_locked = true, repeat = false }
 "XF86AudioNext" = { action = "spawn:noctalia msg media next", allow_when_locked = true }
 "XF86AudioPrev" = { action = "spawn:noctalia msg media previous", allow_when_locked = true }
@@ -139,7 +138,7 @@ natural_scroll = true
 "Mod+WheelUp" = "window-focus-left"
 "Mod+WheelDown" = "window-focus-right"
 "Mod+O" = { action = "overview-toggle", repeat = false }
-"Mod+Alt+Space" = "workspace-set-layout:toggle:scrolling,dwindle,master,floating"
+"Mod+Alt+Space" = "workspace-set-layout:toggle"
 
 # Workspaces
 "Mod+1" = "workspace-switch:1"

@@ -4,6 +4,8 @@
     home-manager = {
       useGlobalPkgs = true;
       useUserPackages = true;
+      backupFileExtension = "hm-backup";
+      overwriteBackup = true;
       users.itah = { osConfig, ... }: {
         home.stateVersion = osConfig.system.stateVersion;
         home.username = "itah";
