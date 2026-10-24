@@ -19,7 +19,7 @@
       fzf
       zoxide
       imagemagick
-      chafa
+      resvg
       obs-studio
       libreoffice
       vscode

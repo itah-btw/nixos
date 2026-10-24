@@ -1,6 +1,8 @@
 { ... }:
 {
   flake.modules.nixos.desktop = { lib, pkgs, ... }: {
+    fonts.packages = [ pkgs.nerd-fonts.jetbrains-mono ];
+
     programs.umbriel.enable = true;
 
     xdg.portal.extraPortals = lib.mkForce [ pkgs.xdg-desktop-portal-umbriel ];
