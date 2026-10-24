@@ -66,6 +66,8 @@ natural_scroll = true
 
 # Applications, shell and session
 "Mod+Return" = { action = "spawn:kitty", repeat = false }
+"Mod+B" = { action = "spawn:firefox", repeat = false }
+"Mod+E" = { action = "spawn:kitty -e yazi", repeat = false }
 "Mod" = "spawn:noctalia msg panel-toggle launcher"
 "Mod+S" = { action = "spawn:noctalia msg panel-toggle control-center", repeat = false }
 "Mod+Shift+S" = { action = "spawn:noctalia msg settings-toggle", repeat = false }
