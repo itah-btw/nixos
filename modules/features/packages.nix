@@ -8,6 +8,7 @@
       wget
       opencode
       wl-clipboard
+      wev
       proton-authenticator
       yazi
       ffmpeg
