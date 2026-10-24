@@ -83,6 +83,9 @@ numlock_toggle = true
 "XF86AudioRaiseVolume" = { action = "spawn:noctalia msg volume-up", allow_when_locked = true }
 "XF86AudioLowerVolume" = { action = "spawn:noctalia msg volume-down", allow_when_locked = true }
 "XF86AudioMute" = { action = "spawn:noctalia msg volume-mute", allow_when_locked = true, repeat = false }
+# Some laptops (ThinkPads, etc.) send XF86AudioMicMute or XF86MicrophoneMute.
+"XF86AudioMicMute" = { action = "spawn:noctalia msg mic-mute", allow_when_locked = true, repeat = false }
+"XF86MicrophoneMute" = { action = "spawn:noctalia msg mic-mute", allow_when_locked = true, repeat = false }
 "XF86AudioPlay" = { action = "spawn:noctalia msg media toggle", allow_when_locked = true, repeat = false }
 "XF86AudioNext" = { action = "spawn:noctalia msg media next", allow_when_locked = true }
 "XF86AudioPrev" = { action = "spawn:noctalia msg media previous", allow_when_locked = true }
