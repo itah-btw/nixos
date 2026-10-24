@@ -17,7 +17,17 @@ autostart = []
 xwayland = true
 
 # ==============================================================================
-# Appearance
+# Includes
+# Noctalia writes its theme colors to ~/.config/umbriel/noctalia.toml at
+# runtime; include it so borders/title bars follow the shell theme.
+[include]
+files = []
+
+[include.optional]
+files = ["/home/itah/.config/umbriel/noctalia.toml"]
+
+# ==============================================================================
+# General
 # Values recommended by Noctalia's Umbriel integration guide.
 
 [appearance]
@@ -55,8 +65,12 @@ numlock_toggle = true
 "Mod+S" = { action = "spawn:noctalia msg panel-toggle control-center", repeat = false }
 "Mod+Shift+S" = { action = "spawn:noctalia msg settings-toggle", repeat = false }
 "Alt+Tab" = "spawn:noctalia msg window-switcher hold"
-"Print" = { action = "spawn:noctalia msg screenshot-region", repeat = false }
-"Mod+Shift+A" = { action = "spawn:noctalia msg screenshot-annotate", repeat = false }
+# Screenshots go through Umbriel's wlr-screencopy path; the per-call flags
+# force a save + clipboard copy regardless of [shell.screenshot] defaults.
+"Print" = { action = "spawn:noctalia msg screenshot-region --save-to-file --copy-to-clipboard", repeat = false }
+"Shift+Print" = { action = "spawn:noctalia msg screenshot-fullscreen --save-to-file --copy-to-clipboard", repeat = false }
+"Ctrl+Print" = { action = "spawn:noctalia msg screenshot-window --save-to-file --copy-to-clipboard", repeat = false }
+"Mod+Shift+A" = { action = "spawn:noctalia msg screenshot-annotate --save-to-file --copy-to-clipboard", repeat = false }
 "Mod+Ctrl+A" = { action = "spawn:noctalia msg annotate", repeat = false }
 "Mod+Shift+L" = { action = "spawn:noctalia msg session lock", repeat = false }
 "Mod+Q" = { action = "window-close", repeat = false }

@@ -81,7 +81,9 @@
     enable = true;
     # Autostart the shell inside Umbriel's session target.
     systemd.enable = true;
-    systemd.target = "umbriel-session.target";
+    # Umbriel's service starts graphical-session.target, so this is the
+    # standard, reliable autostart point (the default for this module).
+    systemd.target = "graphical-session.target";
     # NetworkManager, bluetooth, UPower, power-profiles-daemon.
     recommendedServices.enable = true;
   };
