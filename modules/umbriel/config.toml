@@ -78,6 +78,7 @@ natural_scroll = true
 "Mod+Shift+A" = { action = "spawn:noctalia msg screenshot-annotate --save-to-file --copy-to-clipboard", repeat = false }
 "Mod+Ctrl+A" = { action = "spawn:noctalia msg annotate", repeat = false }
 "Mod+Shift+L" = { action = "spawn:noctalia msg session lock", repeat = false }
+"Mod+Shift+F23" = { action = "spawn:kitty -e opencode /home/itah/Projects", repeat = false }
 "Mod+Q" = { action = "window-close", repeat = false }
 "Mod+Shift+Q" = { action = "window-kill", repeat = false }
 "Mod+Escape" = "session-quit"
