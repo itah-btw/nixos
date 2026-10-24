@@ -17,6 +17,7 @@ in
         fprintd
         localsend
         ocr
+        secrets
         homeManagerBase
         home
       ] ++ [ (modulesPath + "/installer/scan/not-detected.nix") ];
