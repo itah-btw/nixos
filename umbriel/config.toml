@@ -33,7 +33,7 @@ files = ["/home/itah/.config/umbriel/noctalia.toml"]
 [appearance]
 prefer_no_csd = true
 border_width = 2
-corner_radius = 10
+corner_radius = 0
 
 [appearance.blur]
 enabled = true
