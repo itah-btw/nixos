@@ -16,6 +16,7 @@ in
         firefox
         fprintd
         localsend
+        ocr
         homeManagerBase
         home
       ] ++ [ (modulesPath + "/installer/scan/not-detected.nix") ];

@@ -76,6 +76,7 @@ natural_scroll = true
 "Shift+Print" = { action = "spawn:noctalia msg screenshot-fullscreen --save-to-file --copy-to-clipboard", repeat = false }
 "Ctrl+Print" = { action = "spawn:noctalia msg screenshot-window --save-to-file --copy-to-clipboard", repeat = false }
 "Mod+Shift+A" = { action = "spawn:noctalia msg screenshot-annotate --save-to-file --copy-to-clipboard", repeat = false }
+"Mod+Shift+O" = { action = "spawn:ocr-region", repeat = false }
 "Mod+Ctrl+A" = { action = "spawn:noctalia msg annotate", repeat = false }
 "Mod+Shift+L" = { action = "spawn:noctalia msg session lock", repeat = false }
 "Mod+Shift+F23" = { action = "spawn:kitty -e opencode /home/itah/Projects", repeat = false }
