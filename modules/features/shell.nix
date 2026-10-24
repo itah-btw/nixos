@@ -10,6 +10,14 @@
         ep = "vis ~/nixos/modules/features/packages.nix";
         ff = "fastfetch";
       };
+
+      # Restore NixOS's prompt and bash-completion setup, which HM's bashrc
+      # does not source by default.
+      initExtra = ''
+        if [[ -f /etc/bashrc ]]; then
+          . /etc/bashrc
+        fi
+      '';
       # yazi's `y` wrapper is provided by programs.yazi (enableBashIntegration).
     };
   };
