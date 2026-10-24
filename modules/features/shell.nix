@@ -17,6 +17,13 @@
         if [[ -f /etc/bashrc ]]; then
           . /etc/bashrc
         fi
+
+        # kitty shell integration: lets kitty tell idle bash from a running
+        # program, so confirm_os_window_close = 1 only prompts when something
+        # (opencode, yazi, ...) is actually running.
+        if [[ -n "$KITTY_SHELL_INTEGRATION" && -f "${pkgs.kitty}/lib/kitty/shell-integration/bash/kitty.bash" ]]; then
+          . "${pkgs.kitty}/lib/kitty/shell-integration/bash/kitty.bash"
+        fi
       '';
       # yazi's `y` wrapper is provided by programs.yazi (enableBashIntegration).
     };
