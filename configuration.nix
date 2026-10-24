@@ -57,12 +57,51 @@
     home.packages = with pkgs; [
       # Add per-user (non-system) packages here.
     ];
+
+    # Declarative Umbriel config: ~/.config/umbriel/config.toml becomes a
+    # read-only symlink into the Nix store, so edits go through git + rebuild.
+    xdg.configFile."umbriel/config.toml".source = ./umbriel/config.toml;
+  };
+
+  # ── Desktop: Umbriel compositor + Noctalia shell ──────────────────────
+  # Umbriel: Wayland compositor (wlroots + SceneFX) built by the Noctalia
+  # project. The module registers the session, sets up the portal for
+  # screen sharing, and pulls in the graphics bits.
+  programs.umbriel.enable = true;
+
+  programs.noctalia = {
+    enable = true;
+    # Autostart the shell inside Umbriel's session target.
+    systemd.enable = true;
+    systemd.target = "umbriel-session.target";
+    # NetworkManager, bluetooth, UPower, power-profiles-daemon.
+    recommendedServices.enable = true;
+  };
+
+  # Login screen (greetd-based Wayland greeter).
+  services.displayManager.noctalia-greeter = {
+    enable = true;
+    settings = {
+      cursor = {
+        theme = "Adwaita";
+        size = 24;
+      };
+      keyboard.layout = "us";
+    };
+  };
+
+  # Audio, for the shell's volume keys and media controls.
+  services.pipewire = {
+    enable = true;
+    alsa.enable = true;
+    pulse.enable = true;
   };
 
   # List packages installed in system profile.
   # You can use https://search.nixos.org/ to find more packages (and options).
   environment.systemPackages = with pkgs; [
     git
+    kitty # Umbriel's default Mod+Return binding spawns kitty
     vis # Do not forget to add an editor to edit configuration.nix! The Nano editor is also installed by default.
     wget
     opencode
