@@ -13,6 +13,8 @@ in
         nix
         packages
         desktop
+        firefox
+        fprintd
         homeManagerBase
         home
       ] ++ [ (modulesPath + "/installer/scan/not-detected.nix") ];
