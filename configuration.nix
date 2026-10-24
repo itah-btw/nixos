@@ -8,6 +8,9 @@
   boot.loader.systemd-boot.enable = true;
   boot.loader.efi.canTouchEfiVariables = true;
 
+  # Use the newest kernel available in nixpkgs instead of the LTS default.
+  boot.kernelPackages = pkgs.linuxPackages_latest;
+
   networking.hostName = "nixos";
   networking.networkmanager.enable = true;
 
