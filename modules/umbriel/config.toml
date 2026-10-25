@@ -229,6 +229,18 @@ natural_scroll = true
 "Mod+Ctrl+WheelDown" = { action = "workspace-next", cooldown_ms = 150 }
 "Mod+O" = { action = "overview-toggle", repeat = false }
 "Mod+Alt+Space" = "workspace-set-layout:toggle"
+"Mod+Alt+Up" = "window-focus-or-workspace-up"
+"Mod+Alt+Down" = "window-focus-or-workspace-down"
+# Swap the focused window with its predecessor/successor in layout order.
+# XKB names PageUp/PageDown are Prior/Next.
+"Mod+Prior" = { action = "window-swap-previous", repeat = false }
+"Mod+Next" = { action = "window-swap-next", repeat = false }
+# Secondary extent (row height); primary extent is on Mod+R / Mod+Shift+R.
+"Mod+Ctrl+R" = "window-cycle-secondary-extent"
+"Mod+Ctrl+Shift+R" = "window-cycle-secondary-extent-back"
+# Pan the scrolling layout with the wheel.
+"Mod+Alt+WheelUp" = "layout-scroll-up"
+"Mod+Alt+WheelDown" = "layout-scroll-down"
 "Mod+Shift+F" = { action = "workspace-set-layout:toggle", repeat = false }
 "Mod+Alt+J" = "layout-master-count-increase"
 "Mod+Alt+K" = "layout-master-count-decrease"
