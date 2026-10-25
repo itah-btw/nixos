@@ -20,7 +20,7 @@
           background_opacity = 1.0;
           compositor_blur = true;
           start = [ "workspaces" "sep" "umbriel" "sep" "active_window" ];
-          center = [ "clock" "weather" ];
+          center = [ "clock" "sep" "weather" ];
           end = [
             "media"
             "sep"
