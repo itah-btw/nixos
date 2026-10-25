@@ -19,7 +19,7 @@
           font_scale = 1.1;
           background_opacity = 1.0;
           compositor_blur = true;
-          start = [ "workspaces" "umbriel" "active_window" ];
+          start = [ "workspaces" "sep" "umbriel" "sep" "active_window" ];
           center = [ ];
           end = [
             "media"
