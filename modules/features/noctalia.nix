@@ -31,7 +31,6 @@
             "temp"
             "sep"
             "notifications"
-            "sep"
             "network"
             "sep"
             "bluetooth"
@@ -116,6 +115,7 @@
           bluetooth = {
             type = "bluetooth";
             color = "#cba6f7";
+            hide_when_no_connected_device = true;
           };
           volume = {
             type = "volume";
@@ -128,6 +128,7 @@
           notifications = {
             type = "notifications";
             color = "#f5c2e7";
+            hide_when_no_unread = true;
           };
           weather = {
             type = "weather";
