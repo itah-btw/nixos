@@ -19,27 +19,18 @@
           font_scale = 1.1;
           background_opacity = 1.0;
           compositor_blur = true;
-          start = [ "workspaces" "sep" "umbriel" "sep" "active_window" ];
+          start = [ "workspaces" "umbriel" "active_window" ];
           center = [ "clock" "weather" ];
           end = [
             "media"
-            "sep"
             "ram"
-            "sep"
             "cpu"
-            "sep"
             "temp"
-            "sep"
             "notifications"
-            "sep"
             "network"
-            "sep"
             "bluetooth"
-            "sep"
             "volume"
-            "sep"
             "brightness"
-            "sep"
             "bat"
           ];
           widget_spacing = 6;
@@ -91,16 +82,6 @@
             show_glyph = true;
             show_value = true;
             label_show_units = true;
-          };
-          sep = {
-            type = "text";
-            color = "#585b70";
-            text = "│";
-          };
-          sepw = {
-            type = "text";
-            color = "#585b70";
-            text = "│";
           };
           clock = {
             type = "clock";
