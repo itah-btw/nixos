@@ -106,8 +106,13 @@ natural_scroll = true
 "Mod+Alt+N" = { action = "spawn:noctalia msg panel-toggle control-center notifications", repeat = false }
 "Mod+Alt+S" = { action = "spawn:noctalia msg panel-toggle control-center system", repeat = false }
 "Mod+Alt+C" = { action = "spawn:noctalia msg panel-toggle control-center calendar", repeat = false }
-"Mod+Alt+P" = { action = "spawn:noctalia msg panel-toggle wallpaper", repeat = false }
-"Mod+Alt+H" = { action = "spawn:noctalia msg panel-toggle noctalia/wallhaven:browser", repeat = false }
+"Mod+Alt+O" = { action = "spawn:noctalia msg panel-toggle control-center monitor", repeat = false }
+"Mod+Alt+I" = { action = "spawn:noctalia msg panel-toggle control-center network", repeat = false }
+"Mod+Alt+B" = { action = "spawn:noctalia msg panel-toggle control-center bluetooth", repeat = false }
+"Mod+Alt+E" = { action = "spawn:noctalia msg panel-toggle control-center weather", repeat = false }
+"Mod+Alt+T" = { action = "spawn:noctalia msg panel-toggle control-center screen-time", repeat = false }
+"Mod+Alt+P" = { action = "spawn:noctalia msg panel-toggle control-center power", repeat = false }
+"Mod+Alt+Shift+W" = { action = "spawn:noctalia msg panel-toggle noctalia/wallhaven:browser", repeat = false }
 "Mod+Alt+Period" = { action = "spawn:noctalia msg panel-toggle launcher /emo", repeat = false }
 "Mod+Alt+Equal" = { action = "spawn:noctalia msg panel-toggle launcher /calc", repeat = false }
 
@@ -133,7 +138,8 @@ natural_scroll = true
 "Mod+Shift+P" = { action = "spawn:noctalia msg power-cycle", repeat = false }
 "Mod+Shift+W" = { action = "spawn:noctalia msg wallpaper-next", repeat = false }
 "Mod+Ctrl+W" = { action = "spawn:noctalia msg wallpaper-previous", repeat = false }
-"Mod+Alt+W" = { action = "spawn:noctalia msg wallpaper-random", repeat = false }
+"Mod+Alt+G" = { action = "spawn:noctalia msg wallpaper-random", repeat = false }
+"Mod+Alt+W" = { action = "spawn:noctalia msg panel-toggle wallpaper", repeat = false }
 
 # Shell and desktop toggles
 "Mod+Ctrl+C" = { action = "spawn:noctalia msg caffeine-toggle", repeat = false }
