@@ -17,6 +17,7 @@ in
         fprintd
         localsend
         ocr
+        screenrecord
         dev
         secrets
         homeManagerBase

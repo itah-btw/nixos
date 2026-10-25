@@ -93,6 +93,8 @@ natural_scroll = true
 "Mod+Shift+A" = { action = "spawn:noctalia msg screenshot-annotate --save-to-file --copy-to-clipboard", repeat = false }
 "Mod+Ctrl+A" = { action = "spawn:noctalia msg annotate", repeat = false }
 "Mod+Shift+O" = { action = "spawn:ocr-region", repeat = false }
+"Mod+Alt+R" = { action = "spawn:screenrecord-toggle", repeat = false }
+"Mod+Alt+Shift+R" = { action = "spawn:screenrecord-region", repeat = false }
 
 # ==============================================================================
 # Noctalia panels
