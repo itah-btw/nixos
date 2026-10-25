@@ -64,6 +64,7 @@
             type = "sysmon";
             stat = "ram_used";
             color = "#7aa2f7";
+            visualization = "none";
             show_glyph = false;
             show_value = true;
             label_show_units = true;
@@ -73,6 +74,7 @@
             type = "sysmon";
             stat = "cpu_usage";
             color = "#f7768e";
+            visualization = "none";
             show_glyph = false;
             show_value = true;
             label_show_units = true;
@@ -82,6 +84,7 @@
             type = "sysmon";
             stat = "cpu_temp";
             color = "#ad8ee6";
+            visualization = "none";
             show_glyph = false;
             show_value = true;
             label_show_units = true;
