@@ -13,7 +13,6 @@ in
         nix
         packages
         desktop
-        firefox
         fprintd
         localsend
         ocr
