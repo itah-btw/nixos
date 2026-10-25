@@ -55,13 +55,13 @@
           };
           media = {
             type = "media";
-            color = "#ad8ee6";
+            color = "#cba6f7";
             hide_when_no_media = false;
           };
           ram = {
             type = "sysmon";
             stat = "ram_used";
-            color = "#7aa2f7";
+            color = "#89b4fa";
             visualization = "none";
             show_glyph = false;
             show_value = true;
@@ -71,7 +71,7 @@
           cpu = {
             type = "sysmon";
             stat = "cpu_usage";
-            color = "#e0af68";
+            color = "#f9e2af";
             visualization = "none";
             show_glyph = false;
             show_value = true;
@@ -81,7 +81,7 @@
           temp = {
             type = "sysmon";
             stat = "cpu_temp";
-            color = "#f7768e";
+            color = "#f38ba8";
             visualization = "none";
             show_glyph = false;
             show_value = true;
@@ -90,27 +90,27 @@
           };
           sep = {
             type = "text";
-            color = "#a9b1d6";
+            color = "#585b70";
             text = "│";
           };
           sepw = {
             type = "text";
-            color = "#a9b1d6";
+            color = "#585b70";
             text = "│";
           };
           clock = {
             type = "clock";
-            color = "#0db9d7";
+            color = "#89dceb";
             format = "{:%a, %b %d - %H:%M}";
           };
           batlabel = {
             type = "text";
-            color = "#9ece6a";
+            color = "#a6e3a1";
             text = "Bat:";
           };
           bat = {
             type = "battery";
-            color = "#9ece6a";
+            color = "#a6e3a1";
             display_mode = "none";
             show_label = true;
             label_content = "percent";
@@ -124,7 +124,7 @@
         theme = {
           mode = "dark";
           source = "builtin";
-          builtin = "Tokyo-Night";
+          builtin = "Catppuccin";
         };
       };
     };
