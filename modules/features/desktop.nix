@@ -50,5 +50,10 @@
     };
 
     services.speechd.enable = false;
+
+    # Dark mode via gsettings/dconf (replaces the removed GTK portal's
+    # Settings backend). Provides color-scheme for GTK4/libadwaita and
+    # Electron apps that read gsettings.
+    programs.dconf.enable = true;
   };
 }
