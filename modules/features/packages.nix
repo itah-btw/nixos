@@ -7,6 +7,7 @@
       vis
       wget
       opencode
+      codex
       wl-clipboard
       wev
       brave-origin
@@ -16,6 +17,9 @@
       ffmpeg
       p7zip
       jq
+      python3
+      zip
+      adw-gtk3
       poppler-utils
       fd
       ripgrep

@@ -4,11 +4,12 @@
     programs.bash = {
       enable = true;
       shellAliases = {
-        u = "cd ~/nixos && nix flake update";
+        u = "cd ~/nixos && nix flake update && sudo nixos-rebuild switch --flake ~/nixos#nixos";
         rb = "sudo nixos-rebuild switch --flake ~/nixos#nixos";
         gc = "sudo nix-collect-garbage -d";
         ep = "vis ~/nixos/modules/features/packages.nix";
         ff = "fastfetch";
+        opt = "sudo nix store optimise";
       };
 
       initExtra = ''

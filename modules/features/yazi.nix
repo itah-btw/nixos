@@ -5,7 +5,9 @@
       enable = true;
       extraPackages = with pkgs; [ gnutar zip unzip p7zip unrar ouch ];
       plugins = {
-        compress = pkgs.yaziPlugins.compress;
+        compress = pkgs.yaziPlugins.compress.overrideAttrs (old: {
+          patches = (old.patches or [ ]) ++ [ ./yazi-compress.patch ];
+        });
       };
       keymap = {
         mgr.prepend_keymap = [
