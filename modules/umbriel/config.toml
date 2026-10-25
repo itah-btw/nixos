@@ -195,8 +195,9 @@ natural_scroll = true
 "Mod+Ctrl+F" = { action = "window-toggle-maximize", repeat = false }
 "Mod+R" = "window-cycle-primary-extent"
 "Mod+Shift+R" = "window-cycle-primary-extent-back"
-"Mod+Comma" = "window-consume-left"
-"Mod+Period" = "window-consume-right"
+# Consume when the focused window is alone in its column, expel when it is not.
+"Mod+Comma" = "window-consume-or-expel-left"
+"Mod+Period" = "window-consume-or-expel-right"
 "Mod+Ctrl+Comma" = "window-consume-from-left"
 "Mod+Ctrl+Period" = "window-consume-from-right"
 "Mod+W" = { action = "column-toggle-tabbed", repeat = false }
