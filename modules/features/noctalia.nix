@@ -73,7 +73,7 @@
           clock = {
             type = "clock";
             color = "#0db9d7";
-            format = "{:%a, %b %d - %-I:%M %P}";
+            format = "{:%a, %b %d - %H:%M}";
           };
           weather = {
             type = "weather";
