@@ -20,7 +20,7 @@
           background_opacity = 1.0;
           compositor_blur = true;
           start = [ "workspaces" "sep" "umbriel" "sep" "active_window" ];
-          center = [ "clock" "sepw" "weather" ];
+          center = [ "clock" "weather" ];
           end = [
             "media"
             "sep"
@@ -30,12 +30,15 @@
             "sep"
             "temp"
             "sep"
-            "network"
-            "bluetooth"
-            "volume"
-            "brightness"
-            "sep"
             "notifications"
+            "sep"
+            "network"
+            "sep"
+            "bluetooth"
+            "sep"
+            "volume"
+            "sep"
+            "brightness"
             "sep"
             "bat"
           ];
