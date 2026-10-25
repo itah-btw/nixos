@@ -98,7 +98,7 @@
           };
           clock = {
             type = "clock";
-            color = "#89dceb";
+            color = "#cba6f7";
             format = "󰃭 {:%a, %b %d - %H:%M}";
           };
           bat = {
@@ -122,7 +122,7 @@
           };
           weather = {
             type = "weather";
-            color = "#fab387";
+            color = "#89dceb";
           };
         };
 
