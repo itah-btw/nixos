@@ -89,7 +89,7 @@
           temp = {
             type = "sysmon";
             stat = "cpu_temp";
-            color = "#f38ba8";
+            color = "#fab387";
             highlight_color = "error";
             visualization = "none";
             show_glyph = true;
