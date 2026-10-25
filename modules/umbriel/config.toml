@@ -95,6 +95,8 @@ natural_scroll = true
 "Mod+Shift+O" = { action = "spawn:ocr-region", repeat = false }
 "Mod+Alt+R" = { action = "spawn:screenrecord-toggle", repeat = false }
 "Mod+Alt+Shift+R" = { action = "spawn:screenrecord-region", repeat = false }
+"Mod+Alt+V" = { action = "spawn:screenrecord-toggle noaudio", repeat = false }
+"Mod+Alt+Shift+V" = { action = "spawn:screenrecord-region noaudio", repeat = false }
 
 # ==============================================================================
 # Noctalia panels
