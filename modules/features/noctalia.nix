@@ -97,7 +97,6 @@
             type = "clock";
             color = "#89dceb";
             format = "{:%a, %b %d - %H:%M}";
-            anchor = true;
           };
           bat = {
             type = "battery";
