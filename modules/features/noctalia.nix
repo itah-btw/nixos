@@ -46,6 +46,7 @@
           ram = {
             type = "sysmon";
             stat = "ram_used";
+            color = "#7aa2f7";
             show_glyph = false;
             show_value = true;
             label_show_units = true;
@@ -54,6 +55,7 @@
           cpu = {
             type = "sysmon";
             stat = "cpu_usage";
+            color = "#f7768e";
             show_glyph = false;
             show_value = true;
             label_show_units = true;
@@ -62,6 +64,7 @@
           temp = {
             type = "sysmon";
             stat = "cpu_temp";
+            color = "#ad8ee6";
             show_glyph = false;
             show_value = true;
             label_show_units = true;
@@ -69,13 +72,16 @@
           };
           clock = {
             type = "clock";
+            color = "#0db9d7";
             format = "{:%a, %b %d - %-I:%M %P}";
           };
           weather = {
             type = "weather";
+            color = "#a9b1d6";
           };
           battery = {
             type = "battery";
+            color = "#9ece6a";
             display_mode = "glyph";
             show_label = true;
             label_content = "percent";
