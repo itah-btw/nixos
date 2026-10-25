@@ -75,7 +75,7 @@
           cpu = {
             type = "sysmon";
             stat = "cpu_usage";
-            color = "#f7768e";
+            color = "#e0af68";
             visualization = "none";
             show_glyph = false;
             show_value = true;
@@ -85,7 +85,7 @@
           temp = {
             type = "sysmon";
             stat = "cpu_temp";
-            color = "#ad8ee6";
+            color = "#f7768e";
             visualization = "none";
             show_glyph = false;
             show_value = true;
