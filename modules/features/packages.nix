@@ -28,7 +28,6 @@
       imagemagick
       resvg
       libreoffice
-      obs-studio
       vscode
       fastfetch
       btop

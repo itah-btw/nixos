@@ -15,23 +15,16 @@
     ];
     programs.umbriel.enable = true;
 
-    # Umbriel's portal only implements ScreenCast + Screenshot. Without a
-    # Settings backend, org.freedesktop.portal.Settings does not exist at all,
-    # so apps that ask the portal for `prefers-color-scheme` never learn the
-    # session is dark. The GTK backend supplies Settings (and FileChooser, so
-    # Flatpak dialogs work later); keep Umbriel preferred for capture.
+    # Umbriel's portal only implements ScreenCast + Screenshot. GTK backend
+    # removed (no portal Settings/FileChooser); apps needing those fall back to
+    # their own dialogs / gsettings. Umbriel stays preferred for capture.
     xdg.portal.extraPortals = lib.mkForce [
       pkgs.xdg-desktop-portal-umbriel
-      pkgs.xdg-desktop-portal-gtk
     ];
     xdg.portal.config.common = {
-      default = [
-        "umbriel"
-        "gtk"
-      ];
+      default = [ "umbriel" ];
       "org.freedesktop.impl.portal.ScreenCast" = [ "umbriel" ];
       "org.freedesktop.impl.portal.Screenshot" = [ "umbriel" ];
-      "org.freedesktop.impl.portal.Settings" = [ "gtk" ];
       "org.freedesktop.impl.portal.Secret" = [ "gnome-keyring" ];
     };
 
