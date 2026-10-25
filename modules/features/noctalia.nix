@@ -16,7 +16,7 @@
           capsule = false;
           font_family = "JetBrainsMono Nerd Font";
           font_weight = 700;
-          font_scale = 1.2;
+          font_scale = 1.1;
           background_opacity = 1.0;
           compositor_blur = true;
           start = [ "workspaces" "umbriel" "active_window" ];
