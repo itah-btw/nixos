@@ -45,10 +45,6 @@
             style = "regular";
             show_labels = true;
             label_source = "id";
-            focused_color = "#0db9d7";
-            occupied_color = "#0db9d7";
-            empty_color = "#bbbbbb";
-            urgent_color = "#f7768e";
             change_color_on_hover = true;
           };
           umbriel = {
@@ -56,7 +52,6 @@
           };
           active_window = {
             type = "active_window";
-            color = "#6dade3";
           };
           media = {
             type = "media";
