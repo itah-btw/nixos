@@ -32,6 +32,7 @@
       fastfetch
       btop
       zathura
+      wl-screenrec
     ];
   };
 }
