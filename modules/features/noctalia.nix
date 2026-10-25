@@ -96,7 +96,7 @@
           clock = {
             type = "clock";
             color = "#89dceb";
-            format = "{:%a, %b %d - %H:%M}";
+            format = "󰃭 {:%a, %b %d - %H:%M}";
           };
           bat = {
             type = "battery";
