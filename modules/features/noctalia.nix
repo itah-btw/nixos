@@ -20,7 +20,7 @@
           background_opacity = 1.0;
           compositor_blur = true;
           start = [ "workspaces" "sep" "umbriel" "sep" "active_window" ];
-          center = [ ];
+          center = [ "clock" "sepw" "weather" ];
           end = [
             "media"
             "sep"
@@ -30,9 +30,14 @@
             "sep"
             "temp"
             "sep"
-            "bat"
+            "network"
+            "bluetooth"
+            "volume"
+            "brightness"
             "sep"
-            "clock"
+            "notifications"
+            "sep"
+            "bat"
           ];
           widget_spacing = 6;
           padding = 8;
@@ -105,6 +110,30 @@
             display_mode = "glyph";
             show_label = true;
             label_content = "percent";
+          };
+          network = {
+            type = "network";
+            color = "#89dceb";
+          };
+          bluetooth = {
+            type = "bluetooth";
+            color = "#cba6f7";
+          };
+          volume = {
+            type = "volume";
+            color = "#94e2d5";
+          };
+          brightness = {
+            type = "brightness";
+            color = "#f9e2af";
+          };
+          notifications = {
+            type = "notifications";
+            color = "#f5c2e7";
+          };
+          weather = {
+            type = "weather";
+            color = "#fab387";
           };
         };
 
