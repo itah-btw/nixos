@@ -100,9 +100,12 @@ natural_scroll = true
 # Notifications
 "Mod+N" = { action = "spawn:noctalia msg notification-dnd-toggle", repeat = false }
 "Mod+Shift+N" = { action = "spawn:noctalia msg notification-clear-active", repeat = false }
+"Mod+Alt+Shift+N" = { action = "spawn:noctalia msg notification-invoke-latest", repeat = false }
+"Mod+Alt+Shift+H" = { action = "spawn:noctalia msg notification-clear-history", repeat = false }
 
 # Network / bluetooth
 "Mod+I" = { action = "spawn:noctalia msg wifi-toggle", repeat = false }
+"Mod+Shift+I" = { action = "spawn:noctalia msg network-toggle", repeat = false }
 "Mod+Shift+B" = { action = "spawn:noctalia msg bluetooth-toggle", repeat = false }
 
 # Power profile
@@ -116,6 +119,8 @@ natural_scroll = true
 "Mod+Alt+C" = { action = "spawn:noctalia msg panel-toggle control-center calendar", repeat = false }
 # Emoji picker through the launcher's /emo provider.
 "Mod+Alt+Period" = { action = "spawn:noctalia msg panel-toggle launcher /emo", repeat = false }
+# Calculator provider.
+"Mod+Alt+Shift+C" = { action = "spawn:noctalia msg panel-toggle launcher /calc", repeat = false }
 
 # System toggles (Noctalia)
 "Mod+Ctrl+C" = { action = "spawn:noctalia msg caffeine-toggle", repeat = false }
@@ -126,6 +131,7 @@ natural_scroll = true
 "Mod+Ctrl+Shift+B" = { action = "spawn:noctalia msg bar-toggle", repeat = false }
 "Mod+Ctrl+M" = { action = "spawn:noctalia msg mic-mute", allow_when_locked = true, repeat = false }
 "Mod+Alt+D" = { action = "spawn:noctalia msg desktop-widgets-toggle", repeat = false }
+"Mod+Alt+Shift+D" = { action = "spawn:noctalia msg desktop-widgets-toggle-edit", repeat = false }
 
 # Session menu
 "Mod+X" = { action = "spawn:noctalia msg panel-toggle session", repeat = false }
@@ -148,6 +154,9 @@ natural_scroll = true
 "XF86AudioNext" = { action = "spawn:noctalia msg media next", allow_when_locked = true }
 "XF86AudioPrev" = { action = "spawn:noctalia msg media previous", allow_when_locked = true }
 "Mod+Shift+M" = { action = "spawn:noctalia msg media toggle", allow_when_locked = true, repeat = false }
+# Switch between MPRIS players when several are running.
+"Mod+Alt+Shift+Left" = { action = "spawn:noctalia msg media previous-player", allow_when_locked = true }
+"Mod+Alt+Shift+Right" = { action = "spawn:noctalia msg media next-player", allow_when_locked = true }
 "XF86MonBrightnessUp" = { action = "spawn:noctalia msg brightness-up", allow_when_locked = true }
 "XF86MonBrightnessDown" = { action = "spawn:noctalia msg brightness-down", allow_when_locked = true }
 
@@ -170,6 +179,9 @@ natural_scroll = true
 "Mod+K" = "window-focus-up"
 "Mod+L" = "window-focus-right"
 "Mod+F1" = "window-focus-next"
+"Mod+Shift+F1" = "window-focus-previous"
+"Mod+Home" = { action = "column-focus-first", repeat = false }
+"Mod+End" = { action = "column-focus-last", repeat = false }
 "Mod+Shift+Left" = "column-move-left"
 "Mod+Shift+Down" = "window-move-down"
 "Mod+Shift+Up" = "window-move-up"
@@ -179,6 +191,11 @@ natural_scroll = true
 "Mod+Ctrl+Down" = "window-focus-or-output-down"
 "Mod+Ctrl+Up" = "window-focus-or-output-up"
 "Mod+Ctrl+Right" = "window-focus-or-output-right"
+# Vim-style mirrors of the output-edge focus binds.
+"Mod+Ctrl+H" = "window-focus-or-output-left"
+"Mod+Ctrl+J" = "window-focus-or-output-down"
+"Mod+Ctrl+K" = "window-focus-or-output-up"
+"Mod+Ctrl+L" = "window-focus-or-output-right"
 # Jump back to the previous window or workspace.
 "Mod+Ctrl+Tab" = { action = "window-focus-last", repeat = false }
 "Mod+Ctrl+Shift+Tab" = { action = "workspace-focus-last", repeat = false }
@@ -204,6 +221,8 @@ natural_scroll = true
 "Mod+Ctrl+Shift+W" = { action = "column-toggle-tab-bar", repeat = false }
 "Mod+Alt+Right" = "column-focus-tab-next"
 "Mod+Alt+Left" = "column-focus-tab-previous"
+"Mod+Ctrl+Alt+Left" = "column-move-tab-previous"
+"Mod+Ctrl+Alt+Right" = "column-move-tab-next"
 "Mod+WheelUp" = "window-focus-left"
 "Mod+WheelDown" = "window-focus-right"
 "Mod+Shift+WheelUp" = "column-move-left"
@@ -254,6 +273,7 @@ natural_scroll = true
 "Mod+Space" = "scratchpad-toggle"
 "Mod+Ctrl+Space" = { action = "window-restore-from-scratchpad", repeat = false }
 "Mod+Tab" = "scratchpad-focus-next"
+"Mod+Shift+Tab" = "scratchpad-window-show-previous"
 
 # ==============================================================================
 # Layout
