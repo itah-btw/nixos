@@ -20,7 +20,7 @@
           background_opacity = 1.0;
           compositor_blur = true;
           start = [ "workspaces" "umbriel" "active_window" ];
-          center = [ "clock" "sepw" "weather" ];
+          center = [ ];
           end = [
             "media"
             "sep"
@@ -30,8 +30,15 @@
             "sep"
             "temp"
             "sep"
+            "network"
+            "bluetooth"
+            "volume"
+            "brightness"
+            "sep"
             "batlabel"
             "bat"
+            "sep"
+            "clock"
           ];
           widget_spacing = 6;
           padding = 8;
@@ -90,6 +97,22 @@
             label_show_units = true;
             custom_label = "Temp:";
           };
+          network = {
+            type = "network";
+            color = "#6dade3";
+          };
+          bluetooth = {
+            type = "bluetooth";
+            color = "#ad8ee6";
+          };
+          volume = {
+            type = "volume";
+            color = "#0db9d7";
+          };
+          brightness = {
+            type = "brightness";
+            color = "#a9b1d6";
+          };
           sep = {
             type = "text";
             color = "#a9b1d6";
@@ -105,10 +128,6 @@
             color = "#0db9d7";
             format = "{:%a, %b %d - %H:%M}";
           };
-          weather = {
-            type = "weather";
-            color = "#a9b1d6";
-          };
           batlabel = {
             type = "text";
             color = "#9ece6a";
@@ -122,6 +141,8 @@
             label_content = "percent";
           };
         };
+
+        plugins.enabled = [ "noctalia/wallhaven" "noctalia/umbriel-companion" ];
 
         shell.font_family = "JetBrainsMono Nerd Font";
 
