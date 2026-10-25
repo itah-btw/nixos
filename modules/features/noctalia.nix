@@ -55,13 +55,13 @@
           };
           media = {
             type = "media";
-            color = "tertiary";
+            color = "#ad8ee6";
             hide_when_no_media = false;
           };
           ram = {
             type = "sysmon";
             stat = "ram_used";
-            color = "primary";
+            color = "#7aa2f7";
             visualization = "none";
             show_glyph = false;
             show_value = true;
@@ -71,7 +71,7 @@
           cpu = {
             type = "sysmon";
             stat = "cpu_usage";
-            color = "secondary";
+            color = "#e0af68";
             visualization = "none";
             show_glyph = false;
             show_value = true;
@@ -81,7 +81,7 @@
           temp = {
             type = "sysmon";
             stat = "cpu_temp";
-            color = "error";
+            color = "#f7768e";
             visualization = "none";
             show_glyph = false;
             show_value = true;
@@ -90,27 +90,27 @@
           };
           sep = {
             type = "text";
-            color = "outline";
+            color = "#a9b1d6";
             text = "│";
           };
           sepw = {
             type = "text";
-            color = "outline";
+            color = "#a9b1d6";
             text = "│";
           };
           clock = {
             type = "clock";
-            color = "primary";
+            color = "#0db9d7";
             format = "{:%a, %b %d - %H:%M}";
           };
           batlabel = {
             type = "text";
-            color = "secondary";
+            color = "#9ece6a";
             text = "Bat:";
           };
           bat = {
             type = "battery";
-            color = "secondary";
+            color = "#9ece6a";
             display_mode = "none";
             show_label = true;
             label_content = "percent";
