@@ -13,7 +13,7 @@
 [general]
 # Noctalia is started by the systemd user service (programs.noctalia.systemd),
 # so it is deliberately NOT listed under autostart to avoid launching twice.
-autostart = ["polkit-gnome-authentication-agent-1"]
+autostart = []
 xwayland = true
 
 # ==============================================================================

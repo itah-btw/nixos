@@ -9,7 +9,6 @@
       opencode
       wl-clipboard
       wev
-      polkit_gnome
       brave-origin
       proton-authenticator
       proton-vpn
