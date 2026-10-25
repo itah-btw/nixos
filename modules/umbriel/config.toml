@@ -134,7 +134,6 @@ natural_scroll = true
 
 # Session menu
 "Mod+X" = { action = "spawn:noctalia msg panel-toggle session", repeat = false }
-"XF86Assistant" = { action = "spawn:kitty -e opencode /home/itah/Projects", repeat = false }
 "Mod+Q" = { action = "window-close", repeat = false }
 "Mod+Shift+Q" = { action = "window-close", repeat = false }
 "Mod+Escape" = "session-quit"
