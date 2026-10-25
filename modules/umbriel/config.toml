@@ -108,6 +108,25 @@ natural_scroll = true
 # Power profile
 "Mod+Shift+P" = { action = "spawn:noctalia msg power-cycle", repeat = false }
 
+# Control Center tabs
+"Mod+Alt+A" = { action = "spawn:noctalia msg panel-toggle control-center audio", repeat = false }
+"Mod+Alt+M" = { action = "spawn:noctalia msg panel-toggle control-center media", repeat = false }
+"Mod+Alt+N" = { action = "spawn:noctalia msg panel-toggle control-center notifications", repeat = false }
+"Mod+Alt+S" = { action = "spawn:noctalia msg panel-toggle control-center system", repeat = false }
+"Mod+Alt+C" = { action = "spawn:noctalia msg panel-toggle control-center calendar", repeat = false }
+# Emoji picker through the launcher's /emo provider.
+"Mod+Alt+Period" = { action = "spawn:noctalia msg panel-toggle launcher /emo", repeat = false }
+
+# System toggles (Noctalia)
+"Mod+Ctrl+C" = { action = "spawn:noctalia msg caffeine-toggle", repeat = false }
+"Mod+Ctrl+N" = { action = "spawn:noctalia msg nightlight-toggle", repeat = false }
+"Mod+Ctrl+Shift+N" = { action = "spawn:noctalia msg nightlight-force-toggle", repeat = false }
+"Mod+Ctrl+T" = { action = "spawn:noctalia msg theme-mode-toggle", repeat = false }
+"Mod+Ctrl+D" = { action = "spawn:noctalia msg dock-toggle", repeat = false }
+"Mod+Ctrl+Shift+B" = { action = "spawn:noctalia msg bar-toggle", repeat = false }
+"Mod+Ctrl+M" = { action = "spawn:noctalia msg mic-mute", allow_when_locked = true, repeat = false }
+"Mod+Alt+D" = { action = "spawn:noctalia msg desktop-widgets-toggle", repeat = false }
+
 # Session menu
 "Mod+X" = { action = "spawn:noctalia msg panel-toggle session", repeat = false }
 "XF86Assistant" = { action = "spawn:kitty -e opencode /home/itah/Projects", repeat = false }
@@ -124,10 +143,22 @@ natural_scroll = true
 # Some laptops (ThinkPads, etc.) send XF86AudioMicMute or XF86MicrophoneMute.
 "XF86AudioMicMute" = { action = "spawn:noctalia msg mic-mute", allow_when_locked = true, repeat = false }
 "XF86AudioPlay" = { action = "spawn:noctalia msg media toggle", allow_when_locked = true, repeat = false }
+"XF86AudioPause" = { action = "spawn:noctalia msg media toggle", allow_when_locked = true, repeat = false }
+"XF86AudioStop" = { action = "spawn:noctalia msg media stop", allow_when_locked = true, repeat = false }
 "XF86AudioNext" = { action = "spawn:noctalia msg media next", allow_when_locked = true }
 "XF86AudioPrev" = { action = "spawn:noctalia msg media previous", allow_when_locked = true }
+"Mod+Shift+M" = { action = "spawn:noctalia msg media toggle", allow_when_locked = true, repeat = false }
 "XF86MonBrightnessUp" = { action = "spawn:noctalia msg brightness-up", allow_when_locked = true }
 "XF86MonBrightnessDown" = { action = "spawn:noctalia msg brightness-down", allow_when_locked = true }
+
+# Keyboard backlight, when the hardware exposes one.
+"XF86KbdBrightnessUp" = { action = "spawn:noctalia msg keyboard-backlight-up", allow_when_locked = true }
+"XF86KbdBrightnessDown" = { action = "spawn:noctalia msg keyboard-backlight-down", allow_when_locked = true }
+"XF86KbdLightOnOff" = { action = "spawn:noctalia msg keyboard-backlight-toggle", allow_when_locked = true, repeat = false }
+
+# Sleep and power.
+"XF86Sleep" = { action = "spawn:noctalia msg session lock-and-suspend", allow_when_locked = true, repeat = false }
+"XF86PowerOff" = { action = "spawn:noctalia msg panel-toggle session", repeat = false }
 
 # Focus and movement
 "Mod+Left" = "window-focus-left"
@@ -148,6 +179,12 @@ natural_scroll = true
 "Mod+Ctrl+Down" = "window-focus-or-output-down"
 "Mod+Ctrl+Up" = "window-focus-or-output-up"
 "Mod+Ctrl+Right" = "window-focus-or-output-right"
+# Jump back to the previous window or workspace.
+"Mod+Ctrl+Tab" = { action = "window-focus-last", repeat = false }
+"Mod+Ctrl+Shift+Tab" = { action = "workspace-focus-last", repeat = false }
+# Vim-style move, mirroring Mod+Shift+arrows.
+"Mod+Shift+J" = "window-move-down"
+"Mod+Shift+K" = "window-move-up"
 
 # Window state and layout
 "Mod+T" = { action = "window-toggle-floating", repeat = false }
@@ -163,12 +200,28 @@ natural_scroll = true
 "Mod+Ctrl+Comma" = "window-consume-from-left"
 "Mod+Ctrl+Period" = "window-consume-from-right"
 "Mod+W" = { action = "column-toggle-tabbed", repeat = false }
+"Mod+Ctrl+Shift+W" = { action = "column-toggle-tab-bar", repeat = false }
 "Mod+Alt+Right" = "column-focus-tab-next"
 "Mod+Alt+Left" = "column-focus-tab-previous"
 "Mod+WheelUp" = "window-focus-left"
 "Mod+WheelDown" = "window-focus-right"
+"Mod+Shift+WheelUp" = "column-move-left"
+"Mod+Shift+WheelDown" = "column-move-right"
+"Mod+Ctrl+WheelUp" = { action = "workspace-previous", cooldown_ms = 150 }
+"Mod+Ctrl+WheelDown" = { action = "workspace-next", cooldown_ms = 150 }
 "Mod+O" = { action = "overview-toggle", repeat = false }
 "Mod+Alt+Space" = "workspace-set-layout:toggle"
+"Mod+Shift+F" = { action = "workspace-set-layout:toggle", repeat = false }
+"Mod+Alt+J" = "layout-master-count-increase"
+"Mod+Alt+K" = "layout-master-count-decrease"
+# Center the focused column, or the focused floating window.
+"Mod+C" = { action = "column-center", repeat = false }
+"Mod+Shift+C" = { action = "window-center", repeat = false }
+# Resize the focused column/area: primary extent is width, secondary is height.
+"Mod+Ctrl+Shift+Left" = "window-modify-primary-extent:-0.05"
+"Mod+Ctrl+Shift+Right" = "window-modify-primary-extent:0.05"
+"Mod+Ctrl+Shift+Up" = "window-modify-secondary-extent:-0.05"
+"Mod+Ctrl+Shift+Down" = "window-modify-secondary-extent:0.05"
 
 # Workspaces
 "Mod+1" = "workspace-switch:1"
@@ -189,6 +242,11 @@ natural_scroll = true
 "Mod+Shift+7" = "window-move-to-workspace:7"
 "Mod+Shift+8" = "window-move-to-workspace:8"
 "Mod+Shift+9" = "window-move-to-workspace:9"
+# Step through workspaces without knowing their number.
+"Mod+BracketLeft" = "workspace-previous"
+"Mod+BracketRight" = "workspace-next"
+"Mod+Shift+BracketLeft" = "window-move-to-workspace-previous"
+"Mod+Shift+BracketRight" = "window-move-to-workspace-next"
 
 # Scratchpad
 "Mod+Shift+Space" = { action = "window-move-to-scratchpad", repeat = false }
