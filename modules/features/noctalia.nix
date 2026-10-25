@@ -56,6 +56,7 @@
           media = {
             type = "media";
             color = "#ad8ee6";
+            hide_when_no_media = false;
           };
           ram = {
             type = "sysmon";
