@@ -11,6 +11,7 @@ in
         locale
         user
         nix
+        maintenance
         packages
         desktop
         fprintd
