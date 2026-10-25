@@ -70,6 +70,7 @@
             type = "sysmon";
             stat = "ram_used";
             color = "#89b4fa";
+            highlight_color = "error";
             visualization = "none";
             show_glyph = true;
             show_value = true;
@@ -79,6 +80,7 @@
             type = "sysmon";
             stat = "cpu_usage";
             color = "#f9e2af";
+            highlight_color = "error";
             visualization = "none";
             show_glyph = true;
             show_value = true;
@@ -88,6 +90,7 @@
             type = "sysmon";
             stat = "cpu_temp";
             color = "#f38ba8";
+            highlight_color = "error";
             visualization = "none";
             show_glyph = true;
             show_value = true;
