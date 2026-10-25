@@ -4,7 +4,6 @@
     nixpkgs.config.allowUnfree = true;
     nix.settings.experimental-features = [ "nix-command" "flakes" ];
     environment.sessionVariables.XKB_LOG_LEVEL = "error";
-    environment.sessionVariables.GTK_THEME = "adw-gtk3-dark";
     environment.variables = {
       EDITOR = "vis";
       VISUAL = "vis";
