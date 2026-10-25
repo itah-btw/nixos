@@ -19,13 +19,19 @@
           font_scale = 1.0;
           background_opacity = 1.0;
           compositor_blur = true;
-          start = [ "workspaces" ];
-          center = [ "clock" "weather" ];
+          start = [ "workspaces" "umbriel" "active_window" ];
+          center = [ "clock" "sepw" "weather" ];
           end = [
+            "media"
+            "sep"
             "ram"
+            "sep"
             "cpu"
+            "sep"
             "temp"
-            "battery"
+            "sep"
+            "batlabel"
+            "bat"
           ];
           widget_spacing = 6;
           padding = 8;
@@ -42,6 +48,17 @@
             empty_color = "#bbbbbb";
             urgent_color = "#f7768e";
             change_color_on_hover = true;
+          };
+          umbriel = {
+            type = "noctalia/umbriel-companion:bar";
+          };
+          active_window = {
+            type = "active_window";
+            color = "#6dade3";
+          };
+          media = {
+            type = "media";
+            color = "#ad8ee6";
           };
           ram = {
             type = "sysmon";
@@ -70,6 +87,16 @@
             label_show_units = true;
             custom_label = "Temp:";
           };
+          sep = {
+            type = "text";
+            color = "#a9b1d6";
+            text = "│";
+          };
+          sepw = {
+            type = "text";
+            color = "#a9b1d6";
+            text = "│";
+          };
           clock = {
             type = "clock";
             color = "#0db9d7";
@@ -79,10 +106,15 @@
             type = "weather";
             color = "#a9b1d6";
           };
-          battery = {
+          batlabel = {
+            type = "text";
+            color = "#9ece6a";
+            text = "Bat:";
+          };
+          bat = {
             type = "battery";
             color = "#9ece6a";
-            display_mode = "glyph";
+            display_mode = "none";
             show_label = true;
             label_content = "percent";
           };
