@@ -20,13 +20,11 @@
           background_opacity = 1.0;
           compositor_blur = true;
           start = [ "workspaces" ];
-          center = [ ];
+          center = [ "clock" "weather" ];
           end = [
             "ram"
-            "sep1"
-            "kernel"
-            "sep2"
-            "clock"
+            "cpu"
+            "temp"
             "battery"
           ];
           widget_spacing = 6;
@@ -53,21 +51,28 @@
             label_show_units = true;
             custom_label = "Ram:";
           };
-          sep1 = {
-            type = "text";
-            text = "│";
+          cpu = {
+            type = "sysmon";
+            stat = "cpu_usage";
+            show_glyph = false;
+            show_value = true;
+            label_show_units = true;
+            custom_label = "CPU:";
           };
-          kernel = {
-            type = "text";
-            text = pkgs.linuxPackages_latest.kernel.modDirVersion;
-          };
-          sep2 = {
-            type = "text";
-            text = "│";
+          temp = {
+            type = "sysmon";
+            stat = "cpu_temp";
+            show_glyph = false;
+            show_value = true;
+            label_show_units = true;
+            custom_label = "Temp:";
           };
           clock = {
             type = "clock";
             format = "{:%a, %b %d - %-I:%M %P}";
+          };
+          weather = {
+            type = "weather";
           };
           battery = {
             type = "battery";
