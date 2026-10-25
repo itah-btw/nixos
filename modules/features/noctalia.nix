@@ -30,11 +30,6 @@
             "sep"
             "temp"
             "sep"
-            "network"
-            "bluetooth"
-            "volume"
-            "brightness"
-            "sep"
             "batlabel"
             "bat"
             "sep"
@@ -96,22 +91,6 @@
             show_value = true;
             label_show_units = true;
             custom_label = "Temp:";
-          };
-          network = {
-            type = "network";
-            color = "#6dade3";
-          };
-          bluetooth = {
-            type = "bluetooth";
-            color = "#ad8ee6";
-          };
-          volume = {
-            type = "volume";
-            color = "#0db9d7";
-          };
-          brightness = {
-            type = "brightness";
-            color = "#a9b1d6";
           };
           sep = {
             type = "text";
