@@ -30,7 +30,6 @@
             "sep"
             "temp"
             "sep"
-            "batlabel"
             "bat"
             "sep"
             "clock"
@@ -63,30 +62,27 @@
             stat = "ram_used";
             color = "#89b4fa";
             visualization = "none";
-            show_glyph = false;
+            show_glyph = true;
             show_value = true;
             label_show_units = true;
-            custom_label = "Ram:";
           };
           cpu = {
             type = "sysmon";
             stat = "cpu_usage";
             color = "#f9e2af";
             visualization = "none";
-            show_glyph = false;
+            show_glyph = true;
             show_value = true;
             label_show_units = true;
-            custom_label = "CPU:";
           };
           temp = {
             type = "sysmon";
             stat = "cpu_temp";
             color = "#f38ba8";
             visualization = "none";
-            show_glyph = false;
+            show_glyph = true;
             show_value = true;
             label_show_units = true;
-            custom_label = "Temp:";
           };
           sep = {
             type = "text";
@@ -103,15 +99,10 @@
             color = "#89dceb";
             format = "{:%a, %b %d - %H:%M}";
           };
-          batlabel = {
-            type = "text";
-            color = "#a6e3a1";
-            text = "Bat:";
-          };
           bat = {
             type = "battery";
             color = "#a6e3a1";
-            display_mode = "none";
+            display_mode = "glyph";
             show_label = true;
             label_content = "percent";
           };
