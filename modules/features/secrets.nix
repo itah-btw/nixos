@@ -1,6 +1,5 @@
-{ ... }:
-{
-  flake.modules.nixos.secrets = { ... }: {
+_: {
+  flake.modules.nixos.secrets = _: {
     services.gnome.gnome-keyring.enable = true;
     security.pam.services.greetd.enableGnomeKeyring = true;
   };

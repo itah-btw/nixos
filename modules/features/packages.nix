@@ -1,38 +1,54 @@
-{ ... }:
-{
+_: {
   flake.modules.nixos.packages = { pkgs, ... }: {
     environment.systemPackages = with pkgs; [
+      # Nix / system management
       git
-      kitty
-      vis
+      nh
+      nvd
+      nix-tree
+
+      # Shell and terminal helpers
+      tealdeer
+      duf
+      ncdu
       wget
+      wl-clipboard
+      xdg-user-dirs
+      wev
+
+      # Development tools
+      neovim
+      lazygit
+      gh
+      python3
+      jq
       opencode
       codex
-      wl-clipboard
-      wev
-      brave-origin
-      proton-authenticator
-      proton-vpn
-      yazi
+
+      # CLI utilities
       ffmpeg
       p7zip
-      jq
-      python3
       zip
-      adw-gtk3
       poppler-utils
       fd
       ripgrep
-      fzf
-      zoxide
+      eza
+      bat
+      dust
+      procs
       imagemagick
       resvg
+
+      # GUI applications
+      brave-origin
+      proton-authenticator
+      proton-vpn
       libreoffice
       vscode
-      fastfetch
-      btop
-      zathura
-      wl-screenrec
+      jabref
+      imv
+      mpv
+      obs-studio
     ];
   };
 }

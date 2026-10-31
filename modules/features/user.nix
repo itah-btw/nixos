@@ -1,11 +1,15 @@
-{ ... }:
-{
+_: {
   flake.modules.nixos.user = { pkgs, ... }: {
+    programs.fish.enable = true;
+
     users.users."itah" = {
       isNormalUser = true;
       description = "itah";
-      extraGroups = [ "networkmanager" "wheel" ];
-      packages = with pkgs; [ ];
+      shell = pkgs.fish;
+      extraGroups = [
+        "networkmanager"
+        "wheel"
+      ];
     };
   };
 }

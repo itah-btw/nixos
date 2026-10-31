@@ -1,13 +1,23 @@
-{ ... }:
-{
+_: {
   flake.modules.nixos.ocr = { pkgs, ... }: {
     environment.systemPackages = with pkgs; [
-      (tesseract.override { enableLanguages = [ "eng" "ind" ]; })
+      (tesseract.override {
+        enableLanguages = [
+          "eng"
+          "ind"
+        ];
+      })
       grim
       slurp
       (writeShellApplication {
         name = "ocr-region";
-        runtimeInputs = [ grim slurp tesseract wl-clipboard libnotify ];
+        runtimeInputs = [
+          grim
+          slurp
+          tesseract
+          wl-clipboard
+          libnotify
+        ];
         text = ''
           tmp="$(mktemp --suffix=.png)"
           trap 'rm -f "$tmp"' EXIT

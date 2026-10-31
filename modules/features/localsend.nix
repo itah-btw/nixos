@@ -1,6 +1,5 @@
-{ ... }:
-{
-  flake.modules.nixos.localsend = { ... }: {
+_: {
+  flake.modules.nixos.localsend = _: {
     programs.localsend.enable = true;
   };
 }

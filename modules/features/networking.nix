@@ -1,12 +1,13 @@
-{ ... }:
-{
-  flake.modules.nixos.networking = { ... }: {
-    networking.hostName = "nixos";
-    networking.networkmanager.enable = true;
+_: {
+  flake.modules.nixos.networking = _: {
+    networking = {
+      hostName = "nixos";
+      networkmanager.enable = true;
 
-    networking.wg-quick.interfaces.vpnbook = {
-      configFile = "/etc/wireguard/vpnbook.conf";
-      autostart = true;
+      wg-quick.interfaces.vpnbook = {
+        configFile = "/etc/wireguard/vpnbook.conf";
+        autostart = false;
+      };
     };
   };
 }

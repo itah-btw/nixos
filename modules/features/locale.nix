@@ -1,6 +1,5 @@
-{ ... }:
-{
-  flake.modules.nixos.locale = { ... }: {
+_: {
+  flake.modules.nixos.locale = _: {
     time.timeZone = "Asia/Jakarta";
     i18n.defaultLocale = "en_US.UTF-8";
     services.xserver.xkb = {

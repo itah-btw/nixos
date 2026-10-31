@@ -1,5 +1,4 @@
-{ ... }:
-{
+_: {
   flake.modules.homeManager.noctalia = { pkgs, ... }: {
     programs.noctalia = {
       enable = true;
@@ -19,8 +18,18 @@
           font_scale = 1.1;
           background_opacity = 1.0;
           compositor_blur = true;
-          start = [ "workspaces" "sep" "umbriel" "sep" "active_window" ];
-          center = [ "clock" "sep" "weather" ];
+          start = [
+            "workspaces"
+            "sep"
+            "umbriel"
+            "sep"
+            "active_window"
+          ];
+          center = [
+            "clock"
+            "sep"
+            "weather"
+          ];
           end = [
             "media"
             "sep"
@@ -126,7 +135,10 @@
           };
         };
 
-        plugins.enabled = [ "noctalia/wallhaven" "noctalia/umbriel-companion" ];
+        plugins.enabled = [
+          "noctalia/wallhaven"
+          "noctalia/umbriel-companion"
+        ];
 
         shell.font_family = "JetBrainsMono Nerd Font";
 
