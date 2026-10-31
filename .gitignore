@@ -2,3 +2,6 @@
 /result-*
 /.direnv/
 *.qcow2
+
+# OpenCode local state
+.opencode/
