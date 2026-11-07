@@ -1,6 +1,6 @@
 _: {
   flake.modules.homeManager.shell =
-    { pkgs, ... }:
+    { pkgs, lib, config, ... }:
     let
       aliases = {
         nrs = "nh os switch ~/Nixos";
@@ -76,6 +76,7 @@ _: {
             "nerd-font-symbols"
           ];
         };
+
         git.enable = true;
 
         direnv = {
@@ -107,5 +108,19 @@ _: {
           '';
         };
       };
+
+      # Starship config must be a real, writable file (not a Nix store symlink)
+      # so Noctalia's starship template can inject the live `noctalia` palette.
+      home.activation.starshipConfig = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
+        set -eu
+        target="${config.xdg.configHome}/starship.toml"
+        if [ -L "$target" ]; then
+          src="$(${pkgs.coreutils}/bin/readlink -f "$target")"
+          ${pkgs.coreutils}/bin/rm -f "$target"
+          ${pkgs.coreutils}/bin/cp "$src" "$target"
+          ${pkgs.coreutils}/bin/chmod u+w "$target"
+        fi
+      '';
+
     };
 }
