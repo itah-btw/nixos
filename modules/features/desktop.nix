@@ -43,11 +43,15 @@ _: {
       xdg.portal = {
         extraPortals = lib.mkForce [
           pkgs.xdg-desktop-portal-umbriel
+          pkgs.xdg-desktop-portal-gtk
         ];
         config.common = {
           default = [ "umbriel" ];
           "org.freedesktop.impl.portal.ScreenCast" = [ "umbriel" ];
           "org.freedesktop.impl.portal.Screenshot" = [ "umbriel" ];
+          # PipeWire camera capture (OBS "Video Capture Device (PipeWire)")
+          # needs a backend that implements the Camera portal; Umbriel does not.
+          "org.freedesktop.impl.portal.Camera" = [ "gtk" ];
           "org.freedesktop.impl.portal.Secret" = [ "gnome-keyring" ];
         };
       };
