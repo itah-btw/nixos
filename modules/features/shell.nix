@@ -67,7 +67,15 @@ _: {
       programs = {
         zoxide.enable = true;
         fzf.enable = true;
-        starship.enable = true;
+        starship = {
+          enable = true;
+          # Catppuccin powerline matches the desktop theme; nerd-font symbols
+          # use the installed Nerd Font glyphs for language/tool icons.
+          presets = [
+            "catppuccin-powerline"
+            "nerd-font-symbols"
+          ];
+        };
         git.enable = true;
 
         direnv = {
