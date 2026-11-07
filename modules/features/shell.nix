@@ -69,12 +69,41 @@ _: {
         fzf.enable = true;
         starship = {
           enable = true;
-          # Catppuccin powerline matches the desktop theme; nerd-font symbols
-          # use the installed Nerd Font glyphs for language/tool icons.
-          presets = [
-            "catppuccin-powerline"
-            "nerd-font-symbols"
-          ];
+          # Gruvbox-style powerline layout, but colors come from Noctalia's
+          # live `noctalia` palette so the prompt follows the shell theme.
+          settings = {
+            format = lib.concatStrings [
+              "[](peach)"
+              "$os"
+              "$username"
+              "[](bg:yellow fg:peach)"
+              "$directory"
+              "[](fg:yellow bg:teal)"
+              "$git_branch"
+              "$git_status"
+              "[](fg:teal bg:sapphire)"
+              "$c"
+              "$rust"
+              "$golang"
+              "$nodejs"
+              "$bun"
+              "$php"
+              "$java"
+              "$kotlin"
+              "$haskell"
+              "$python"
+              "[](fg:sapphire bg:overlay2)"
+              "$docker_context"
+              "$conda"
+              "$pixi"
+              "[](fg:overlay2 bg:base)"
+              "$time"
+              "[ ](fg:base)"
+              "$line_break"
+              "$character"
+            ];
+            palette = "noctalia";
+          };
         };
 
         git.enable = true;
