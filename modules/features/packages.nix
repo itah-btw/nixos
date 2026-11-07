@@ -1,5 +1,9 @@
 _: {
-  flake.modules.nixos.packages = { pkgs, ... }: {
+  flake.modules.nixos.packages = { pkgs, lib, ... }: {
+    nixpkgs.config.permittedInsecurePackages = [
+      "firefox-esr-140-bin-unwrapped-140.17.0esr"
+    ];
+
     environment.systemPackages = with pkgs; [
       # Nix / system management
       git
@@ -29,6 +33,7 @@ _: {
       ffmpeg
       p7zip
       zip
+      unzip
       poppler-utils
       fd
       ripgrep
@@ -38,17 +43,38 @@ _: {
       procs
       imagemagick
       resvg
+      mariadb
+      mycli
 
       # GUI applications
-      brave-origin
       proton-authenticator
       proton-vpn
-      libreoffice
+      (
+        if lib.versionOlder libreoffice.version "26.8.2" then
+          libreoffice.override {
+            extraMakeWrapperArgs = [
+              "--set"
+              "DISABLE_SYSTEM_DEPENDENT_PRIMITIVE_RENDERER"
+              "1"
+            ];
+          }
+        else
+          libreoffice
+      )
       vscode
-      jabref
+      zotero
       imv
       mpv
-      obs-studio
+      brave-origin
     ];
+
+    # OBS: use the NixOS module so plugins (wlrobs for wlroots capture) are
+    # wrapped into the package. Screen capture on Wayland goes through the
+    # PipeWire/portal path; wlrobs is a direct wlroots fallback. Webcam
+    # capture needs /dev/video* access, handled by the `video` group.
+    programs.obs-studio = {
+      enable = true;
+      plugins = [ pkgs.obs-studio-plugins.wlrobs ];
+    };
   };
 }

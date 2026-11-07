@@ -100,7 +100,7 @@ Roll back with `nrr` if an unattended update causes problems.
 
 ## Notes
 
-- `features/nvim.nix` clones the AstroNvim template on first activation. It is
+- `features/nvim.nix` bootstraps LazyVim via home-manager. It is
   intentionally mutable so you can edit the Neovim config normally.
 - `kitty`, `btop`, `fastfetch`, and `umbriel` use activation copies so their
   configs stay writable. Noctalia also writes theme files at runtime.

@@ -78,7 +78,6 @@ _: {
           ram = {
             type = "sysmon";
             stat = "ram_used";
-            color = "#89b4fa";
             highlight_color = "error";
             visualization = "none";
             show_glyph = true;
@@ -88,7 +87,6 @@ _: {
           cpu = {
             type = "sysmon";
             stat = "cpu_usage";
-            color = "#f9e2af";
             highlight_color = "error";
             visualization = "none";
             show_glyph = true;
@@ -98,7 +96,6 @@ _: {
           temp = {
             type = "sysmon";
             stat = "cpu_temp";
-            color = "#fab387";
             highlight_color = "error";
             visualization = "none";
             show_glyph = true;
@@ -107,37 +104,32 @@ _: {
           };
           clock = {
             type = "clock";
-            color = "#cba6f7";
             format = "󰃭 {:%a, %b %d - %H:%M}";
           };
           bat = {
             type = "battery";
-            color = "#a6e3a1";
             display_mode = "glyph";
             show_label = true;
             label_content = "percent";
           };
           network = {
             type = "network";
-            color = "#89dceb";
           };
           volume = {
             type = "volume";
-            color = "#94e2d5";
           };
           brightness = {
             type = "brightness";
-            color = "#f9e2af";
           };
           weather = {
             type = "weather";
-            color = "#89dceb";
           };
         };
 
         plugins.enabled = [
           "noctalia/wallhaven"
           "noctalia/umbriel-companion"
+          "avivbintangaringga/nix-monitor"
         ];
 
         shell.font_family = "JetBrainsMono Nerd Font";

@@ -57,7 +57,7 @@ _: {
           enable = true;
           settings = {
             cursor = {
-              theme = "Adwaita";
+              theme = "Bibata-Modern-Ice";
               size = 24;
             };
             keyboard.layout = "us";
@@ -68,9 +68,29 @@ _: {
           enable = true;
           alsa.enable = true;
           pulse.enable = true;
+          # PipeWire's X11 bell module connects to XWayland and crashes the
+          # whole daemon (SIGSEGV in libpipewire-module-x11-bell) whenever
+          # that X11 connection drops, which under Umbriel/Wayland happens
+          # regularly and takes audio down with it. Disable it; the compositor
+          # does not need PipeWire to play X11 bells.
+          extraConfig.pipewire."99-disable-x11-bell" = {
+            context.properties = {
+              "module.x11.bell" = false;
+            };
+          };
         };
 
         speechd.enable = false;
       };
+
+      # PipeWire (and other real-time audio) benefit from rtkit for scheduling;
+      # without it PipeWire logs RTKit errors and runs degraded.
+      security.rtkit.enable = true;
+
+      # Enable the Bluetooth adapter so Noctalia's Bluetooth panel works.
+      hardware.bluetooth.enable = true;
+
+      # Compressed in-RAM swap for better responsiveness on the laptop.
+      zramSwap.enable = true;
     };
 }

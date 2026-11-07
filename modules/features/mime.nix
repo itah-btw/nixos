@@ -3,9 +3,9 @@ _: {
     xdg.mime.defaultApplications = {
       "text/plain" = "nvim.desktop";
       "text/*" = "nvim.desktop";
-      "text/html" = "brave-origin.desktop";
-      "x-scheme-handler/http" = "brave-origin.desktop";
-      "x-scheme-handler/https" = "brave-origin.desktop";
+      "text/html" = "firefox.desktop";
+      "x-scheme-handler/http" = "firefox.desktop";
+      "x-scheme-handler/https" = "firefox.desktop";
       "application/pdf" = "org.pwmt.zathura.desktop";
       "image/*" = "imv-dir.desktop";
       "audio/*" = "mpv.desktop";

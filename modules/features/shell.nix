@@ -6,7 +6,7 @@ _: {
         nrs = "nh os switch ~/Nixos";
         nrb = "nh os boot ~/Nixos";
         nrt = "nh os test ~/Nixos";
-        nru = "nh os switch ~/Nixos --refresh";
+        nru = "nh os switch ~/Nixos --update";
         nrr = "nh os rollback";
         nri = "nh os info";
         ngc = "nh clean all --optimise";
