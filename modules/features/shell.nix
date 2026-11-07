@@ -1,6 +1,6 @@
 _: {
   flake.modules.homeManager.shell =
-    { pkgs, lib, config, ... }:    let
+    { pkgs, ... }:    let
       aliases = {
         nrs = "nh os switch ~/Nixos";
         nrb = "nh os boot ~/Nixos";
@@ -68,67 +68,10 @@ _: {
         fzf.enable = true;
         starship = {
           enable = true;
-          settings = {
-            format = lib.concatStrings [
-              "[](peach)"
-              "$os"
-              "$username"
-              "[](bg:yellow fg:peach)"
-              "$directory"
-              "[](fg:yellow bg:teal)"
-              "$git_branch"
-              "$git_status"
-              "[](fg:teal bg:sapphire)"
-              "$c"
-              "$rust"
-              "$golang"
-              "$nodejs"
-              "$bun"
-              "$php"
-              "$java"
-              "$kotlin"
-              "$haskell"
-              "$python"
-              "[](fg:sapphire bg:overlay2)"
-              "$docker_context"
-              "$conda"
-              "$pixi"
-              "[](fg:overlay2 bg:base)"
-              "$time"
-              "[ ](fg:base)"
-              "$line_break"
-              "$character"
-            ];
-            palette = "noctalia";
-
-            os.disabled = false;
-            username = {
-              show_always = true;
-              style_user = "bg:peach fg:crust";
-              style_root = "bg:peach fg:crust";
-              format = "[$user ]($style)";
-            };
-            directory = {
-              style = "fg:crust bg:yellow";
-              format = "[ $path ]($style)";
-              truncation_length = 3;
-              truncation_symbol = "…/";
-            };
-            git_branch = {
-              symbol = "";
-              style = "bg:teal";
-              format = "[[ $symbol $branch ](fg:crust bg:teal)]($style)";
-            };
-            git_status = {
-              style = "bg:teal";
-              format = "[[($all_status$ahead_behind )](fg:crust bg:teal)]($style)";
-            };
-            time = {
-              disabled = false;
-              style = "bg:base";
-              format = "[[  $time ](fg:text bg:base)]($style)";
-            };
-          };
+          presets = [
+            "gruvbox-rainbow"
+            "nerd-font-symbols"
+          ];
         };
 
         git.enable = true;
@@ -163,18 +106,6 @@ _: {
         };
       };
 
-      # Starship config must be a real, writable file (not a Nix store symlink)
-      # so Noctalia's starship template can inject the live `noctalia` palette.
-      home.activation.starshipConfig = lib.hm.dag.entryAfter [ "writeBoundary" ] '''
-        set -eu
-        target="${config.xdg.configHome}/starship.toml"
-        if [ -L "$target" ]; then
-          src="$(${pkgs.coreutils}/bin/readlink -f "$target")"
-          ${pkgs.coreutils}/bin/rm -f "$target"
-          ${pkgs.coreutils}/bin/cp "$src" "$target"
-          ${pkgs.coreutils}/bin/chmod u+w "$target"
-        fi
-      '';
 
     };
 }
