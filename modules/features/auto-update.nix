@@ -39,6 +39,7 @@ _: {
       # fails. The leading "-" tells systemd to ignore a missing file.
       systemd.services.nixos-upgrade.serviceConfig.ExecStopPost = [
         "-${pkgs.coreutils}/bin/chown ${user.name}:${user.group} ${flakePath}/flake.lock"
+        "-${pkgs.bash}/bin/bash -c 'if [ \"$$SERVICE_RESULT\" = success ] && [ -d ${flakePath}/.git ]; then ${pkgs.util-linux}/bin/runuser -u ${user.name} -- ${pkgs.git}/bin/git -C ${flakePath} add flake.lock && ${pkgs.util-linux}/bin/runuser -u ${user.name} -- ${pkgs.git}/bin/git -C ${flakePath} -c user.name=auto-update -c user.email=auto-update@nixos commit -m \"chore: auto-update flake.lock\" || true; fi'"
       ];
     };
 }
