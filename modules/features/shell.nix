@@ -103,6 +103,34 @@ _: {
               "$character"
             ];
             palette = "noctalia";
+
+            os.disabled = false;
+            username = {
+              show_always = true;
+              style_user = "bg:peach fg:crust";
+              style_root = "bg:peach fg:crust";
+              format = "[$user ]($style)";
+            };
+            directory = {
+              style = "fg:crust bg:yellow";
+              format = "[ $path ]($style)";
+              truncation_length = 3;
+              truncation_symbol = "…/";
+            };
+            git_branch = {
+              symbol = "";
+              style = "bg:teal";
+              format = "[[ $symbol $branch ](fg:crust bg:teal)]($style)";
+            };
+            git_status = {
+              style = "bg:teal";
+              format = "[[($all_status$ahead_behind )](fg:crust bg:teal)]($style)";
+            };
+            time = {
+              disabled = false;
+              style = "bg:base";
+              format = "[[  $time ](fg:text bg:base)]($style)";
+            };
           };
         };
 
